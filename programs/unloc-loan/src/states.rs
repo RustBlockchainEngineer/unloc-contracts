@@ -10,7 +10,9 @@ pub struct GlobalState {
     pub accrued_interest_numerator: u64,
     pub apr_numerator: u64,
     pub denominator: u64,
-    pub expire_duration_for_lender: u64,
+    
+    pub reward_per_sol: u64,
+    pub reward_per_usdc: u64,
 }
 
 #[account]

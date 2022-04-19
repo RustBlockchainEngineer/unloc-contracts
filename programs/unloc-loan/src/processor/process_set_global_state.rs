@@ -1,13 +1,22 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token};
+use anchor_spl::token::{Token, TokenAccount, Mint};
 use crate::{
     constant::*,
     states::*,
     utils::*,
 };
+use std::str::FromStr;
 
-
-pub fn process_set_global_state(ctx: Context<SetGlobalState>, accrued_interest_numerator: u64, denominator: u64, apr_numerator: u64, expire_duration_for_lender: u64) -> Result<()> {
+pub fn process_set_global_state(
+    ctx: Context<SetGlobalState>, 
+    accrued_interest_numerator: u64, 
+    denominator: u64, 
+    apr_numerator: u64,
+    reward_per_sol: u64,
+    reward_per_usdc: u64,
+) -> Result<()> {
+    let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
+    require(ctx.accounts.reward_mint.key() == unloc_mint)?;
 
     if is_zero_account(&ctx.accounts.global_state.to_account_info()) {
         ctx.accounts.global_state.super_owner = ctx.accounts.super_owner.key();
@@ -19,18 +28,14 @@ pub fn process_set_global_state(ctx: Context<SetGlobalState>, accrued_interest_n
     ctx.accounts.global_state.accrued_interest_numerator = accrued_interest_numerator;
     ctx.accounts.global_state.denominator = denominator;
     ctx.accounts.global_state.apr_numerator = apr_numerator;
-    ctx.accounts.global_state.expire_duration_for_lender = expire_duration_for_lender;
+    ctx.accounts.global_state.reward_per_sol = reward_per_sol;
+    ctx.accounts.global_state.reward_per_usdc = reward_per_usdc;
 
     Ok(())
 }
 
 #[derive(Accounts)]
-#[instruction(
-    accrued_interest_numerator: u64, 
-    denominator: u64, 
-    apr_numerator: u64, 
-    expire_duration_for_lender: u64
-)]
+#[instruction()]
 pub struct SetGlobalState <'info>{
     #[account(mut)]
     pub super_owner:  Signer<'info>,
@@ -43,6 +48,17 @@ pub struct SetGlobalState <'info>{
         space = std::mem::size_of::<GlobalState>() + 8
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
+
+    pub reward_mint: Box<Account<'info, Mint>>,
+    #[account(
+        init_if_needed,
+        token::mint = reward_mint,
+        token::authority = global_state,
+        seeds = [REWARD_VAULT_TAG],
+        bump,
+        payer = super_owner,
+    )]
+    pub reward_vault:Box<Account<'info, TokenAccount>>,
     /// CHECK: key only is used
     pub new_super_owner:AccountInfo<'info>,
     /// CHECK: key only is used
