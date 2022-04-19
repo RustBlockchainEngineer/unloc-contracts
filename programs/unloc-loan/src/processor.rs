@@ -20,3 +20,6 @@ pub use process_accept_offer::*;
 
 pub mod process_repay_loan;
 pub use process_repay_loan::*;
+
+pub mod process_claim_collateral;
+pub use process_claim_collateral::*;

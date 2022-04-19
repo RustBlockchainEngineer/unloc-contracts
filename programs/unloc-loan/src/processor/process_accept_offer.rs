@@ -24,6 +24,7 @@ use crate::{
 use std::str::FromStr;
 pub fn process_accept_offer(ctx: Context<AcceptOffer>) -> Result<()> { 
     require(ctx.accounts.sub_offer.sub_offer_number >= ctx.accounts.offer.start_sub_offer_num)?;
+    require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed))?;
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     if ctx.accounts.offer_mint.key() == wsol_mint {
         require(ctx.accounts.lender.lamports() >= ctx.accounts.sub_offer.offer_amount)?;

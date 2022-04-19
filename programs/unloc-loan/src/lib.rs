@@ -48,4 +48,7 @@ pub mod unloc_nft_loan {
     pub fn repay_loan(ctx: Context<RepayLoan>) -> Result<()> { 
         process_repay_loan(ctx) 
     }
+    pub fn claim_collateral(ctx: Context<ClaimCollateral>) -> Result<()> { 
+        process_claim_collateral(ctx) 
+    }
 }

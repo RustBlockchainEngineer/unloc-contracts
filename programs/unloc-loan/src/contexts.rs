@@ -261,3 +261,57 @@ pub struct RepayLoan<'info> {
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
 }
+
+#[derive(Accounts)]
+#[instruction()]
+pub struct ClaimCollateral<'info> {
+    #[account(mut)]
+    pub lender:  Signer<'info>,
+    
+    #[account(
+        seeds = [GLOBAL_STATE_TAG],
+        bump,
+    )]
+    pub global_state:Box<Account<'info, GlobalState>>,
+    /// CHECK: key only
+    #[account(mut,
+        constraint = global_state.treasury_wallet == treasury_wallet.key()
+    )]
+    pub treasury_wallet:AccountInfo<'info>,
+
+    #[account(mut,
+    seeds = [OFFER_TAG, offer.borrower.key().as_ref(), offer.nft_mint.as_ref()],
+    bump,
+    )]
+    pub offer:Box<Account<'info, Offer>>,
+
+    #[account(mut,
+    seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
+    bump,
+    )]
+    pub sub_offer:Box<Account<'info, SubOffer>>,
+    
+    #[account(mut,
+        constraint = lender_nft_vault.mint == offer.nft_mint,
+        constraint = lender_nft_vault.owner == lender.key()
+    )]
+    pub lender_nft_vault: Box<Account<'info, TokenAccount>>,
+    
+    #[account(mut,
+        seeds = [NFT_VAULT_TAG, offer.key().as_ref()],
+        bump,
+    )]
+    pub nft_vault: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
+    pub lender_offer_vault: Box<Account<'info, TokenAccount>>,
+
+    #[account(mut,
+        seeds = [TREASURY_VAULT_TAG, sub_offer.offer_mint.as_ref()],
+        bump
+    )]
+    pub treasury_vault: Box<Account<'info, TokenAccount>>,
+
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub clock: Sysvar<'info, Clock>,
+}
