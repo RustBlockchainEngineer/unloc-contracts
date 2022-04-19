@@ -1,23 +1,15 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{
-    self,  
-    //MintTo, 
-    Transfer, 
-    //ID
-};
-
+use anchor_spl::token::{self, Token, TokenAccount,Mint, Transfer};
 use anchor_lang::solana_program::{
     system_instruction,
     program::{
         invoke, 
-        // invoke_signed
     },
 };
 
 use crate::{
     //error::*,
     constant::*,
-    contexts::*,
     utils::*,
     states::*,
 };
@@ -61,4 +53,42 @@ pub fn process_accept_offer(ctx: Context<AcceptOffer>) -> Result<()> {
     
     ctx.accounts.sub_offer.loan_started_time = ctx.accounts.clock.unix_timestamp as u64;
     Ok(())
+}
+
+#[derive(Accounts)]
+#[instruction()]
+pub struct AcceptOffer<'info> {
+    #[account(mut)]
+    pub lender:  Signer<'info>,
+
+    /// CHECK: we use this account for owner
+    pub borrower:  AccountInfo<'info>,
+
+    #[account(mut, 
+    seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
+    bump,
+    )]
+    pub offer:Box<Account<'info, Offer>>,
+
+    #[account(mut,
+    seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
+    bump,
+    )]
+    pub sub_offer:Box<Account<'info, SubOffer>>,
+
+    #[account(mut,
+        constraint = sub_offer.offer_mint == offer_mint.key()
+    )]
+    pub offer_mint: Box<Account<'info, Mint>>,
+
+    #[account(mut)]
+    pub borrower_offer_vault: Box<Account<'info, TokenAccount>>,
+
+    #[account(mut)]
+    pub lender_offer_vault: Box<Account<'info, TokenAccount>>,
+    
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
+    pub clock: Sysvar<'info, Clock>,
 }

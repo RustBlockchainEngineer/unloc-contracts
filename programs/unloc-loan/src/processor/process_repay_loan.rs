@@ -1,15 +1,8 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{
-    self,  
-    //MintTo, 
-    Transfer, 
-    //ID
-};
-
+use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 use crate::{
     error::*,
     constant::*,
-    contexts::*,
     states::*,
     utils::*
 };
@@ -115,4 +108,65 @@ pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::NFTClaimed);
     
     Ok(())
+}
+
+#[derive(Accounts)]
+#[instruction()]
+pub struct RepayLoan<'info> {
+    #[account(mut)]
+    pub borrower:  Signer<'info>,
+
+    /// CHECK: we use this account for owner
+    pub lender:  AccountInfo<'info>,
+    
+    #[account(
+        seeds = [GLOBAL_STATE_TAG],
+        bump,
+    )]
+    pub global_state:Box<Account<'info, GlobalState>>,
+    /// CHECK: key only is used
+    #[account(mut,
+        constraint = global_state.treasury_wallet == treasury_wallet.key()
+    )]
+    pub treasury_wallet:AccountInfo<'info>,
+
+    #[account(mut,
+    seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
+    bump,
+    )]
+    pub offer:Box<Account<'info, Offer>>,
+
+    #[account(mut,
+    seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
+    bump,
+    )]
+    pub sub_offer:Box<Account<'info, SubOffer>>,
+
+    
+    #[account(mut,
+        constraint = borrower_nft_vault.mint == offer.nft_mint,
+        constraint = borrower_nft_vault.owner == borrower.key()
+    )]
+    pub borrower_nft_vault: Box<Account<'info, TokenAccount>>,
+    
+    #[account(mut,
+        seeds = [NFT_VAULT_TAG, offer.key().as_ref()],
+        bump,
+    )]
+    pub nft_vault: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
+    pub lender_offer_vault: Box<Account<'info, TokenAccount>>,
+
+    #[account(mut)]
+    pub borrower_offer_vault: Box<Account<'info, TokenAccount>>,
+    #[account(mut,
+        seeds = [TREASURY_VAULT_TAG, sub_offer.offer_mint.as_ref()],
+        bump
+    )]
+    pub treasury_vault: Box<Account<'info, TokenAccount>>,
+
+    
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub clock: Sysvar<'info, Clock>,
 }

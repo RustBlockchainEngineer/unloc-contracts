@@ -1,15 +1,7 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{
-    self,  
-    //MintTo, 
-    Transfer, 
-    //ID
-};
-
+use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 use crate::{
-    //error::*,
     constant::*,
-    contexts::*,
     states::*,
     utils::*,
 };
@@ -42,4 +34,30 @@ pub fn process_cancel_offer(ctx: Context<CancelOffer>) -> Result<()> {
         token::transfer(cpi_ctx, ctx.accounts.nft_vault.amount)?;
     }
     Ok(())
+}
+
+#[derive(Accounts)]
+#[instruction()]
+pub struct CancelOffer<'info> {
+    #[account(mut)]
+    pub borrower:  Signer<'info>,
+
+    #[account(mut,
+    seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
+    bump,
+    )]
+    pub offer:Box<Account<'info, Offer>>,
+
+    #[account(mut,
+        seeds = [NFT_VAULT_TAG, offer.key().as_ref()],
+        bump,
+    )]
+    pub nft_vault: Box<Account<'info, TokenAccount>>,
+    #[account(mut,
+        constraint = borrower.key() == user_vault.owner,
+        constraint = user_vault.mint == offer.nft_mint
+    )]
+    pub user_vault: Box<Account<'info, TokenAccount>>,
+
+    pub token_program: Program<'info, Token>,
 }

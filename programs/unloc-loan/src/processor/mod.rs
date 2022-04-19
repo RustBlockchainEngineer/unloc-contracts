@@ -1,5 +1,3 @@
-
-
 pub mod process_set_global_state;
 pub use process_set_global_state::*;
 

@@ -8,15 +8,12 @@ pub mod processor;
 pub mod error;
 /// constant
 pub mod constant;
-/// contexts
-pub mod contexts;
 /// events
 pub mod events;
 /// events
 pub mod utils;
 
 use crate::{
-    contexts::*,
     processor::*,
 };
 

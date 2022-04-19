@@ -1,10 +1,8 @@
 use anchor_lang::prelude::*;
-//use anchor_spl::token::{self,  MintTo, Transfer, ID};
+use anchor_spl::token::{Token, TokenAccount,Mint};
 
 use crate::{
-    //error::*,
-    //constant::*,
-    contexts::*,
+    constant::*,
     states::*,
     utils::*
 };
@@ -26,4 +24,52 @@ pub fn process_set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_o
     ctx.accounts.sub_offer.apr_numerator = apr_numerator;
     
     Ok(())
+}
+
+#[derive(Accounts)]
+#[instruction(offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64)]
+pub struct SetSubOffer<'info> {
+    #[account(mut)]
+    pub borrower:  Signer<'info>,
+
+    #[account(
+    seeds = [GLOBAL_STATE_TAG],
+    bump,
+    )]
+    pub global_state:Box<Account<'info, GlobalState>>,
+    
+    #[account(mut,
+        seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
+        bump,
+    )]
+    pub offer:Box<Account<'info, Offer>>,
+
+    #[account(
+    init_if_needed,
+    seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer_number.to_be_bytes()],
+    bump,
+    payer = borrower,
+    constraint = sub_offer_number <= offer.sub_offer_count,
+    space = std::mem::size_of::<SubOffer>() + 8
+    )]
+    pub sub_offer:Box<Account<'info, SubOffer>>,
+
+    pub offer_mint: Box<Account<'info, Mint>>,
+    /// CHECK: key only is used
+    #[account(mut,
+        constraint = global_state.treasury_wallet == treasury_wallet.key()
+    )]
+    pub treasury_wallet:AccountInfo<'info>,
+
+    #[account(init_if_needed,
+        token::mint = offer_mint,
+        token::authority = treasury_wallet,
+        seeds = [TREASURY_VAULT_TAG, offer_mint.key().as_ref()],
+        bump,
+        payer = borrower)]
+    pub treasury_vault: Box<Account<'info, TokenAccount>>,
+
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
 }

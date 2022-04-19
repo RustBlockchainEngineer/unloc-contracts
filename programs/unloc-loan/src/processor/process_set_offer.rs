@@ -1,15 +1,9 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{
-    self,  
-    //MintTo, 
-    Transfer, 
-    //ID
-};
+use anchor_spl::token::{self, Token, TokenAccount,Mint, Transfer};
 
 use crate::{
     error::*,
-    //constant::*,
-    contexts::*,
+    constant::*,
     states::*,
     utils::*,
 };
@@ -41,4 +35,40 @@ pub fn process_set_offer(ctx: Context<SetOffer>) -> Result<()> {
         return Err(error!(LoanError::InvalidAmount));
     }
     Ok(())
+}
+
+#[derive(Accounts)]
+#[instruction()]
+pub struct SetOffer<'info> {
+    #[account(mut)]
+    pub borrower:  Signer<'info>,
+    #[account(
+    init_if_needed,
+    seeds = [OFFER_TAG, borrower.key().as_ref(), nft_mint.key().as_ref()],
+    bump,
+    payer = borrower,
+    space = std::mem::size_of::<Offer>() + 8
+    )]
+    pub offer:Box<Account<'info, Offer>>,
+
+    pub nft_mint: Box<Account<'info, Mint>>,
+
+    #[account(init_if_needed,
+        token::mint = nft_mint,
+        token::authority = offer,
+        seeds = [NFT_VAULT_TAG, offer.key().as_ref()],
+        bump,
+        payer = borrower,
+    )]
+    pub nft_vault: Box<Account<'info, TokenAccount>>,
+
+    #[account(mut,
+        constraint = user_vault.mint == nft_mint.key(),
+        constraint = user_vault.owner == borrower.key()
+    )]
+    pub user_vault: Box<Account<'info, TokenAccount>>,
+    
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
 }
