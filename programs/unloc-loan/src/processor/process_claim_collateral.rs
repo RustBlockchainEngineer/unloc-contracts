@@ -30,14 +30,12 @@ pub fn process_claim_collateral(ctx: Context<ClaimCollateral>) -> Result<()> {
     let started_time = ctx.accounts.sub_offer.loan_started_time;
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let seconds_for_year = 3600 * 24 * 365;
-    let offer_apr = ctx.accounts.sub_offer.apr_numerator;
     let unloc_apr = ctx.accounts.global_state.apr_numerator;
     let denominator = ctx.accounts.global_state.denominator;
     let loan_duration = ctx.accounts.sub_offer.loan_duration;
 
     require(current_time > started_time + loan_duration)?;
 
-    // let needed_amount = origin + calc_fee(origin, offer_apr * (current_time - started_time),  seconds_for_year * denominator)?;
     let unloc_fee_amount = calc_fee(origin, unloc_apr * (current_time - started_time), seconds_for_year * denominator)?;
 
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
