@@ -9,6 +9,7 @@ use crate::{
 pub fn process_cancel_offer(ctx: Context<CancelOffer>) -> Result<()> { 
     let borrower = &mut ctx.accounts.borrower;
     let borrower_key = borrower.key();
+    require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed) || ctx.accounts.offer.state == OfferState::get_state(OfferState::NFTClaimed))?;
 
     ctx.accounts.offer.state = OfferState::get_state(OfferState::Canceled);
     if ctx.accounts.nft_vault.amount > 0 {

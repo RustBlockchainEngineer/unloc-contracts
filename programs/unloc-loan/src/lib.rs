@@ -29,6 +29,9 @@ pub mod unloc_nft_loan {
     pub fn deposit_rewards(ctx: Context<DepositRewards>, amount: u64) -> Result<()> { 
         process_deposit_rewards(ctx, amount) 
     }
+    pub fn claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> { 
+        process_claim_rewards(ctx)
+    }
     // create offer & update offer
     pub fn set_offer(ctx: Context<SetOffer>) -> Result<()> { 
         process_set_offer(ctx) 

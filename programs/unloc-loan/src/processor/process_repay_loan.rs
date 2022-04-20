@@ -84,6 +84,8 @@ pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Fulfilled);
     ctx.accounts.offer.state = OfferState::get_state(OfferState::Fulfilled);
 
+    ctx.accounts.lender_reward.end_time = current_time;
+
     let cpi_accounts_offer = Transfer {
         from: ctx.accounts.nft_vault.to_account_info(),
         to: ctx.accounts.borrower_nft_vault.to_account_info(),
@@ -141,6 +143,12 @@ pub struct RepayLoan<'info> {
     bump,
     )]
     pub sub_offer:Box<Account<'info, SubOffer>>,
+    #[account(
+        mut,
+        seeds = [LENDER_REWARD_TAG, sub_offer.lender.as_ref(), sub_offer.key().as_ref()],
+        bump,
+        )]
+    pub lender_reward:Box<Account<'info, LenderReward>>,
 
     
     #[account(mut,

@@ -52,6 +52,20 @@ pub fn process_accept_offer(ctx: Context<AcceptOffer>) -> Result<()> {
     ctx.accounts.sub_offer.lender = ctx.accounts.lender.key();
     
     ctx.accounts.sub_offer.loan_started_time = ctx.accounts.clock.unix_timestamp as u64;
+
+    let current_time = ctx.accounts.clock.unix_timestamp as u64;
+    ctx.accounts.lender_reward.lender = ctx.accounts.lender.key();
+    ctx.accounts.lender_reward.sub_offer = ctx.accounts.sub_offer.key();
+    ctx.accounts.lender_reward.loan_mint = ctx.accounts.offer_mint.key();
+    ctx.accounts.lender_reward.loan_mint_decimals = ctx.accounts.offer_mint.decimals;
+    ctx.accounts.lender_reward.start_time = current_time;
+    ctx.accounts.lender_reward.last_claimed_time = current_time;
+    ctx.accounts.lender_reward.max_duration = ctx.accounts.sub_offer.loan_duration;
+    ctx.accounts.lender_reward.end_time = ctx.accounts.sub_offer.loan_duration + current_time;
+    ctx.accounts.lender_reward.loan_amount = ctx.accounts.sub_offer.offer_amount;
+    ctx.accounts.lender_reward.claimed_amount = 0;
+    
+
     Ok(())
 }
 
@@ -75,6 +89,15 @@ pub struct AcceptOffer<'info> {
     bump,
     )]
     pub sub_offer:Box<Account<'info, SubOffer>>,
+
+    #[account(
+        init,
+        seeds = [LENDER_REWARD_TAG, lender.key().as_ref(), sub_offer.key().as_ref()],
+        bump,
+        payer = lender,
+        space = std::mem::size_of::<LenderReward>() + 8
+        )]
+    pub lender_reward:Box<Account<'info, LenderReward>>,
 
     #[account(mut,
         constraint = sub_offer.offer_mint == offer_mint.key()

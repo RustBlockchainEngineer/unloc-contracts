@@ -1,6 +1,7 @@
 pub const GLOBAL_STATE_TAG:&[u8] = b"global-state-seed";
 pub const REWARD_VAULT_TAG:&[u8] = b"reward-vault-seed";
 pub const OFFER_TAG:&[u8] = b"offer-seed";
+pub const LENDER_REWARD_TAG:&[u8] = b"lender-reward-seed";
 pub const SUB_OFFER_TAG:&[u8] = b"sub-offer-seed";
 pub const NFT_VAULT_TAG:&[u8] = b"nft-vault-seed";
 pub const OFFER_VAULT_TAG:&[u8] = b"offer-vault-seed";

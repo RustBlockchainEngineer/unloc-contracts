@@ -2,9 +2,11 @@ use anchor_lang::prelude::*;
 use crate::{
     constant::*,
     states::*,
+    utils::*
 };
 
 pub fn process_cancel_sub_offer(ctx: Context<CancelSubOffer>, ) -> Result<()> { 
+    require(ctx.accounts.sub_offer.state == SubOfferState::get_state(SubOfferState::Proposed) || ctx.accounts.sub_offer.state == SubOfferState::get_state(SubOfferState::NFTClaimed))?;
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Canceled);
     
     Ok(())

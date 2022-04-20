@@ -79,3 +79,20 @@ impl SubOfferState {
         state as u8
     }
 }
+
+
+#[account]
+#[derive(Default)]
+pub struct LenderReward {
+    pub lender: Pubkey,
+    pub sub_offer: Pubkey,
+    pub loan_mint: Pubkey,
+    pub loan_mint_decimals: u8,
+
+    pub start_time: u64,
+    pub end_time: u64,
+    pub last_claimed_time: u64,
+    pub max_duration: u64,
+    pub loan_amount: u64,
+    pub claimed_amount: u64,
+}
