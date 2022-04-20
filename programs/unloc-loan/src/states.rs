@@ -10,7 +10,9 @@ pub struct GlobalState {
     pub accrued_interest_numerator: u64,
     pub apr_numerator: u64,
     pub denominator: u64,
-    pub expire_duration_for_lender: u64,
+    
+    pub reward_per_sol: u64,
+    pub reward_per_usdc: u64,
 }
 
 #[account]
@@ -76,4 +78,21 @@ impl SubOfferState {
     pub fn get_state(state: SubOfferState) -> u8 {
         state as u8
     }
+}
+
+
+#[account]
+#[derive(Default)]
+pub struct LenderReward {
+    pub lender: Pubkey,
+    pub sub_offer: Pubkey,
+    pub loan_mint: Pubkey,
+    pub loan_mint_decimals: u8,
+
+    pub start_time: u64,
+    pub end_time: u64,
+    pub last_claimed_time: u64,
+    pub max_duration: u64,
+    pub loan_amount: u64,
+    pub claimed_amount: u64,
 }
