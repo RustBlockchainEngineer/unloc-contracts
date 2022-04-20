@@ -8,6 +8,7 @@ declare_id!("FBHjXGXUa65hSCzyfMhkcLzu2U3HByNqcWMuDUUHURLa");
 
 const FULL_100: u64 = 100_000_000_000;
 const ACC_PRECISION: u128 = 100_000_000_000;
+const MAX_LEVEL: usize = 10;
 
 #[program]
 pub mod unloc_staking {
@@ -414,7 +415,7 @@ pub struct ChangePoolSetting<'info> {
 #[instruction(bump: u8)]
 pub struct CreateExtraRewardsConfigs<'info> {
     #[account(init, 
-        seeds = [b"extra".as_ref()], bump, payer = authority, space = 8 + 197)]
+        seeds = [b"extra".as_ref()], bump, payer = authority, space = 8 + 37 + MAX_LEVEL * 16)]
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
     #[account(mut)]
     pub authority: Signer<'info>,
