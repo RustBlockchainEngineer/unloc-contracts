@@ -241,8 +241,7 @@ pub mod unloc_staking {
         if is_early_unlock {
             // flexible reward, pay early_unlock_fee percentage, unstake the rest only
             pool.update(state, &_ctx.accounts.clock)?;
-            let user_lock_duration = user.lock_duration;
-            user.calculate_reward_amount(pool, 0)?;
+            user.calculate_reward_amount(pool, &0)?;
 
             user.last_stake_time = _ctx.accounts.clock.unix_timestamp;
             user.amount = user.amount.checked_sub(amount).unwrap();
@@ -256,7 +255,7 @@ pub mod unloc_staking {
             user.calculate_reward_debt(pool)?;
             drop(pool);
             let early_unlock_fee = _ctx.accounts.state.early_unlock_fee;
-            let early_unlock_fee_amount = calc_fee(amount, early_unlock_fee, ACC_PRECISION)?;
+            let early_unlock_fee_amount = calc_fee(amount, early_unlock_fee, ACC_PRECISION.try_into().unwrap())?;
             let unstake_amount = amount - early_unlock_fee_amount;
             let new_pool = &_ctx.accounts.pool;
             let cpi_accounts = Transfer {
@@ -275,7 +274,7 @@ pub mod unloc_staking {
                 pool: _ctx.accounts.pool.key(),
                 user: _ctx.accounts.user.key(),
                 authority: _ctx.accounts.authority.key(),
-                unstake_amount
+                amount: unstake_amount
             });
 
             let cpi_accounts_fee = Transfer {
@@ -660,7 +659,7 @@ impl ExtraRewardsAccount {
         }
         Err(ErrorCode::InvalidLockDuration.into())
     }
-    fn get_extra_reward_percentage<'info>(&mut self, lock_duration: &i64) -> u64 {
+    fn get_extra_reward_percentage<'info>(&self, lock_duration: &i64) -> u64 {
         let reversed_configs: Vec<DurationExtraRewardConfig> =
             self.configs.iter().rev().cloned().collect();
         for tier in reversed_configs.iter() {
@@ -773,6 +772,19 @@ impl FarmPoolUserAccount {
             .checked_div(ACC_PRECISION)
             .unwrap();
         Ok(())
+    }
+    fn get_score<'info>(
+        &mut self,
+        extra_percentage: &u64,
+    ) -> Result<u128> {
+        let score: u128 = u128::from(self.amount)
+            .checked_mul(u128::from(*extra_percentage))
+            .unwrap()
+            .checked_div(u128::from(FULL_100))
+            .unwrap()
+            .checked_mul(100u128)
+            .unwrap();
+        Ok(score)
     }
 }
 
