@@ -8,6 +8,7 @@ declare_id!("FBHjXGXUa65hSCzyfMhkcLzu2U3HByNqcWMuDUUHURLa");
 
 const FULL_100: u64 = 100_000_000_000;
 const ACC_PRECISION: u128 = 100_000_000_000;
+const MAX_LEVEL: usize = 10;
 
 #[program]
 pub mod unloc_staking {
@@ -17,14 +18,17 @@ pub mod unloc_staking {
         _ctx: Context<CreateState>,
         bump: u8,
         token_per_second: u64,
+        early_unlock_fee: u64,
     ) -> Result<()> {
         let state = &mut _ctx.accounts.state;
         state.authority = _ctx.accounts.authority.key();
         state.bump = bump;
         state.start_time = _ctx.accounts.clock.unix_timestamp;
         state.token_per_second = token_per_second;
+        state.early_unlock_fee = early_unlock_fee;
         state.reward_mint = _ctx.accounts.reward_mint.key();
         state.reward_vault = _ctx.accounts.reward_vault.key();
+        state.fee_vault = _ctx.accounts.fee_vault.key();
         Ok(())
     }
 
@@ -74,6 +78,22 @@ pub mod unloc_staking {
         }
         state.token_per_second = token_per_second;
         emit!(RateChanged { token_per_second });
+        Ok(())
+    }
+    pub fn change_early_unlock_fee(
+        _ctx: Context<ChangeEarlyUnlockFee>,
+        early_unlock_fee: u64,
+    ) -> Result<()> {
+        let state = &mut _ctx.accounts.state;
+        state.early_unlock_fee = early_unlock_fee;
+        emit!(EarlyUnlockFeeChanged { early_unlock_fee });
+        Ok(())
+    }
+    pub fn change_fee_vault(
+        _ctx: Context<ChangeFeeVault>
+    ) -> Result<()> {
+        let state = &mut _ctx.accounts.state;
+        state.fee_vault = _ctx.accounts.fee_vault.key();
         Ok(())
     }
 
@@ -217,48 +237,92 @@ pub mod unloc_staking {
         let pool = &mut _ctx.accounts.pool;
 
         require!(user.amount >= amount, ErrorCode::UnstakeOverAmount);
-        require!(
-            user.last_stake_time
-                .checked_add(user.lock_duration)
-                .unwrap()
-                <= _ctx.accounts.clock.unix_timestamp,
-            ErrorCode::UnderLocked
-        );
+        let is_early_unlock = user.last_stake_time.checked_add(user.lock_duration).unwrap() > _ctx.accounts.clock.unix_timestamp;
+        if is_early_unlock {
+            // flexible reward, pay early_unlock_fee percentage, unstake the rest only
+            pool.update(state, &_ctx.accounts.clock)?;
+            user.calculate_reward_amount(pool, &0)?;
 
-        pool.update(state, &_ctx.accounts.clock)?;
-        let user_lock_duration = user.lock_duration;
-        user.calculate_reward_amount(pool, &extra_account.get_extra_reward_percentage(&user_lock_duration))?;
+            user.last_stake_time = _ctx.accounts.clock.unix_timestamp;
+            user.amount = user.amount.checked_sub(amount).unwrap();
+            pool.amount = pool.amount.checked_sub(amount).unwrap();
 
-        user.last_stake_time = _ctx.accounts.clock.unix_timestamp;
-        user.amount = user.amount.checked_sub(amount).unwrap();
-        pool.amount = pool.amount.checked_sub(amount).unwrap();
+            if user.amount == 0
+            {
+                user.lock_duration = 0;
+            }
 
-        if user.amount == 0
-        {
-            user.lock_duration = 0;
+            user.calculate_reward_debt(pool)?;
+            drop(pool);
+            let early_unlock_fee = _ctx.accounts.state.early_unlock_fee;
+            let early_unlock_fee_amount = calc_fee(amount, early_unlock_fee, ACC_PRECISION.try_into().unwrap())?;
+            let unstake_amount = amount - early_unlock_fee_amount;
+            let new_pool = &_ctx.accounts.pool;
+            let cpi_accounts = Transfer {
+                from: _ctx.accounts.pool_vault.to_account_info(),
+                to: _ctx.accounts.user_vault.to_account_info(),
+                authority: _ctx.accounts.pool.to_account_info(),
+            };
+
+            let seeds = &[new_pool.mint.as_ref(), &[new_pool.bump]];
+            let signer = &[&seeds[..]];
+            let cpi_program = _ctx.accounts.token_program.to_account_info();
+            let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+            token::transfer(cpi_ctx, unstake_amount)?;
+
+            emit!(UserUnstaked {
+                pool: _ctx.accounts.pool.key(),
+                user: _ctx.accounts.user.key(),
+                authority: _ctx.accounts.authority.key(),
+                amount: unstake_amount
+            });
+
+            let cpi_accounts_fee = Transfer {
+                from: _ctx.accounts.pool_vault.to_account_info(),
+                to: _ctx.accounts.fee_vault.to_account_info(),
+                authority: _ctx.accounts.pool.to_account_info(),
+            };
+            let cpi_program_fee = _ctx.accounts.token_program.to_account_info();
+            let cpi_ctx_fee = CpiContext::new_with_signer(cpi_program_fee, cpi_accounts_fee, signer);
+            token::transfer(cpi_ctx_fee, early_unlock_fee_amount)?;
         }
+        else {
+            pool.update(state, &_ctx.accounts.clock)?;
+            let user_lock_duration = user.lock_duration;
+            user.calculate_reward_amount(pool, &extra_account.get_extra_reward_percentage(&user_lock_duration))?;
 
-        user.calculate_reward_debt(pool)?;
-        drop(pool);
+            user.last_stake_time = _ctx.accounts.clock.unix_timestamp;
+            user.amount = user.amount.checked_sub(amount).unwrap();
+            pool.amount = pool.amount.checked_sub(amount).unwrap();
 
-        let new_pool = &_ctx.accounts.pool;
-        let cpi_accounts = Transfer {
-            from: _ctx.accounts.pool_vault.to_account_info(),
-            to: _ctx.accounts.user_vault.to_account_info(),
-            authority: _ctx.accounts.pool.to_account_info(),
-        };
+            if user.amount == 0
+            {
+                user.lock_duration = 0;
+            }
 
-        let seeds = &[new_pool.mint.as_ref(), &[new_pool.bump]];
-        let signer = &[&seeds[..]];
-        let cpi_program = _ctx.accounts.token_program.to_account_info();
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-        token::transfer(cpi_ctx, amount)?;
-        emit!(UserUnstaked {
-            pool: _ctx.accounts.pool.key(),
-            user: _ctx.accounts.user.key(),
-            authority: _ctx.accounts.authority.key(),
-            amount
-        });
+            user.calculate_reward_debt(pool)?;
+            drop(pool);
+
+            let new_pool = &_ctx.accounts.pool;
+            let cpi_accounts = Transfer {
+                from: _ctx.accounts.pool_vault.to_account_info(),
+                to: _ctx.accounts.user_vault.to_account_info(),
+                authority: _ctx.accounts.pool.to_account_info(),
+            };
+
+            let seeds = &[new_pool.mint.as_ref(), &[new_pool.bump]];
+            let signer = &[&seeds[..]];
+            let cpi_program = _ctx.accounts.token_program.to_account_info();
+            let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+            token::transfer(cpi_ctx, amount)?;
+            emit!(UserUnstaked {
+                pool: _ctx.accounts.pool.key(),
+                user: _ctx.accounts.user.key(),
+                authority: _ctx.accounts.authority.key(),
+                amount
+            });
+        }
+        
         Ok(())
     }
 
@@ -314,6 +378,7 @@ pub struct CreateState<'info> {
     #[account(constraint = reward_vault.owner == state.key())]
     pub reward_vault: Account<'info, TokenAccount>,
     pub reward_mint: Box<Account<'info, Mint>>,
+    pub fee_vault: Account<'info, TokenAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
     /// CHECK: unchecked account
@@ -350,6 +415,24 @@ pub struct ChangeTokensPerSecond<'info> {
     pub authority: Signer<'info>,
     pub clock: Sysvar<'info, Clock>,
 }
+#[derive(Accounts)]
+pub struct ChangeEarlyUnlockFee<'info> {
+    #[account(mut, 
+        
+        seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
+    pub state: Account<'info, StateAccount>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+}
+#[derive(Accounts)]
+pub struct ChangeFeeVault<'info> {
+    #[account(mut, 
+        seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
+    pub state: Account<'info, StateAccount>,
+    pub fee_vault: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+}
 
 #[derive(Accounts)]
 #[instruction(bump: u8)]
@@ -385,7 +468,6 @@ pub struct CloseFarmPool<'info> {
         seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
     pub state: Account<'info, StateAccount>,
     #[account(mut, 
-        
         seeds = [pool.mint.key().as_ref()], bump = pool.bump, has_one = authority, close = authority)]
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
@@ -414,7 +496,7 @@ pub struct ChangePoolSetting<'info> {
 #[instruction(bump: u8)]
 pub struct CreateExtraRewardsConfigs<'info> {
     #[account(init, 
-        seeds = [b"extra".as_ref()], bump, payer = authority, space = 8 + 197)]
+        seeds = [b"extra".as_ref()], bump, payer = authority, space = 8 + 37 + MAX_LEVEL * 16)]
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -449,7 +531,6 @@ pub struct CreatePoolUser<'info> {
         seeds = [b"state".as_ref()], bump = state.bump)]
     pub state: Account<'info, StateAccount>,
     #[account(mut, 
-        
         seeds = [pool.mint.key().as_ref()], bump = pool.bump)]
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
@@ -484,6 +565,9 @@ pub struct Stake<'info> {
     #[account(mut, 
         constraint = user_vault.owner == authority.key())]
     pub user_vault: Box<Account<'info, TokenAccount>>,
+    #[account(mut, 
+        constraint = fee_vault.key() == state.fee_vault)]
+    pub fee_vault: Box<Account<'info, TokenAccount>>,
     /// CHECK: unchecked account
     pub system_program: UncheckedAccount<'info>,
     #[account(constraint = token_program.key == &token::ID)]
@@ -528,10 +612,12 @@ pub struct StateAccount {
     pub authority: Pubkey,
     pub reward_mint: Pubkey,
     pub reward_vault: Pubkey,
+    pub fee_vault: Pubkey,
     pub bump: u8,
     pub total_point: u64,
     pub start_time: i64,
     pub token_per_second: u64,
+    pub early_unlock_fee: u64,
 }
 
 #[account]
@@ -573,7 +659,7 @@ impl ExtraRewardsAccount {
         }
         Err(ErrorCode::InvalidLockDuration.into())
     }
-    fn get_extra_reward_percentage<'info>(&mut self, lock_duration: &i64) -> u64 {
+    fn get_extra_reward_percentage<'info>(&self, lock_duration: &i64) -> u64 {
         let reversed_configs: Vec<DurationExtraRewardConfig> =
             self.configs.iter().rev().cloned().collect();
         for tier in reversed_configs.iter() {
@@ -687,6 +773,19 @@ impl FarmPoolUserAccount {
             .unwrap();
         Ok(())
     }
+    fn get_score<'info>(
+        &mut self,
+        extra_percentage: &u64,
+    ) -> Result<u128> {
+        let score: u128 = u128::from(self.amount)
+            .checked_mul(u128::from(*extra_percentage))
+            .unwrap()
+            .checked_div(u128::from(FULL_100))
+            .unwrap()
+            .checked_mul(100u128)
+            .unwrap();
+        Ok(score)
+    }
 }
 
 #[error_code]
@@ -701,10 +800,17 @@ pub enum ErrorCode {
     InvalidLockDuration,
     #[msg("Invalid SEQ")]
     InvalidSEQ,
+    #[msg("InvalidDenominator")]
+    InvalidDenominator,
 }
 #[event]
 pub struct RateChanged {
     token_per_second: u64,
+}
+
+#[event]
+pub struct EarlyUnlockFeeChanged {
+    early_unlock_fee: u64,
 }
 #[event]
 pub struct PoolCreated {
@@ -753,4 +859,15 @@ pub struct UserHarvested {
     user: Pubkey,
     authority: Pubkey,
     amount: u64,
+}
+pub fn calc_fee(total: u64, fee_percent: u64, denominator: u64) -> Result<u64> {
+    let _total: u128 = total as u128;
+    let _fee_percent: u128 = fee_percent as u128;
+    let _denominator: u128 = denominator as u128;
+
+    if _denominator == 0 {
+        return Err(error!(ErrorCode::InvalidDenominator));
+    }
+    let result = _total * _fee_percent / _denominator;
+    Ok(result.try_into().unwrap())
 }
