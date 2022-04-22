@@ -9,6 +9,7 @@ declare_id!("FBHjXGXUa65hSCzyfMhkcLzu2U3HByNqcWMuDUUHURLa");
 const FULL_100: u64 = 100_000_000_000;
 const ACC_PRECISION: u128 = 100_000_000_000;
 const MAX_LEVEL: usize = 10;
+const MAX_PROFILE_LEVEL: usize = 5;
 
 #[program]
 pub mod unloc_staking {
@@ -19,7 +20,9 @@ pub mod unloc_staking {
         bump: u8,
         token_per_second: u64,
         early_unlock_fee: u64,
+        profile_levels: Vec<u128>,
     ) -> Result<()> {
+        require!(profile_levels.len() <= MAX_PROFILE_LEVEL, ErrorCode::OverflowMaxProfileLevel);
         let state = &mut _ctx.accounts.state;
         state.authority = _ctx.accounts.authority.key();
         state.bump = bump;
@@ -29,6 +32,7 @@ pub mod unloc_staking {
         state.reward_mint = _ctx.accounts.reward_mint.key();
         state.reward_vault = _ctx.accounts.reward_vault.key();
         state.fee_vault = _ctx.accounts.fee_vault.key();
+        state.profile_levels = profile_levels;
         Ok(())
     }
 
@@ -87,6 +91,15 @@ pub mod unloc_staking {
         let state = &mut _ctx.accounts.state;
         state.early_unlock_fee = early_unlock_fee;
         emit!(EarlyUnlockFeeChanged { early_unlock_fee });
+        Ok(())
+    }
+    pub fn change_profile_levels(
+        _ctx: Context<ChangeProfileLevels>,
+        profile_levels: Vec<u128>,
+    ) -> Result<()> {
+        require!(profile_levels.len() <= MAX_PROFILE_LEVEL, ErrorCode::OverflowMaxProfileLevel);
+        let state = &mut _ctx.accounts.state;
+        state.profile_levels = profile_levels;
         Ok(())
     }
     pub fn change_fee_vault(
@@ -220,6 +233,7 @@ pub mod unloc_staking {
         let cpi_program = _ctx.accounts.token_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         token::transfer(cpi_ctx, amount)?;
+        user.update_score_and_level(extra_account, state)?;
         emit!(UserStaked {
             pool: _ctx.accounts.pool.key(),
             user: _ctx.accounts.user.key(),
@@ -272,7 +286,7 @@ pub mod unloc_staking {
 
             emit!(UserUnstaked {
                 pool: _ctx.accounts.pool.key(),
-                user: _ctx.accounts.user.key(),
+                user: user.key(),
                 authority: _ctx.accounts.authority.key(),
                 amount: unstake_amount
             });
@@ -317,11 +331,12 @@ pub mod unloc_staking {
             token::transfer(cpi_ctx, amount)?;
             emit!(UserUnstaked {
                 pool: _ctx.accounts.pool.key(),
-                user: _ctx.accounts.user.key(),
+                user: user.key(),
                 authority: _ctx.accounts.authority.key(),
                 amount
             });
         }
+        user.update_score_and_level(extra_account, state)?;
         
         Ok(())
     }
@@ -372,7 +387,7 @@ pub struct CreateState<'info> {
         seeds = [b"state".as_ref()],
         bump,
         payer = authority,
-        space = 8 + size_of::<StateAccount>()
+        space = 8 + size_of::<StateAccount>() + 16 * MAX_PROFILE_LEVEL
     )]
     pub state: Account<'info, StateAccount>,
     #[account(constraint = reward_vault.owner == state.key())]
@@ -424,6 +439,15 @@ pub struct ChangeEarlyUnlockFee<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 }
+#[derive(Accounts)]
+pub struct ChangeProfileLevels<'info> {
+    #[account(mut, 
+        seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
+    pub state: Account<'info, StateAccount>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+}
+
 #[derive(Accounts)]
 pub struct ChangeFeeVault<'info> {
     #[account(mut, 
@@ -618,8 +642,22 @@ pub struct StateAccount {
     pub start_time: i64,
     pub token_per_second: u64,
     pub early_unlock_fee: u64,
+    pub profile_levels: Vec<u128>,
 }
-
+impl StateAccount {
+    fn get_profile_level<'info>(&self, score: u128) -> usize {
+        let profile_levels: Vec<u128> =
+            self.profile_levels.iter().rev().cloned().collect();
+        let mut i = 0;
+        for level in profile_levels.iter() {
+            if score >= *level {
+                return profile_levels.len() - i;
+            }
+            i += 1;
+        }
+        return 0;
+    }
+}
 #[account]
 #[derive(Default)]
 pub struct ExtraRewardsAccount {
@@ -731,6 +769,8 @@ pub struct FarmPoolUserAccount {
     pub reward_debt: u128,
     pub last_stake_time: i64,
     pub lock_duration: i64,
+    pub unloc_score: u128,
+    pub profile_level: usize,
     pub reserved_1: u128,
     pub reserved_2: u128,
     pub reserved_3: u128,
@@ -786,6 +826,18 @@ impl FarmPoolUserAccount {
             .unwrap();
         Ok(score)
     }
+    fn update_score_and_level<'info>(
+        &mut self,
+        extra_rewards_account: &ExtraRewardsAccount,
+        state: &StateAccount,
+    ) -> Result<()> {
+        let extra_percentage = extra_rewards_account.get_extra_reward_percentage(&self.lock_duration);
+        let score = self.get_score(&extra_percentage)?;
+        let profile_level = state.get_profile_level(score);
+        self.unloc_score = score;
+        self.profile_level = profile_level;
+        Ok(())
+    }
 }
 
 #[error_code]
@@ -802,6 +854,8 @@ pub enum ErrorCode {
     InvalidSEQ,
     #[msg("InvalidDenominator")]
     InvalidDenominator,
+    #[msg("Overlfow Max Profile Level")]
+    OverflowMaxProfileLevel,
 }
 #[event]
 pub struct RateChanged {

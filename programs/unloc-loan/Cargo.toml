@@ -17,3 +17,4 @@ devnet = []
 [dependencies]
 anchor-lang = {version="0.23.0", features=["init-if-needed"]}
 anchor-spl = "0.23.0"
+unloc_staking = {path="../unloc-staking", features=["no-entrypoint"]}

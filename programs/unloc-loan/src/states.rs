@@ -13,6 +13,7 @@ pub struct GlobalState {
     
     pub reward_per_sol: u64,
     pub reward_per_usdc: u64,
+    pub unloc_staking_pid: Pubkey,
 }
 
 #[account]
