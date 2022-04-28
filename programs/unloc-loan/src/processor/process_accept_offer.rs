@@ -76,6 +76,7 @@ pub struct AcceptOffer<'info> {
     pub lender:  Signer<'info>,
 
     /// CHECK: we use this account for owner
+    #[account(mut)]
     pub borrower:  AccountInfo<'info>,
 
     #[account(mut, 

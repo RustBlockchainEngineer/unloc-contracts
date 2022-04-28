@@ -119,6 +119,7 @@ pub struct RepayLoan<'info> {
     pub borrower:  Signer<'info>,
 
     /// CHECK: we use this account for owner
+    #[account(mut)]
     pub lender:  AccountInfo<'info>,
     
     #[account(
