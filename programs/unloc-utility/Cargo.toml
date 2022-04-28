@@ -17,6 +17,6 @@ default = []
 devnet = []
 
 [dependencies]
-anchor-lang = {version="0.23.0", features=["init-if-needed"]}
-anchor-spl = {version="0.23.0", features=["token", "dex"]}
-swap = {path="./../serum-swap", features=["cpi"]}
+anchor-lang = {version="0.24.2", features=["init-if-needed"]}
+anchor-spl = {version="0.24.2", features=["token", "dex"]}
+swap = {path="./..//swap", features=["cpi"]}

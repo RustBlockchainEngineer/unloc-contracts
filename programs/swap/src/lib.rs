@@ -9,9 +9,9 @@
 use anchor_lang::prelude::*;
 use anchor_spl::dex;
 use anchor_spl::token;
-use serum_dex::instruction::SelfTradeBehavior;
-use serum_dex::matching::{OrderType, Side as SerumSide};
-use serum_dex::state::MarketState;
+use anchor_spl::dex::serum_dex::instruction::SelfTradeBehavior;
+use anchor_spl::dex::serum_dex::matching::{OrderType, Side as SerumSide};
+use anchor_spl::dex::serum_dex::state::MarketState;
 use std::num::NonZeroU64;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
@@ -191,14 +191,19 @@ fn apply_risk_checks(event: DidSwap) -> Result<()> {
 #[derive(Accounts)]
 pub struct Swap<'info> {
     market: MarketAccounts<'info>,
+    /// CHECK: unchecked account
     #[account(signer)]
     authority: AccountInfo<'info>,
+    /// CHECK: unchecked account
     #[account(mut)]
     pc_wallet: AccountInfo<'info>,
     // Programs.
+    /// CHECK: unchecked account
     dex_program: AccountInfo<'info>,
+    /// CHECK: unchecked account
     token_program: AccountInfo<'info>,
     // Sysvars.
+    /// CHECK: unchecked account
     rent: AccountInfo<'info>,
 }
 
@@ -224,14 +229,19 @@ pub struct SwapTransitive<'info> {
     from: MarketAccounts<'info>,
     to: MarketAccounts<'info>,
     // Must be the authority over all open orders accounts used.
+    /// CHECK: unchecked account
     #[account(signer)]
     authority: AccountInfo<'info>,
+    /// CHECK: unchecked account
     #[account(mut)]
     pc_wallet: AccountInfo<'info>,
     // Programs.
+    /// CHECK: unchecked account
     dex_program: AccountInfo<'info>,
+    /// CHECK: unchecked account
     token_program: AccountInfo<'info>,
     // Sysvars.
+    /// CHECK: unchecked account
     rent: AccountInfo<'info>,
 }
 
@@ -261,10 +271,15 @@ impl<'info> SwapTransitive<'info> {
 // Client for sending orders to the Serum DEX.
 struct OrderbookClient<'info> {
     market: MarketAccounts<'info>,
+    /// CHECK: unchecked account
     authority: AccountInfo<'info>,
+    /// CHECK: unchecked account
     pc_wallet: AccountInfo<'info>,
+    /// CHECK: unchecked account
     dex_program: AccountInfo<'info>,
+    /// CHECK: unchecked account
     token_program: AccountInfo<'info>,
+    /// CHECK: unchecked account
     rent: AccountInfo<'info>,
 }
 
@@ -393,35 +408,46 @@ fn coin_lots(market: &MarketState, size: u64) -> u64 {
 // common accounts, i.e., program ids, sysvars, and the `pc_wallet`.
 #[derive(Accounts, Clone)]
 pub struct MarketAccounts<'info> {
+    /// CHECK: unchecked account
     #[account(mut)]
     market: AccountInfo<'info>,
+    /// CHECK: unchecked account
     #[account(mut)]
     open_orders: AccountInfo<'info>,
+    /// CHECK: unchecked account
     #[account(mut)]
     request_queue: AccountInfo<'info>,
+    /// CHECK: unchecked account
     #[account(mut)]
     event_queue: AccountInfo<'info>,
+    /// CHECK: unchecked account
     #[account(mut)]
     bids: AccountInfo<'info>,
+    /// CHECK: unchecked account
     #[account(mut)]
     asks: AccountInfo<'info>,
     // The `spl_token::Account` that funds will be taken from, i.e., transferred
     // from the user into the market's vault.
     //
     // For bids, this is the base currency. For asks, the quote.
+    /// CHECK: unchecked account
     #[account(mut)]
     order_payer_token_account: AccountInfo<'info>,
     // Also known as the "base" currency. For a given A/B market,
     // this is the vault for the A mint.
+    /// CHECK: unchecked account
     #[account(mut)]
     coin_vault: AccountInfo<'info>,
     // Also known as the "quote" currency. For a given A/B market,
     // this is the vault for the B mint.
+    /// CHECK: unchecked account
     #[account(mut)]
     pc_vault: AccountInfo<'info>,
     // PDA owner of the DEX's token accounts for base + quote currencies.
+    /// CHECK: unchecked account
     vault_signer: AccountInfo<'info>,
     // User wallets.
+    /// CHECK: unchecked account
     #[account(mut)]
     coin_wallet: AccountInfo<'info>,
 }

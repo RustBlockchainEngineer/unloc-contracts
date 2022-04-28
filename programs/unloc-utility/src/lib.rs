@@ -1,6 +1,13 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
-    token::{self, Token, TokenAccount, Transfer, Burn, Mint},
+    token::{self, Token, TokenAccount, Burn, Mint},
+};
+use swap::{
+    Side,
+    cpi::{
+        accounts::{Swap, MarketAccounts},
+        swap
+    },
 };
 use std::str::FromStr;
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
@@ -30,6 +37,7 @@ pub mod unloc_utility {
     use super::*;
     pub fn set_global_state(ctx: Context<SetGlobalState>, 
         new_authority: Pubkey,
+        serum_swap_pid: Pubkey,
         serum_market_pid: Pubkey,
         serum_market_sol_unloc_id: Pubkey,
         serum_market_usdc_unloc_id: Pubkey,
@@ -47,12 +55,45 @@ pub mod unloc_utility {
         require(ctx.accounts.global_state.authority == ctx.accounts.authority.key(), "wrong authority of global state")?;
 
         ctx.accounts.global_state.authority = new_authority;
+        ctx.accounts.global_state.serum_swap_pid = serum_swap_pid;
         ctx.accounts.global_state.serum_market_pid = serum_market_pid;
         ctx.accounts.global_state.serum_market_sol_unloc_id = serum_market_sol_unloc_id;
         ctx.accounts.global_state.serum_market_usdc_unloc_id = serum_market_usdc_unloc_id;
         Ok(())
     }
     pub fn buyback(ctx: Context<BuyBack>, amount: u64) -> Result<()> {
+        let cpi_accounts = Swap {
+            market: MarketAccounts{
+                market: ctx.accounts.market_accounts.market.to_account_info(),
+                open_orders: ctx.accounts.market_accounts.open_orders.to_account_info(),
+                request_queue: ctx.accounts.market_accounts.request_queue.to_account_info(),
+                event_queue: ctx.accounts.market_accounts.event_queue.to_account_info(),
+                bids: ctx.accounts.market_accounts.bids.to_account_info(),
+                asks: ctx.accounts.market_accounts.asks.to_account_info(),
+                order_payer_token_account: ctx.accounts.market_accounts.order_payer_token_account.to_account_info(),
+                coin_vault: ctx.accounts.market_accounts.coin_vault.to_account_info(),
+                pc_vault: ctx.accounts.market_accounts.pc_vault.to_account_info(),
+                vault_signer: ctx.accounts.market_accounts.vault_signer.to_account_info(),
+                coin_wallet: ctx.accounts.market_accounts.coin_wallet.to_account_info()
+            },
+            authority: ctx.accounts.global_state.to_account_info(),
+            pc_wallet: ctx.accounts.global_state.to_account_info(),
+            dex_program: ctx.accounts.serum_market_program.to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
+            rent: ctx.accounts.rent.to_account_info()
+        };
+    
+        let cpi_program = ctx.accounts.serum_swap_program.to_account_info();
+        let signer_seeds = &[
+            GLOBAL_STATE_SEED, 
+            &[bump(&[
+                GLOBAL_STATE_SEED, 
+            ], ctx.program_id)],
+        ];
+        let signer = &[&signer_seeds[..]];
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+    
+        swap(cpi_ctx, Side::Bid, amount, amount)?;
         Ok(())
     }
     pub fn burn(ctx: Context<BurnUnloc>, amount: u64) -> Result<()> {
@@ -62,7 +103,7 @@ pub mod unloc_utility {
 
         let cpi_accounts = Burn {
             mint: ctx.accounts.unloc_mint.to_account_info(),
-            to: ctx.accounts.unloc_vault.to_account_info(),
+            from: ctx.accounts.unloc_vault.to_account_info(),
             authority: ctx.accounts.authority.to_account_info(),
         };
     
@@ -130,8 +171,70 @@ pub struct SetGlobalState <'info>{
 
 
 #[derive(Accounts)]
-pub struct BuyBack {
-
+pub struct BuyBack <'info>{
+    #[account(mut)]
+    pub authority:  Signer<'info>,
+    /// CHECK: unchecked account
+    pub serum_swap_program: AccountInfo<'info>,
+    /// CHECK: unchecked account
+    pub serum_market_program: AccountInfo<'info>,
+    /// CHECK: unchecked account
+    pub serum_market: AccountInfo<'info>,
+    pub market_accounts: CtxMarketAccounts<'info>,
+    #[account(
+        mut,
+        seeds = [GLOBAL_STATE_SEED],
+        bump,
+    )]
+    pub global_state:Box<Account<'info, GlobalState>>,
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
+}
+#[derive(Accounts, Clone)]
+pub struct CtxMarketAccounts<'info> {
+    /// CHECK: unchecked account
+    #[account(mut)]
+    market: AccountInfo<'info>,
+    /// CHECK: unchecked account
+    #[account(mut)]
+    open_orders: AccountInfo<'info>,
+    /// CHECK: unchecked account
+    #[account(mut)]
+    request_queue: AccountInfo<'info>,
+    /// CHECK: unchecked account
+    #[account(mut)]
+    event_queue: AccountInfo<'info>,
+    /// CHECK: unchecked account
+    #[account(mut)]
+    bids: AccountInfo<'info>,
+    /// CHECK: unchecked account
+    #[account(mut)]
+    asks: AccountInfo<'info>,
+    // The `spl_token::Account` that funds will be taken from, i.e., transferred
+    // from the user into the market's vault.
+    //
+    // For bids, this is the base currency. For asks, the quote.
+    /// CHECK: unchecked account
+    #[account(mut)]
+    order_payer_token_account: AccountInfo<'info>,
+    // Also known as the "base" currency. For a given A/B market,
+    // this is the vault for the A mint.
+    /// CHECK: unchecked account
+    #[account(mut)]
+    coin_vault: AccountInfo<'info>,
+    // Also known as the "quote" currency. For a given A/B market,
+    // this is the vault for the B mint.
+    /// CHECK: unchecked account
+    #[account(mut)]
+    pc_vault: AccountInfo<'info>,
+    // PDA owner of the DEX's token accounts for base + quote currencies.
+    /// CHECK: unchecked account
+    vault_signer: AccountInfo<'info>,
+    // User wallets.
+    /// CHECK: unchecked account
+    #[account(mut)]
+    coin_wallet: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -152,6 +255,7 @@ pub struct BurnUnloc <'info> {
 #[derive(Default)]
 pub struct GlobalState {
     pub authority: Pubkey,
+    pub serum_swap_pid: Pubkey,
     pub serum_market_pid: Pubkey,
     pub serum_market_sol_unloc_id: Pubkey,
     pub serum_market_usdc_unloc_id: Pubkey,
@@ -202,4 +306,9 @@ pub fn is_zero_account(account_info:&AccountInfo)->bool{
         }
     }
     is_zero
+}
+
+pub fn bump(seeds:&[&[u8]], program_id: &Pubkey) -> u8 {
+    let (_found_key, bump) = Pubkey::find_program_address(seeds, program_id);
+    bump
 }

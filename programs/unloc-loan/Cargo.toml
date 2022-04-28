@@ -15,6 +15,6 @@ default = []
 devnet = []
 
 [dependencies]
-anchor-lang = {version="0.23.0", features=["init-if-needed"]}
-anchor-spl = "0.23.0"
+anchor-lang = {version="0.24.2", features=["init-if-needed"]}
+anchor-spl = "0.24.2"
 unloc_staking = {path="../unloc-staking", features=["no-entrypoint"]}
