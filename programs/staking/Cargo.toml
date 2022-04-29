@@ -1,12 +1,12 @@
 [package]
-name = "unloc_staking"
+name = "staking"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "unloc_staking"
+name = "staking"
 
 [features]
 no-entrypoint = []

@@ -1,12 +1,12 @@
 [package]
-name = "unloc-utility"
+name = "buyback_burn"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "unloc_utility"
+name = "buyback_burn"
 
 [features]
 no-entrypoint = []
