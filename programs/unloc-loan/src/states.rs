@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
-
+use mpl_token_metadata::{
+    state::Collection
+};
 
 #[account]
 #[derive(Default)]
@@ -22,6 +24,7 @@ pub struct Offer {
     pub borrower: Pubkey,
 
     pub nft_mint: Pubkey,
+    pub collection: Option<Collection>,
     pub nft_vault: Pubkey,
     pub state: u8,
     pub sub_offer_count: u64,
