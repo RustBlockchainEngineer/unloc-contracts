@@ -16,6 +16,8 @@ pub struct GlobalState {
     pub reward_per_sol: u64,
     pub reward_per_usdc: u64,
     pub unloc_staking_pid: Pubkey,
+    pub voting_pid: Pubkey,
+    pub current_voting_num: u64,
 }
 
 #[account]
@@ -24,7 +26,7 @@ pub struct Offer {
     pub borrower: Pubkey,
 
     pub nft_mint: Pubkey,
-    pub collection: Option<Collection>,
+    pub collection: Pubkey,
     pub nft_vault: Pubkey,
     pub state: u8,
     pub sub_offer_count: u64,
@@ -89,6 +91,11 @@ impl SubOfferState {
 #[derive(Default)]
 pub struct LenderReward {
     pub lender: Pubkey,
+    pub collection: Pubkey,
+
+    pub total_point: u128,
+    pub collection_point: u128,
+
     pub sub_offer: Pubkey,
     pub loan_mint: Pubkey,
     pub loan_mint_decimals: u8,

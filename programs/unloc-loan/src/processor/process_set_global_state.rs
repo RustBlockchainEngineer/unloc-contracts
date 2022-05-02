@@ -15,6 +15,8 @@ pub fn process_set_global_state(
     reward_per_sol: u64,
     reward_per_usdc: u64,
     unloc_staking_pid: Pubkey,
+    voting_pid: Pubkey,
+    current_voting_num: u64,
 ) -> Result<()> {
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
     require(ctx.accounts.reward_mint.key() == unloc_mint)?;
@@ -32,6 +34,8 @@ pub fn process_set_global_state(
     ctx.accounts.global_state.reward_per_sol = reward_per_sol;
     ctx.accounts.global_state.reward_per_usdc = reward_per_usdc;
     ctx.accounts.global_state.unloc_staking_pid = unloc_staking_pid;
+    ctx.accounts.global_state.voting_pid = voting_pid;
+    ctx.accounts.global_state.current_voting_num = current_voting_num;
 
     Ok(())
 }

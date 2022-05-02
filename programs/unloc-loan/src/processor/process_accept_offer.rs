@@ -6,6 +6,8 @@ use anchor_lang::solana_program::{
         invoke, 
     },
 };
+use voting::constant::{VOTING_TAG, VOTING_ITEM_TAG};
+use voting::states::{Voting, VotingItem};
 
 use crate::{
     //error::*,
@@ -64,6 +66,9 @@ pub fn process_accept_offer(ctx: Context<AcceptOffer>) -> Result<()> {
     ctx.accounts.lender_reward.end_time = ctx.accounts.sub_offer.loan_duration + current_time;
     ctx.accounts.lender_reward.loan_amount = ctx.accounts.sub_offer.offer_amount;
     ctx.accounts.lender_reward.claimed_amount = 0;
+    ctx.accounts.lender_reward.collection = ctx.accounts.offer.collection;
+    ctx.accounts.lender_reward.total_point = ctx.accounts.voting.total_score;
+    ctx.accounts.lender_reward.collection_point = ctx.accounts.voting_item.voting_score;
     
 
     Ok(())
@@ -79,11 +84,33 @@ pub struct AcceptOffer<'info> {
     #[account(mut)]
     pub borrower:  AccountInfo<'info>,
 
+    #[account(
+        seeds = [GLOBAL_STATE_TAG],
+        bump,
+    )]
+    pub global_state:Box<Account<'info, GlobalState>>,
+
     #[account(mut, 
     seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
     bump,
     )]
     pub offer:Box<Account<'info, Offer>>,
+    
+    #[account(
+        mut,
+        seeds = [VOTING_TAG, &global_state.current_voting_num.to_be_bytes()],
+        seeds::program = global_state.voting_pid,
+        bump,
+    )]
+    pub voting:Box<Account<'info, Voting>>,
+
+    #[account(
+        mut,
+        seeds = [VOTING_ITEM_TAG, voting.key().as_ref(), offer.collection.as_ref()],
+        seeds::program = global_state.voting_pid,
+        bump,
+    )]
+    pub voting_item:Box<Account<'info, VotingItem>>,
 
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],

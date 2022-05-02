@@ -10,15 +10,15 @@ use crate::{
 use mpl_token_metadata::{state::Metadata};
 
 pub fn process_set_offer(ctx: Context<SetOffer>) -> Result<()> { 
-    let metadata = Metadata::from_account_info(ctx.accounts.nft_metadata.to_account_info())?;
-    let collection = metadata.collection;
+    let metadata = Metadata::from_account_info(&ctx.accounts.nft_metadata.to_account_info())?;
+    let collection = metadata.collection.unwrap();
     if is_zero_account(&ctx.accounts.offer.to_account_info()) {
         ctx.accounts.offer.state = OfferState::get_state(OfferState::Proposed);
         ctx.accounts.offer.sub_offer_count = 0;
         ctx.accounts.offer.borrower = ctx.accounts.borrower.key();
         ctx.accounts.offer.nft_mint = ctx.accounts.nft_mint.key();
         ctx.accounts.offer.nft_vault = ctx.accounts.nft_vault.key();
-        ctx.accounts.offer.collection = collection;
+        ctx.accounts.offer.collection = collection.key;
     }
     if ctx.accounts.user_vault.amount > 0 {
         let cpi_accounts = Transfer {

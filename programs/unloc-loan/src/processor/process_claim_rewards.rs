@@ -16,6 +16,8 @@ pub fn process_claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
     require(ctx.accounts.user_reward_vault.mint == unloc_mint)?;
     require(ctx.accounts.user_reward_vault.owner == ctx.accounts.authority.key())?;
 
+    let total_point = ctx.accounts.lender_reward.total_point;
+    let collection_point = ctx.accounts.lender_reward.collection_point;
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let start_time = ctx.accounts.lender_reward.start_time;
     let end_time = ctx.accounts.lender_reward.end_time;
@@ -28,7 +30,9 @@ pub fn process_claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
     let reward_end_time = cmp::min(start_time + max_duration, cmp::min(current_time, end_time));
     let reward_duration = reward_end_time - last_claimed_time;
     let decimals = 10u64.pow(loan_mint_decimals as u32);
-    let reward_amount = calc_fee(reward_duration * token_per_second, loan_amount, decimals)?;
+
+    let full_reward_amount = calc_fee(reward_duration * token_per_second, loan_amount, decimals)?;
+    let reward_amount = calc_fee_u128(full_reward_amount, collection_point, total_point)?;
     
     let cpi_accounts = Transfer {
         from: ctx.accounts.reward_vault.to_account_info(),

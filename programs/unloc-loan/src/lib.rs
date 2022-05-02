@@ -23,8 +23,8 @@ declare_id!("3LhSA4Tdx5o17UTwynCMZJ8XERsU2nh5P3UwmTDSuGQ7");
 pub mod unloc_nft_loan {
     use super::*;
     
-    pub fn set_global_state(ctx: Context<SetGlobalState>, accrued_interest_numerator: u64, denominator: u64, apr_numerator: u64, reward_per_sol: u64, reward_per_usdc: u64, unloc_staking_pid: Pubkey) -> Result<()> { 
-        process_set_global_state(ctx, accrued_interest_numerator, denominator, apr_numerator, reward_per_sol, reward_per_usdc, unloc_staking_pid)
+    pub fn set_global_state(ctx: Context<SetGlobalState>, accrued_interest_numerator: u64, denominator: u64, apr_numerator: u64, reward_per_sol: u64, reward_per_usdc: u64, unloc_staking_pid: Pubkey, voting_pid: Pubkey, current_voting_num: u64) -> Result<()> { 
+        process_set_global_state(ctx, accrued_interest_numerator, denominator, apr_numerator, reward_per_sol, reward_per_usdc, unloc_staking_pid, voting_pid, current_voting_num)
     }
     pub fn deposit_rewards(ctx: Context<DepositRewards>, amount: u64) -> Result<()> { 
         process_deposit_rewards(ctx, amount) 

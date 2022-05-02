@@ -65,10 +65,15 @@ pub fn assert_borrower_claimable_nft(sub_offer: &SubOffer, current_time: u64) ->
     }
     Ok(())
 }
+
 pub fn calc_fee(total: u64, fee_percent: u64, denominator: u64) -> Result<u64> {
+    calc_fee_u128(total, fee_percent as u128, denominator as u128)
+}
+
+pub fn calc_fee_u128(total: u64, fee_percent: u128, denominator: u128) -> Result<u64> {
     let _total: u128 = total as u128;
-    let _fee_percent: u128 = fee_percent as u128;
-    let _denominator: u128 = denominator as u128;
+    let _fee_percent: u128 = fee_percent;
+    let _denominator: u128 = denominator;
 
     if _denominator == 0 {
         return Err(error!(LoanError::InvalidDenominator));
