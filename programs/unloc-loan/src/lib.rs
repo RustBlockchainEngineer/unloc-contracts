@@ -20,7 +20,7 @@ use crate::{
 declare_id!("3LhSA4Tdx5o17UTwynCMZJ8XERsU2nh5P3UwmTDSuGQ7");
 
 #[program]
-pub mod unloc_nft_loan {
+pub mod unloc_loan {
     use super::*;
     
     pub fn set_global_state(ctx: Context<SetGlobalState>, accrued_interest_numerator: u64, denominator: u64, apr_numerator: u64, reward_per_sol: u64, reward_per_usdc: u64, unloc_staking_pid: Pubkey, voting_pid: Pubkey, current_voting_num: u64) -> Result<()> { 

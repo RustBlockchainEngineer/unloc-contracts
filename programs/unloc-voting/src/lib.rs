@@ -20,7 +20,7 @@ use crate::{
 declare_id!("3LhSA4Tdx5o17UTwynCMZJ8XERsU2nh5P3UwmTDSuGQ7");
 
 #[program]
-pub mod voting {
+pub mod unloc_voting {
     use super::*;
     
     pub fn set_global_state(ctx: Context<SetGlobalState>, new_super_owner: Pubkey) -> Result<()> { 

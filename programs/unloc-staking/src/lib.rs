@@ -12,7 +12,7 @@ const MAX_LEVEL: usize = 10;
 const MAX_PROFILE_LEVEL: usize = 5;
 
 #[program]
-pub mod staking {
+pub mod unloc_staking {
     use super::*;
 
     pub fn create_state(

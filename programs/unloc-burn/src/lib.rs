@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::{
     token::{self, Token, TokenAccount, Burn, Mint},
 };
-use swap::{
+use serum_swap::{
     Side,
     cpi::{
         accounts::{Swap, MarketAccounts},
@@ -33,7 +33,7 @@ pub const USDC_MINT:&str = if DEVNET_MODE {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGk
 pub const UNLOC_MINT:&str = if DEVNET_MODE {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
 
 #[program]
-pub mod buyback_burn {
+pub mod unloc_burn {
     use super::*;
     pub fn set_global_state(ctx: Context<SetGlobalState>, 
         new_authority: Pubkey,

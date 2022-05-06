@@ -8,7 +8,7 @@ use crate::{
     utils::*,
 };
 use mpl_token_metadata::{state::Metadata};
-use staking::FarmPoolUserAccount;
+use unloc_staking::FarmPoolUserAccount;
 pub fn process_vote(ctx: Context<Vote>) -> Result<()> { 
     ctx.accounts.voting_user.owner = ctx.accounts.user.key();
     ctx.accounts.voting_user.voting = ctx.accounts.voting.key();

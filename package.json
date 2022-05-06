@@ -1,4 +1,8 @@
 {
+    "scripts": {
+        "test": "anchor test -- --features dev",
+        "test-sb": "anchor test --skip-build -- --features dev"
+    },
     "dependencies": {
         "@project-serum/anchor": "^0.24.2"
     },

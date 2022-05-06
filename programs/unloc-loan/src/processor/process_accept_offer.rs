@@ -6,8 +6,8 @@ use anchor_lang::solana_program::{
         invoke, 
     },
 };
-use voting::constant::{VOTING_TAG, VOTING_ITEM_TAG};
-use voting::states::{Voting, VotingItem};
+use unloc_voting::constant::{VOTING_TAG, VOTING_ITEM_TAG};
+use unloc_voting::states::{Voting, VotingItem};
 
 use crate::{
     //error::*,

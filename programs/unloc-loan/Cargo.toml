@@ -1,5 +1,5 @@
 [package]
-name = "unloc_nft_loan"
+name = "unloc_loan"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
@@ -12,11 +12,11 @@ no-entrypoint = []
 no-idl = []
 cpi = ["no-entrypoint"]
 default = []
-devnet = []
+dev = []
 
 [dependencies]
 anchor-lang = {version="0.24.2", features=["init-if-needed"]}
 anchor-spl = "0.24.2"
-staking = {path="../staking", features=["no-entrypoint"]}
-voting = {path="../voting", features=["no-entrypoint"]}
+unloc_staking = {path="../unloc-staking", features=["no-entrypoint"]}
+unloc_voting = {path="../unloc-voting", features=["no-entrypoint"]}
 mpl-token-metadata = { version="~1.2.7", features = [ "no-entrypoint" ] }

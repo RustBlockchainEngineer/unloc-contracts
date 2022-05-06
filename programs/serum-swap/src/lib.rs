@@ -17,7 +17,7 @@ use std::num::NonZeroU64;
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[program]
-pub mod swap {
+pub mod serum_swap {
     use super::*;
 
     /// Swaps two tokens on a single A/B market, where A is the base currency
