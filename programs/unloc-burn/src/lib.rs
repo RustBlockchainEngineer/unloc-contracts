@@ -11,10 +11,13 @@ use serum_swap::{
 };
 use std::str::FromStr;
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
-
+#[constant]
 pub const GLOBAL_STATE_SEED:&[u8] = b"GLOBAL_STATE_SEED";
+#[constant]
 pub const UNLOC_VAULT_SEED:&[u8] = b"UNLOC_VAULT_SEED";
+#[constant]
 pub const WSOL_VAULT_SEED:&[u8] = b"WSOL_VAULT_SEED";
+#[constant]
 pub const USDC_VAULT_SEED:&[u8] = b"USDC_VAULT_SEED";
 
 
