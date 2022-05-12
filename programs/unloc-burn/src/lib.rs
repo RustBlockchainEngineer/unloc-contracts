@@ -1,6 +1,14 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
-    token::{self, Token, TokenAccount, Burn, Mint},
+    token::{
+        self, 
+        Token, 
+        TokenAccount, 
+        Burn, 
+        Mint, 
+        SetAuthority, 
+        spl_token::instruction::AuthorityType
+    },
 };
 use serum_swap::{
     Side,
@@ -99,22 +107,28 @@ pub mod unloc_burn {
         swap(cpi_ctx, Side::Bid, amount, amount)?;
         Ok(())
     }
-    pub fn burn(ctx: Context<BurnUnloc>, amount: u64) -> Result<()> {
+    pub fn burn(ctx: Context<BurnUnloc>) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
         require(ctx.accounts.unloc_mint.key() == unloc_mint, "wrong unloc_mint")?;
-        require(ctx.accounts.unloc_vault.amount >= amount, "not enough amount")?;
 
         let cpi_accounts = Burn {
             mint: ctx.accounts.unloc_mint.to_account_info(),
             from: ctx.accounts.unloc_vault.to_account_info(),
-            authority: ctx.accounts.authority.to_account_info(),
+            authority: ctx.accounts.global_state.to_account_info(),
         };
     
         let cpi_program = ctx.accounts.token_program.to_account_info();
         
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        let signer_seeds = &[
+            GLOBAL_STATE_SEED, 
+            &[bump(&[
+                GLOBAL_STATE_SEED, 
+            ], ctx.program_id)],
+        ];
+        let signer = &[&signer_seeds[..]];
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
     
-        token::burn(cpi_ctx, amount)?;
+        token::burn(cpi_ctx, ctx.accounts.unloc_vault.amount)?;
         Ok(())
     }
 }
@@ -242,8 +256,12 @@ pub struct CtxMarketAccounts<'info> {
 
 #[derive(Accounts)]
 pub struct BurnUnloc <'info> {
-    #[account(mut)]
-    pub authority:  Signer<'info>,
+    #[account(
+        mut,
+        seeds = [GLOBAL_STATE_SEED],
+        bump,
+    )]
+    pub global_state:Box<Account<'info, GlobalState>>,
     pub unloc_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
@@ -253,7 +271,6 @@ pub struct BurnUnloc <'info> {
     pub unloc_vault:Box<Account<'info, TokenAccount>>,
     pub token_program: Program<'info, Token>,
 }
-
 #[account]
 #[derive(Default)]
 pub struct GlobalState {
