@@ -1,3 +1,4 @@
+use amm_anchor::SwapBaseIn;
 use anchor_lang::prelude::*;
 use anchor_spl::{
     token::{
@@ -6,19 +7,12 @@ use anchor_spl::{
         TokenAccount, 
         Burn, 
         Mint, 
-        SetAuthority, 
-        spl_token::instruction::AuthorityType
-    },
-};
-use serum_swap::{
-    Side,
-    cpi::{
-        accounts::{Swap, MarketAccounts},
-        swap
+        accessor::amount,
     },
 };
 use std::str::FromStr;
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
 #[constant]
 pub const GLOBAL_STATE_SEED:&[u8] = b"GLOBAL_STATE_SEED";
 #[constant]
@@ -48,10 +42,6 @@ pub mod unloc_burn {
     use super::*;
     pub fn set_global_state(ctx: Context<SetGlobalState>, 
         new_authority: Pubkey,
-        serum_swap_pid: Pubkey,
-        serum_market_pid: Pubkey,
-        serum_market_sol_unloc_id: Pubkey,
-        serum_market_usdc_unloc_id: Pubkey,
     ) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
         let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
@@ -66,46 +56,40 @@ pub mod unloc_burn {
         require(ctx.accounts.global_state.authority == ctx.accounts.authority.key(), "wrong authority of global state")?;
 
         ctx.accounts.global_state.authority = new_authority;
-        ctx.accounts.global_state.serum_swap_pid = serum_swap_pid;
-        ctx.accounts.global_state.serum_market_pid = serum_market_pid;
-        ctx.accounts.global_state.serum_market_sol_unloc_id = serum_market_sol_unloc_id;
-        ctx.accounts.global_state.serum_market_usdc_unloc_id = serum_market_usdc_unloc_id;
+
+        ctx.accounts.global_state.amm_program = ctx.accounts.amm_program.key();
+        ctx.accounts.global_state.amm = ctx.accounts.amm.key();
+        ctx.accounts.global_state.amm_authority = ctx.accounts.amm_authority.key();
+        ctx.accounts.global_state.amm_open_orders = ctx.accounts.amm_open_orders.key();
+        ctx.accounts.global_state.amm_target_orders = ctx.accounts.amm_target_orders.key();
+        ctx.accounts.global_state.pool_coin_token_account = ctx.accounts.pool_coin_token_account.key();
+        ctx.accounts.global_state.pool_pc_token_account = ctx.accounts.pool_pc_token_account.key();
+        ctx.accounts.global_state.serum_program = ctx.accounts.serum_program.key();
+        ctx.accounts.global_state.serum_market = ctx.accounts.serum_market.key();
+        ctx.accounts.global_state.serum_bids = ctx.accounts.serum_bids.key();
+        ctx.accounts.global_state.serum_asks = ctx.accounts.serum_asks.key();
+        ctx.accounts.global_state.serum_event_queue = ctx.accounts.serum_event_queue.key();
+        ctx.accounts.global_state.serum_coin_vault_account = ctx.accounts.serum_coin_vault_account.key();
+        ctx.accounts.global_state.serum_pc_vault_account = ctx.accounts.serum_pc_vault_account.key();
+        ctx.accounts.global_state.serum_vault_signer = ctx.accounts.serum_vault_signer.key();
+
         Ok(())
     }
-    pub fn buyback(ctx: Context<BuyBack>, amount: u64) -> Result<()> {
-        let cpi_accounts = Swap {
-            market: MarketAccounts{
-                market: ctx.accounts.market_accounts.market.to_account_info(),
-                open_orders: ctx.accounts.market_accounts.open_orders.to_account_info(),
-                request_queue: ctx.accounts.market_accounts.request_queue.to_account_info(),
-                event_queue: ctx.accounts.market_accounts.event_queue.to_account_info(),
-                bids: ctx.accounts.market_accounts.bids.to_account_info(),
-                asks: ctx.accounts.market_accounts.asks.to_account_info(),
-                order_payer_token_account: ctx.accounts.market_accounts.order_payer_token_account.to_account_info(),
-                coin_vault: ctx.accounts.market_accounts.coin_vault.to_account_info(),
-                pc_vault: ctx.accounts.market_accounts.pc_vault.to_account_info(),
-                vault_signer: ctx.accounts.market_accounts.vault_signer.to_account_info(),
-                coin_wallet: ctx.accounts.market_accounts.coin_wallet.to_account_info()
-            },
-            authority: ctx.accounts.global_state.to_account_info(),
-            pc_wallet: ctx.accounts.global_state.to_account_info(),
-            dex_program: ctx.accounts.serum_market_program.to_account_info(),
-            token_program: ctx.accounts.token_program.to_account_info(),
-            rent: ctx.accounts.rent.to_account_info()
-        };
-    
-        let cpi_program = ctx.accounts.serum_swap_program.to_account_info();
+    pub fn buyback(ctx: Context<Buyback>) -> Result<()> {
+        ctx.accounts.validate()?;
+        
+        let amount_in: u64 = amount(&ctx.accounts.user_source_token_account.clone())?;
+        let minimum_amount_out: u64 = 0;
+
         let signer_seeds = &[
             GLOBAL_STATE_SEED, 
             &[bump(&[
                 GLOBAL_STATE_SEED, 
-            ], ctx.program_id)],
+            ], &crate::ID)],
         ];
         let signer = &[&signer_seeds[..]];
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-    
-        swap(cpi_ctx, Side::Bid, amount, amount)?;
-        Ok(())
+        let ctx_swap = ctx.accounts.to_ctx();
+        amm_anchor::swap_base_in(ctx_swap.with_signer(signer), amount_in, minimum_amount_out)
     }
     pub fn burn(ctx: Context<BurnUnloc>) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
@@ -181,79 +165,161 @@ pub struct SetGlobalState <'info>{
     )]
     pub wsol_vault:Box<Account<'info, TokenAccount>>,
 
+    /// CHECK: Safe
+    pub amm_program: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub amm: AccountInfo<'info>,
+    /// CHECK: Safe
+    pub amm_authority: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub amm_open_orders: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub amm_target_orders: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub pool_coin_token_account: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub pool_pc_token_account: AccountInfo<'info>,
+    /// CHECK: Safe
+    pub serum_program: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_market: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_bids: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_asks: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_event_queue: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_coin_vault_account: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_pc_vault_account: AccountInfo<'info>,
+    /// CHECK: Safe
+    pub serum_vault_signer: AccountInfo<'info>,
+
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
 }
 
 
-#[derive(Accounts)]
-pub struct BuyBack <'info>{
-    #[account(mut)]
-    pub authority:  Signer<'info>,
-    /// CHECK: unchecked account
-    pub serum_swap_program: AccountInfo<'info>,
-    /// CHECK: unchecked account
-    pub serum_market_program: AccountInfo<'info>,
-    /// CHECK: unchecked account
-    pub serum_market: AccountInfo<'info>,
-    pub market_accounts: CtxMarketAccounts<'info>,
+#[derive(Accounts, Clone)]
+pub struct Buyback<'info> {
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED],
         bump,
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
-    pub system_program: Program<'info, System>,
-    pub token_program: Program<'info, Token>,
-    pub rent: Sysvar<'info, Rent>,
-}
-#[derive(Accounts, Clone)]
-pub struct CtxMarketAccounts<'info> {
-    /// CHECK: unchecked account
-    #[account(mut)]
-    market: AccountInfo<'info>,
-    /// CHECK: unchecked account
-    #[account(mut)]
-    open_orders: AccountInfo<'info>,
-    /// CHECK: unchecked account
-    #[account(mut)]
-    request_queue: AccountInfo<'info>,
-    /// CHECK: unchecked account
-    #[account(mut)]
-    event_queue: AccountInfo<'info>,
-    /// CHECK: unchecked account
-    #[account(mut)]
-    bids: AccountInfo<'info>,
-    /// CHECK: unchecked account
-    #[account(mut)]
-    asks: AccountInfo<'info>,
-    // The `spl_token::Account` that funds will be taken from, i.e., transferred
-    // from the user into the market's vault.
-    //
-    // For bids, this is the base currency. For asks, the quote.
-    /// CHECK: unchecked account
-    #[account(mut)]
-    order_payer_token_account: AccountInfo<'info>,
-    // Also known as the "base" currency. For a given A/B market,
-    // this is the vault for the A mint.
-    /// CHECK: unchecked account
-    #[account(mut)]
-    coin_vault: AccountInfo<'info>,
-    // Also known as the "quote" currency. For a given A/B market,
-    // this is the vault for the B mint.
-    /// CHECK: unchecked account
-    #[account(mut)]
-    pc_vault: AccountInfo<'info>,
-    // PDA owner of the DEX's token accounts for base + quote currencies.
-    /// CHECK: unchecked account
-    vault_signer: AccountInfo<'info>,
-    // User wallets.
-    /// CHECK: unchecked account
-    #[account(mut)]
-    coin_wallet: AccountInfo<'info>,
-}
 
+    /// CHECK: Safe
+    pub amm_program: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub amm: AccountInfo<'info>,
+    /// CHECK: Safe
+    pub amm_authority: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub amm_open_orders: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub amm_target_orders: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub pool_coin_token_account: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub pool_pc_token_account: AccountInfo<'info>,
+    /// CHECK: Safe
+    pub serum_program: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_market: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_bids: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_asks: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_event_queue: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_coin_vault_account: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_pc_vault_account: AccountInfo<'info>,
+    /// CHECK: Safe
+    pub serum_vault_signer: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub user_source_token_account: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub user_destination_token_account: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(address = token::ID)]
+    pub spl_token_program: AccountInfo<'info>,
+}
+impl<'a, 'b, 'c, 'info> Buyback<'info> {
+    pub fn validate(&self) -> Result<()> {
+        
+        require(self.global_state.amm_program == self.amm_program.key(), "wrong amm_program")?;
+        require(self.global_state.amm == self.amm.key(), "wrong amm")?;
+        require(self.global_state.amm_authority == self.amm_authority.key(), "wrong amm_authority")?;
+        require(self.global_state.amm_open_orders == self.amm_open_orders.key(), "wrong amm_open_orders")?;
+        require(self.global_state.amm_target_orders == self.amm_target_orders.key(), "wrong amm_target_orders")?;
+        require(self.global_state.pool_coin_token_account == self.pool_coin_token_account.key(), "wrong pool_coin_token_account")?;
+        require(self.global_state.pool_pc_token_account == self.pool_pc_token_account.key(), "wrong pool_pc_token_account")?;
+        require(self.global_state.serum_program == self.serum_program.key(), "wrong serum_program")?;
+        require(self.global_state.serum_market == self.serum_market.key(), "wrong serum_market")?;
+        require(self.global_state.serum_bids == self.serum_bids.key(), "wrong serum_bids")?;
+        require(self.global_state.serum_asks == self.serum_asks.key(), "wrong serum_asks")?;
+        require(self.global_state.serum_event_queue == self.serum_event_queue.key(), "wrong serum_event_queue")?;
+        require(self.global_state.serum_coin_vault_account == self.serum_coin_vault_account.key(), "wrong serum_coin_vault_account")?;
+        require(self.global_state.serum_pc_vault_account == self.serum_pc_vault_account.key(), "wrong serum_pc_vault_account")?;
+        require(self.global_state.serum_vault_signer == self.serum_vault_signer.key(), "wrong serum_vault_signer")?;
+
+        Ok(())
+    }
+    pub fn to_ctx(&self) -> CpiContext<'a, 'b, 'c, 'info, SwapBaseIn<'info>> {
+        let cpi_accounts = SwapBaseIn {
+            amm: self.amm.clone(),
+            amm_authority: self.amm_authority.clone(),
+            amm_open_orders: self.amm_open_orders.clone(),
+            amm_target_orders: self.amm_target_orders.clone(),
+            pool_coin_token_account: self.pool_coin_token_account.clone(),
+            pool_pc_token_account: self.pool_pc_token_account.clone(),
+            serum_program: self.serum_program.clone(),
+            serum_market: self.serum_market.clone(),
+            serum_bids: self.serum_bids.clone(),
+            serum_asks: self.serum_asks.clone(),
+            serum_event_queue: self.serum_event_queue.clone(),
+            serum_coin_vault_account: self.serum_coin_vault_account.clone(),
+            serum_pc_vault_account: self.serum_pc_vault_account.clone(),
+            serum_vault_signer: self.serum_vault_signer.clone(),
+            user_source_token_account: self.user_source_token_account.clone(),
+            user_destination_token_account: self.user_destination_token_account.clone(),
+            user_source_owner: self.global_state.to_account_info().clone(),
+            spl_token_program: self.spl_token_program.clone(),
+        };
+        let cpi_program = self.amm_program.clone();
+        
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
 #[derive(Accounts)]
 pub struct BurnUnloc <'info> {
     #[account(
@@ -275,10 +341,22 @@ pub struct BurnUnloc <'info> {
 #[derive(Default)]
 pub struct GlobalState {
     pub authority: Pubkey,
-    pub serum_swap_pid: Pubkey,
-    pub serum_market_pid: Pubkey,
-    pub serum_market_sol_unloc_id: Pubkey,
-    pub serum_market_usdc_unloc_id: Pubkey,
+
+    pub amm_program: Pubkey,
+    pub amm: Pubkey,
+    pub amm_authority: Pubkey,
+    pub amm_open_orders: Pubkey,
+    pub amm_target_orders: Pubkey,
+    pub pool_coin_token_account: Pubkey,
+    pub pool_pc_token_account: Pubkey,
+    pub serum_program: Pubkey,
+    pub serum_market: Pubkey,
+    pub serum_bids: Pubkey,
+    pub serum_asks: Pubkey,
+    pub serum_event_queue: Pubkey,
+    pub serum_coin_vault_account: Pubkey,
+    pub serum_pc_vault_account: Pubkey,
+    pub serum_vault_signer: Pubkey,
 }
 
 
