@@ -4,7 +4,7 @@ use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::mem::size_of;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU");
 
 const FULL_100: u64 = 100_000_000_000;
 const ACC_PRECISION: u128 = 100_000_000_000;
@@ -203,6 +203,11 @@ pub mod unloc_staking {
 
     
     pub fn stake(_ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()> {
+        require!(
+            _ctx.accounts.user_vault.owner == _ctx.accounts.authority.key(),
+            ErrorCode::InvalidOwner
+        );
+
         let state = &_ctx.accounts.state;
         let extra_account = &mut _ctx.accounts.extra_reward_account;
         let user = &mut _ctx.accounts.user;
@@ -586,8 +591,7 @@ pub struct Stake<'info> {
     #[account(mut, 
         constraint = pool_vault.owner == pool.key())]
     pub pool_vault: Box<Account<'info, TokenAccount>>,
-    #[account(mut, 
-        constraint = user_vault.owner == authority.key())]
+    #[account(mut)]
     pub user_vault: Box<Account<'info, TokenAccount>>,
     #[account(mut, 
         constraint = fee_vault.key() == state.fee_vault)]
@@ -645,13 +649,13 @@ pub struct StateAccount {
     pub profile_levels: Vec<u128>,
 }
 impl StateAccount {
-    fn get_profile_level<'info>(&self, score: u128) -> usize {
+    fn get_profile_level<'info>(&self, score: u128) -> u64 {
         let profile_levels: Vec<u128> =
             self.profile_levels.iter().rev().cloned().collect();
         let mut i = 0;
         for level in profile_levels.iter() {
             if score >= *level {
-                return profile_levels.len() - i;
+                return (profile_levels.len() - i).try_into().unwrap();
             }
             i += 1;
         }
@@ -770,7 +774,7 @@ pub struct FarmPoolUserAccount {
     pub last_stake_time: i64,
     pub lock_duration: i64,
     pub unloc_score: u128,
-    pub profile_level: usize,
+    pub profile_level: u64,
     pub reserved_1: u128,
     pub reserved_2: u128,
     pub reserved_3: u128,
@@ -842,6 +846,8 @@ impl FarmPoolUserAccount {
 
 #[error_code]
 pub enum ErrorCode {
+    #[msg("Invalid Owner")]
+    InvalidOwner,
     #[msg("Over staked amount")]
     UnstakeOverAmount,
     #[msg("Under locked")]

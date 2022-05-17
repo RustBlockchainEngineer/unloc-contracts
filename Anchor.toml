@@ -1,9 +1,9 @@
 
 [programs.localnet]
-unloc_loan = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
-unloc_staking = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
-unloc_voting = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
-unloc_burn = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+unloc_loan = "6oVXrGCdtnTUR6xCvn2Z3f2CYaiboAGar1DKxzeX8QYh"
+unloc_staking = "EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU"
+unloc_voting = "6z6RuFauTG511XRakJnPhxUTCVPohv6oC69xieMdm4Z9"
+unloc_burn = "37TgoUgxSshhJmhNEAQMmAWF7XRhXEaY5HxcTZ6eYs6r"
 
 
 [registry]

@@ -17,7 +17,7 @@ use crate::{
     processor::*,
 };
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("6z6RuFauTG511XRakJnPhxUTCVPohv6oC69xieMdm4Z9");
 
 #[program]
 pub mod unloc_voting {

@@ -11,7 +11,7 @@ use anchor_spl::{
     },
 };
 use std::str::FromStr;
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("37TgoUgxSshhJmhNEAQMmAWF7XRhXEaY5HxcTZ6eYs6r");
 
 #[constant]
 pub const GLOBAL_STATE_SEED:&[u8] = b"GLOBAL_STATE_SEED";
