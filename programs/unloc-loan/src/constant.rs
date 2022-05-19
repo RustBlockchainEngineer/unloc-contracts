@@ -1,17 +1,17 @@
 use anchor_lang::prelude::*;
 
 
-const DEVNET_MODE:bool = {
-    #[cfg(feature = "devnet")]
-    {
-        true
-    }
-    #[cfg(not(feature = "devnet"))]
-    {
-        false
-    }
-};
-
+// const DEVNET_MODE:bool = {
+//     #[cfg(feature = "devnet")]
+//     {
+//         true
+//     }
+//     #[cfg(not(feature = "devnet"))]
+//     {
+//         false
+//     }
+// };
+const DEVNET_MODE:bool = true;
 #[constant]
 pub const GLOBAL_STATE_SEED:&str = "GLOBAL_STATE_SEED";
 pub const GLOBAL_STATE_TAG:&[u8] = GLOBAL_STATE_SEED.as_bytes();
@@ -38,8 +38,8 @@ pub const TREASURY_VAULT_SEED:&str = "TREASURY_VAULT_SEED";
 pub const TREASURY_VAULT_TAG:&[u8] = TREASURY_VAULT_SEED.as_bytes();
 
 pub const WSOL_MINT:&str = "So11111111111111111111111111111111111111112";
-pub const USDC_MINT:&str = if DEVNET_MODE {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
-pub const UNLOC_MINT:&str = if DEVNET_MODE {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
+pub const USDC_MINT:&str = if DEVNET_MODE {"GH1gUyAw7ems5MD46WGC9JPMHncLVBkHagpXgtYVUyPr"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
+pub const UNLOC_MINT:&str = if DEVNET_MODE {"Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67D4s3kRmut"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
 #[constant]
 pub const SUB_OFFER_COUNT_PER_LEVEL: u64 = 5;
 #[constant]
