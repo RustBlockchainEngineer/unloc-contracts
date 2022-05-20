@@ -26,9 +26,12 @@ pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
     let offer_apr = ctx.accounts.sub_offer.apr_numerator;
     let unloc_apr = ctx.accounts.global_state.apr_numerator;
     let denominator = ctx.accounts.global_state.denominator;
+    let accrued_apr = ctx.accounts.global_state.accrued_interest_numerator;
 
-    let needed_amount = origin + calc_fee(origin, offer_apr * (current_time - started_time),  seconds_for_year * denominator)?;
-    let unloc_fee_amount = calc_fee(origin, unloc_apr * (current_time - started_time), seconds_for_year * denominator)?;
+    let accrued_amount = calc_fee(origin, offer_apr * (current_time - started_time),  seconds_for_year * denominator)?;;
+    let accrued_unloc_fee = calc_fee(accrued_amount, accrued_apr,  denominator)?;
+    let needed_amount = origin + accrued_amount - accrued_unloc_fee;
+    let unloc_fee_amount = accrued_unloc_fee + calc_fee(origin, unloc_apr * (current_time - started_time), seconds_for_year * denominator)?;
 
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     if ctx.accounts.sub_offer.offer_mint == wsol_mint {
