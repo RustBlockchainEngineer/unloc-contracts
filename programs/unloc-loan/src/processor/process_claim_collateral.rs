@@ -35,6 +35,13 @@ pub fn process_claim_collateral(ctx: Context<ClaimCollateral>) -> Result<()> {
     let accrued_unloc_fee = calc_fee(accrued_amount, accrued_apr,  denominator)?;
     let unloc_fee_amount = accrued_unloc_fee + calc_fee(origin, unloc_apr * loan_duration, seconds_for_year * denominator)?;
 
+    // log fees
+    msg!("origin = {}, duration = {}", origin, loan_duration);
+    msg!("offer apr = {}%, unloc apr = {}%, accrued apr = {}%", offer_apr * 100 / denominator, unloc_apr * 100 / denominator, accrued_apr * 100 / denominator);
+    msg!("interest by offer apr = {}", accrued_amount);
+    msg!("accrued unloc fee = {}", accrued_unloc_fee);
+    msg!("total unloc fee = {}", unloc_fee_amount);
+
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     if ctx.accounts.sub_offer.offer_mint == wsol_mint {
         require(ctx.accounts.lender.lamports() >= unloc_fee_amount)?;

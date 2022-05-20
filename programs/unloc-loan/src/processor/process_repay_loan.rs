@@ -28,10 +28,20 @@ pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
     let denominator = ctx.accounts.global_state.denominator;
     let accrued_apr = ctx.accounts.global_state.accrued_interest_numerator;
 
-    let accrued_amount = calc_fee(origin, offer_apr * (current_time - started_time),  seconds_for_year * denominator)?;;
+    let duration = (current_time - started_time);
+    let accrued_amount = calc_fee(origin, offer_apr * duration,  seconds_for_year * denominator)?;;
     let accrued_unloc_fee = calc_fee(accrued_amount, accrued_apr,  denominator)?;
     let needed_amount = origin + accrued_amount - accrued_unloc_fee;
-    let unloc_fee_amount = accrued_unloc_fee + calc_fee(origin, unloc_apr * (current_time - started_time), seconds_for_year * denominator)?;
+    let unloc_apr_fee = calc_fee(origin, unloc_apr * duration, seconds_for_year * denominator)?;
+    let unloc_fee_amount = accrued_unloc_fee + unloc_apr_fee;
+    
+    // log fees
+    msg!("origin = {}, duration = {}", origin, duration);
+    msg!("offer apr = {}%, unloc apr = {}%, accrued apr = {}%", offer_apr * 100 / denominator, unloc_apr * 100 / denominator, accrued_apr * 100 / denominator);
+    msg!("interest by offer apr = {}", accrued_amount);
+    msg!("interest by unloc apr = {}", unloc_apr_fee);
+    msg!("accrued unloc fee = {}", accrued_unloc_fee);
+    msg!("total unloc fee = {}", unloc_fee_amount);
 
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     if ctx.accounts.sub_offer.offer_mint == wsol_mint {
