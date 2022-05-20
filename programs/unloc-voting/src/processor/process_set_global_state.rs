@@ -10,6 +10,7 @@ use std::str::FromStr;
 pub fn process_set_global_state(
     ctx: Context<SetGlobalState>, 
     new_super_owner: Pubkey, 
+    staking_pid: Pubkey, 
 ) -> Result<()> {
     if is_zero_account(&ctx.accounts.global_state.to_account_info()) {
         ctx.accounts.global_state.super_owner = ctx.accounts.super_owner.key();
@@ -18,6 +19,7 @@ pub fn process_set_global_state(
     assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?;
 
     ctx.accounts.global_state.super_owner = new_super_owner;
+    ctx.accounts.global_state.staking_pid = staking_pid;
 
     Ok(())
 }

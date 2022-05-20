@@ -23,8 +23,8 @@ declare_id!("6z6RuFauTG511XRakJnPhxUTCVPohv6oC69xieMdm4Z9");
 pub mod unloc_voting {
     use super::*;
     
-    pub fn set_global_state(ctx: Context<SetGlobalState>, new_super_owner: Pubkey) -> Result<()> { 
-        process_set_global_state(ctx, new_super_owner)
+    pub fn set_global_state(ctx: Context<SetGlobalState>, new_super_owner: Pubkey, staking_pid: Pubkey) -> Result<()> { 
+        process_set_global_state(ctx, new_super_owner, staking_pid)
     }
     pub fn set_voting(ctx: Context<SetVoting>, voting_number: u64, voting_start_timestamp: u64, voting_end_timestamp: u64) -> Result<()> { 
         process_set_voting(ctx, voting_number, voting_start_timestamp, voting_end_timestamp)
