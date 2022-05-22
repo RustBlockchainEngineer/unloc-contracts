@@ -275,7 +275,7 @@ pub mod unloc_staking {
             drop(pool);
             let early_unlock_fee = _ctx.accounts.state.early_unlock_fee;
             let early_unlock_fee_amount = calc_fee(amount, early_unlock_fee, ACC_PRECISION.try_into().unwrap())?;
-            let unstake_amount = amount - early_unlock_fee_amount;
+            let unstake_amount = amount.checked_sub(early_unlock_fee_amount).unwrap();
             let new_pool = &_ctx.accounts.pool;
             let cpi_accounts = Transfer {
                 from: _ctx.accounts.pool_vault.to_account_info(),
@@ -928,6 +928,7 @@ pub fn calc_fee(total: u64, fee_percent: u64, denominator: u64) -> Result<u64> {
     if _denominator == 0 {
         return Err(error!(ErrorCode::InvalidDenominator));
     }
-    let result = _total * _fee_percent / _denominator;
+    let result = _total.checked_mul(_fee_percent).unwrap()
+        .checked_div(_denominator).unwrap();
     Ok(result.try_into().unwrap())
 }
