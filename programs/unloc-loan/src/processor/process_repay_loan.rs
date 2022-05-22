@@ -28,12 +28,13 @@ pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
     let denominator = ctx.accounts.global_state.denominator;
     let accrued_apr = ctx.accounts.global_state.accrued_interest_numerator;
 
-    let duration = (current_time - started_time);
-    let accrued_amount = calc_fee(origin, offer_apr * duration,  seconds_for_year * denominator)?;;
+    let duration = current_time.checked_sub(started_time).unwrap();
+    let accrued_amount = calc_fee(origin, offer_apr.checked_mul(duration).unwrap(),  denominator.checked_mul(seconds_for_year).unwrap())?;;
     let accrued_unloc_fee = calc_fee(accrued_amount, accrued_apr,  denominator)?;
-    let needed_amount = origin + accrued_amount - accrued_unloc_fee;
-    let unloc_apr_fee = calc_fee(origin, unloc_apr * duration, seconds_for_year * denominator)?;
-    let unloc_fee_amount = accrued_unloc_fee + unloc_apr_fee;
+    let needed_amount = origin.checked_add(accrued_amount).unwrap()
+        .checked_sub(accrued_unloc_fee).unwrap();
+    let unloc_apr_fee = calc_fee(origin, unloc_apr.checked_mul(duration).unwrap(), denominator.checked_mul(seconds_for_year).unwrap())?;
+    let unloc_fee_amount = accrued_unloc_fee.checked_add(unloc_apr_fee).unwrap();
     
     // log fees
     msg!("origin = {}, duration = {}", origin, duration);
@@ -45,7 +46,7 @@ pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
 
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     if ctx.accounts.sub_offer.offer_mint == wsol_mint {
-        require(ctx.accounts.borrower.lamports() >= needed_amount + unloc_fee_amount)?;
+        require(ctx.accounts.borrower.lamports() >= needed_amount.checked_add(unloc_fee_amount).unwrap())?;
         invoke(
             &system_instruction::transfer(&ctx.accounts.borrower.key(), &ctx.accounts.lender.key(), needed_amount),
             &[
@@ -70,7 +71,8 @@ pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
         require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.sub_offer.lender)?;
         require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.sub_offer.offer_mint)?;
 
-        if needed_amount + unloc_fee_amount > ctx.accounts.borrower_offer_vault.amount {
+        let _borrower_offer_vault = needed_amount.checked_add(unloc_fee_amount).unwrap();
+        if _borrower_offer_vault > ctx.accounts.borrower_offer_vault.amount {
             return Err(error!(LoanError::InvalidAmount));
         }
         let cpi_accounts = Transfer {
@@ -92,7 +94,7 @@ pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         token::transfer(cpi_ctx, unloc_fee_amount)?;
     }
-    ctx.accounts.sub_offer.repaid_amount += needed_amount;
+    ctx.accounts.sub_offer.repaid_amount = ctx.accounts.sub_offer.repaid_amount.checked_add(needed_amount).unwrap();
     ctx.accounts.sub_offer.loan_ended_time = current_time;
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Fulfilled);
     ctx.accounts.offer.state = OfferState::get_state(OfferState::Fulfilled);

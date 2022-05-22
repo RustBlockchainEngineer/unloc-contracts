@@ -29,11 +29,12 @@ pub fn process_claim_collateral(ctx: Context<ClaimCollateral>) -> Result<()> {
     let loan_duration = ctx.accounts.sub_offer.loan_duration;
     let accrued_apr = ctx.accounts.global_state.accrued_interest_numerator;
 
-    require(current_time > started_time + loan_duration)?;
+    require(current_time > started_time.checked_add(loan_duration).unwrap())?;
 
-    let accrued_amount = calc_fee(origin, offer_apr * loan_duration,  seconds_for_year * denominator)?;;
+    let accrued_amount = calc_fee(origin, offer_apr.checked_mul(loan_duration).unwrap(),  denominator.checked_mul(seconds_for_year).unwrap())?;
     let accrued_unloc_fee = calc_fee(accrued_amount, accrued_apr,  denominator)?;
-    let unloc_fee_amount = accrued_unloc_fee + calc_fee(origin, unloc_apr * loan_duration, seconds_for_year * denominator)?;
+    let _unloc_fee_amount = calc_fee(origin, unloc_apr.checked_mul(loan_duration).unwrap(), denominator.checked_mul(seconds_for_year).unwrap())?;
+    let unloc_fee_amount = accrued_unloc_fee.checked_mul(_unloc_fee_amount).unwrap();
 
     // log fees
     msg!("origin = {}, duration = {}", origin, loan_duration);

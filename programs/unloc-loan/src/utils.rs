@@ -78,6 +78,9 @@ pub fn calc_fee_u128(total: u64, fee_percent: u128, denominator: u128) -> Result
     if _denominator == 0 {
         return Err(error!(LoanError::InvalidDenominator));
     }
-    let result = _total * _fee_percent / _denominator;
+    let result = _total.checked_mul(_fee_percent)
+        .unwrap()
+        .checked_div(_denominator)
+        .unwrap();
     Ok(result.try_into().unwrap())
 }
