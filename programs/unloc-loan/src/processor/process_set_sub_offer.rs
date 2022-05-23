@@ -16,7 +16,7 @@ pub fn process_set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_o
 
     if is_zero_account(&ctx.accounts.sub_offer.to_account_info()) {
         ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Proposed);
-        ctx.accounts.offer.sub_offer_count += 1;
+        ctx.accounts.offer.sub_offer_count = ctx.accounts.offer.sub_offer_count.checked_add(1).unwrap();
         ctx.accounts.sub_offer.offer = ctx.accounts.offer.key();
         ctx.accounts.sub_offer.nft_mint = ctx.accounts.offer.nft_mint;
         ctx.accounts.sub_offer.borrower = ctx.accounts.offer.borrower;

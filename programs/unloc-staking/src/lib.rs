@@ -192,7 +192,7 @@ pub mod unloc_staking {
         user.pool = _ctx.accounts.pool.key();
 
         let pool = &mut _ctx.accounts.pool;
-        pool.total_user += 1;
+        pool.total_user = pool.total_user.checked_add(1).unwrap();
         emit!(UserCreated {
             pool: _ctx.accounts.pool.key(),
             user: _ctx.accounts.user.key(),
@@ -657,7 +657,7 @@ impl StateAccount {
             if score >= *level {
                 return (profile_levels.len() - i).try_into().unwrap();
             }
-            i += 1;
+            i = i.checked_add(1).unwrap();
         }
         return 0;
     }

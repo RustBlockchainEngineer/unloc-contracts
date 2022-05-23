@@ -12,7 +12,7 @@ use mpl_token_metadata::{state::Metadata};
 pub fn process_set_voting(ctx: Context<SetVoting>, voting_number: u64, voting_start_timestamp: u64, voting_end_timestamp: u64) -> Result<()> {
     assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?; 
     if is_zero_account(&ctx.accounts.voting.to_account_info()) {
-        ctx.accounts.global_state.voting_count += 1;
+        ctx.accounts.global_state.voting_count = ctx.accounts.global_state.voting_count.checked_add(1).unwrap();
         ctx.accounts.voting.voting_number = voting_number;
         ctx.accounts.voting.total_score = 0;
         ctx.accounts.voting.total_items = 0;
