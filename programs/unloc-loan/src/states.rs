@@ -94,6 +94,7 @@ impl SubOfferState {
 #[derive(Default)]
 pub struct LenderReward {
     pub lender: Pubkey,
+    pub borrower: Pubkey,
     pub collection: Pubkey,
 
     pub total_point: u128,
@@ -105,8 +106,10 @@ pub struct LenderReward {
 
     pub start_time: u64,
     pub end_time: u64,
-    pub last_claimed_time: u64,
+    pub lender_last_claimed_time: u64,
+    pub borrower_last_claimed_time: u64,
     pub max_duration: u64,
     pub loan_amount: u64,
-    pub claimed_amount: u64,
+    pub lender_claimed_amount: u64,
+    pub borrower_claimed_amount: u64,
 }
