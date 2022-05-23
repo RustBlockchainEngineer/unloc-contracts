@@ -27,11 +27,11 @@ pub fn process_claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
     let loan_mint = ctx.accounts.lender_reward.loan_mint;
     let loan_mint_decimals = ctx.accounts.lender_reward.loan_mint_decimals;
     let token_per_second = if wsol_mint ==  loan_mint {ctx.accounts.global_state.reward_per_sol} else {ctx.accounts.global_state.reward_per_usdc};
-    let reward_end_time = cmp::min(start_time + max_duration, cmp::min(current_time, end_time));
-    let reward_duration = reward_end_time - last_claimed_time;
+    let reward_end_time = cmp::min(start_time.checked_add(max_duration).unwrap(), cmp::min(current_time, end_time));
+    let reward_duration = reward_end_time.checked_sub(last_claimed_time).unwrap();
     let decimals = 10u64.pow(loan_mint_decimals as u32);
 
-    let full_reward_amount = calc_fee(reward_duration * token_per_second, loan_amount, decimals)?;
+    let full_reward_amount = calc_fee(reward_duration.checked_mul(token_per_second).unwrap(), loan_amount, decimals)?;
     let reward_amount = calc_fee_u128(full_reward_amount, collection_point, total_point)?;
     
     let cpi_accounts = Transfer {
@@ -52,7 +52,7 @@ pub fn process_claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
 
     token::transfer(cpi_ctx, reward_amount)?;
 
-    ctx.accounts.lender_reward.claimed_amount += reward_amount;
+    ctx.accounts.lender_reward.claimed_amount = ctx.accounts.lender_reward.claimed_amount.checked_add(reward_amount).unwrap();
     ctx.accounts.lender_reward.last_claimed_time = reward_end_time;
     Ok(())
 }

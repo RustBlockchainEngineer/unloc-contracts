@@ -63,7 +63,7 @@ pub fn process_accept_offer(ctx: Context<AcceptOffer>) -> Result<()> {
     ctx.accounts.lender_reward.start_time = current_time;
     ctx.accounts.lender_reward.last_claimed_time = current_time;
     ctx.accounts.lender_reward.max_duration = ctx.accounts.sub_offer.loan_duration;
-    ctx.accounts.lender_reward.end_time = ctx.accounts.sub_offer.loan_duration + current_time;
+    ctx.accounts.lender_reward.end_time = ctx.accounts.sub_offer.loan_duration.checked_add(current_time).unwrap();
     ctx.accounts.lender_reward.loan_amount = ctx.accounts.sub_offer.offer_amount;
     ctx.accounts.lender_reward.claimed_amount = 0;
     ctx.accounts.lender_reward.collection = ctx.accounts.offer.collection;

@@ -11,7 +11,7 @@ use mpl_token_metadata::{state::Metadata};
 
 pub fn process_del_voting_item(ctx: Context<DelVotingItem>) -> Result<()> { 
     let score = ctx.accounts.voting_item.voting_score;
-    ctx.accounts.voting.total_score -= score;
+    ctx.accounts.voting.total_score = ctx.accounts.voting.total_score.checked_sub(score).unwrap();
     Ok(())
 }
 
