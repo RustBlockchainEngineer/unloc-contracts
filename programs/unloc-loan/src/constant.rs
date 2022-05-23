@@ -44,3 +44,5 @@ pub const UNLOC_MINT:&str = if DEVNET_MODE {"Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67
 pub const SUB_OFFER_COUNT_PER_LEVEL: u64 = 5;
 #[constant]
 pub const DEFULT_SUB_OFFER_COUNT: u64 = 3;
+
+pub const META_PREFIX: &[u8] = b"metadata";

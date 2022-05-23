@@ -17,6 +17,7 @@ pub fn process_set_global_state(
     unloc_staking_pid: Pubkey,
     unloc_staking_pool_id: Pubkey,
     voting_pid: Pubkey,
+    token_metadata_pid: Pubkey,
     current_voting_num: u64,
 ) -> Result<()> {
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
@@ -38,6 +39,7 @@ pub fn process_set_global_state(
     ctx.accounts.global_state.unloc_staking_pool_id = unloc_staking_pool_id;
     ctx.accounts.global_state.voting_pid = voting_pid;
     ctx.accounts.global_state.current_voting_num = current_voting_num;
+    ctx.accounts.global_state.token_metadata_pid = token_metadata_pid;
 
     Ok(())
 }

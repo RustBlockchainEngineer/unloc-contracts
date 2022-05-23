@@ -10,12 +10,11 @@ use crate::{
 use mpl_token_metadata::{state::Metadata};
 
 pub fn process_set_offer(ctx: Context<SetOffer>) -> Result<()> { 
-    // let metadata = Metadata::from_account_info(&ctx.accounts.nft_metadata.to_account_info())?;
-    // let collection = metadata.collection.unwrap();
-    // let collection_key = collection.key
-    // require(metadata.mint == ctx.accounts.nft_mint.key())?;
+    let metadata = Metadata::from_account_info(&ctx.accounts.nft_metadata.to_account_info())?;
+    let collection = metadata.collection.unwrap();
+    let collection_key = collection.key
+    require(metadata.mint == ctx.accounts.nft_mint.key())?;
 
-    let collection_key = ctx.accounts.nft_metadata.key();
     if is_zero_account(&ctx.accounts.offer.to_account_info()) {
         ctx.accounts.offer.state = OfferState::get_state(OfferState::Proposed);
         ctx.accounts.offer.sub_offer_count = 0;
@@ -60,7 +59,12 @@ pub struct SetOffer<'info> {
     pub offer:Box<Account<'info, Offer>>,
 
     pub nft_mint: Box<Account<'info, Mint>>,
-    /// CHECK: metadata from token meta program. it will be checked in the contract function
+    /// CHECK: metadata from token meta program.
+    #[account(
+        seeds = [META_PREFIX, global_state.token_metadata_pid.as_ref(), nft_mint.key().as_ref()],
+        seeds::program = global_state.token_metadata_pid,
+        bump,
+    )]
     pub nft_metadata: AccountInfo<'info>,
 
     #[account(init_if_needed,

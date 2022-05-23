@@ -19,6 +19,8 @@ pub struct GlobalState {
     pub unloc_staking_pool_id: Pubkey,
     pub voting_pid: Pubkey,
     pub current_voting_num: u64,
+
+    pub token_metadata_pid: Pubkey,
 }
 
 #[account]
