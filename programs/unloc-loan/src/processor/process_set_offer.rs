@@ -12,7 +12,7 @@ use mpl_token_metadata::{state::Metadata};
 pub fn process_set_offer(ctx: Context<SetOffer>) -> Result<()> { 
     let metadata = Metadata::from_account_info(&ctx.accounts.nft_metadata.to_account_info())?;
     let collection = metadata.collection.unwrap();
-    let collection_key = collection.key
+    let collection_key = collection.key;
     require(metadata.mint == ctx.accounts.nft_mint.key())?;
 
     if is_zero_account(&ctx.accounts.offer.to_account_info()) {
@@ -49,6 +49,12 @@ pub fn process_set_offer(ctx: Context<SetOffer>) -> Result<()> {
 pub struct SetOffer<'info> {
     #[account(mut)]
     pub borrower:  Signer<'info>,
+    #[account(
+        seeds = [GLOBAL_STATE_TAG],
+        bump,
+    )]
+    pub global_state:Box<Account<'info, GlobalState>>,
+    
     #[account(
     init_if_needed,
     seeds = [OFFER_TAG, borrower.key().as_ref(), nft_mint.key().as_ref()],

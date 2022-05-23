@@ -24,7 +24,7 @@ pub fn process_claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let start_time = ctx.accounts.user_reward.start_time;
     let end_time = ctx.accounts.user_reward.end_time;
-    let last_claimed_time = ctx.accounts.user_reward.last_claimed_time;
+    let last_claimed_time = if is_lender {ctx.accounts.user_reward.lender_last_claimed_time} else {ctx.accounts.user_reward.borrower_last_claimed_time};
     let max_duration = ctx.accounts.user_reward.max_duration;
     let loan_amount = ctx.accounts.user_reward.loan_amount;
     let loan_mint = ctx.accounts.user_reward.loan_mint;
