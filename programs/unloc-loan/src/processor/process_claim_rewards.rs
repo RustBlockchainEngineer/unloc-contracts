@@ -35,7 +35,7 @@ pub fn process_claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
     let decimals = 10u64.pow(loan_mint_decimals as u32);
 
     let full_reward_amount = calc_fee(reward_duration.checked_mul(token_per_second).unwrap(), loan_amount, decimals)?;
-    let reward_amount = calc_fee_u128(full_reward_amount, collection_point, total_point)?;
+    let reward_amount = if total_point == 0 {0} else {calc_fee_u128(full_reward_amount, collection_point, total_point)?};
     
     let cpi_accounts = Transfer {
         from: ctx.accounts.reward_vault.to_account_info(),

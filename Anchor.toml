@@ -5,6 +5,9 @@ unloc_staking = "EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU"
 unloc_voting = "6z6RuFauTG511XRakJnPhxUTCVPohv6oC69xieMdm4Z9"
 unloc_burn = "37TgoUgxSshhJmhNEAQMmAWF7XRhXEaY5HxcTZ6eYs6r"
 
+[[test.genesis]]
+address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+program = "local-deploy/mpl_token_metadata.so"
 
 [registry]
 url = "https://anchor.projectserum.com"
