@@ -15,24 +15,27 @@ pub fn process_claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
     // let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
     require(ctx.accounts.user_reward_vault.mint == unloc_mint)?;
     require(ctx.accounts.user_reward_vault.owner == ctx.accounts.authority.key())?;
+    let is_lender = ctx.accounts.user_reward.lender == ctx.accounts.authority.key();
+    let is_borrower = ctx.accounts.user_reward.borrower == ctx.accounts.authority.key();
+    require(is_lender || is_borrower)?;
 
-    let total_point = ctx.accounts.lender_reward.total_point;
-    let collection_point = ctx.accounts.lender_reward.collection_point;
+    let total_point = ctx.accounts.user_reward.total_point;
+    let collection_point = ctx.accounts.user_reward.collection_point;
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
-    let start_time = ctx.accounts.lender_reward.start_time;
-    let end_time = ctx.accounts.lender_reward.end_time;
-    let last_claimed_time = ctx.accounts.lender_reward.last_claimed_time;
-    let max_duration = ctx.accounts.lender_reward.max_duration;
-    let loan_amount = ctx.accounts.lender_reward.loan_amount;
-    let loan_mint = ctx.accounts.lender_reward.loan_mint;
-    let loan_mint_decimals = ctx.accounts.lender_reward.loan_mint_decimals;
+    let start_time = ctx.accounts.user_reward.start_time;
+    let end_time = ctx.accounts.user_reward.end_time;
+    let last_claimed_time = if is_lender {ctx.accounts.user_reward.lender_last_claimed_time} else {ctx.accounts.user_reward.borrower_last_claimed_time};
+    let max_duration = ctx.accounts.user_reward.max_duration;
+    let loan_amount = ctx.accounts.user_reward.loan_amount;
+    let loan_mint = ctx.accounts.user_reward.loan_mint;
+    let loan_mint_decimals = ctx.accounts.user_reward.loan_mint_decimals;
     let token_per_second = if wsol_mint ==  loan_mint {ctx.accounts.global_state.reward_per_sol} else {ctx.accounts.global_state.reward_per_usdc};
     let reward_end_time = cmp::min(start_time.checked_add(max_duration).unwrap(), cmp::min(current_time, end_time));
     let reward_duration = reward_end_time.checked_sub(last_claimed_time).unwrap();
     let decimals = 10u64.pow(loan_mint_decimals as u32);
 
     let full_reward_amount = calc_fee(reward_duration.checked_mul(token_per_second).unwrap(), loan_amount, decimals)?;
-    let reward_amount = calc_fee_u128(full_reward_amount, collection_point, total_point)?;
+    let reward_amount = if total_point == 0 {0} else {calc_fee_u128(full_reward_amount, collection_point, total_point)?};
     
     let cpi_accounts = Transfer {
         from: ctx.accounts.reward_vault.to_account_info(),
@@ -51,9 +54,13 @@ pub fn process_claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
     let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
 
     token::transfer(cpi_ctx, reward_amount)?;
-
-    ctx.accounts.lender_reward.claimed_amount = ctx.accounts.lender_reward.claimed_amount.checked_add(reward_amount).unwrap();
-    ctx.accounts.lender_reward.last_claimed_time = reward_end_time;
+    if is_lender {
+        ctx.accounts.user_reward.lender_claimed_amount = ctx.accounts.user_reward.lender_claimed_amount.checked_add(reward_amount).unwrap();
+        ctx.accounts.user_reward.lender_last_claimed_time = reward_end_time;
+    } else {
+        ctx.accounts.user_reward.borrower_claimed_amount = ctx.accounts.user_reward.borrower_claimed_amount.checked_add(reward_amount).unwrap();
+        ctx.accounts.user_reward.borrower_last_claimed_time = reward_end_time;
+    }
     Ok(())
 }
 
@@ -70,10 +77,10 @@ pub struct ClaimRewards<'info> {
 
     #[account(
         mut,
-        seeds = [LENDER_REWARD_TAG, authority.key().as_ref(), lender_reward.sub_offer.as_ref()],
+        seeds = [LENDER_REWARD_TAG, user_reward.lender.as_ref(), user_reward.borrower.as_ref(), user_reward.sub_offer.as_ref()],
         bump,
         )]
-    pub lender_reward:Box<Account<'info, LenderReward>>,
+    pub user_reward:Box<Account<'info, LenderReward>>,
 
     #[account(
         mut,

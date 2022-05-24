@@ -56,19 +56,22 @@ pub fn process_accept_offer(ctx: Context<AcceptOffer>) -> Result<()> {
     ctx.accounts.sub_offer.loan_started_time = ctx.accounts.clock.unix_timestamp as u64;
 
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
-    ctx.accounts.lender_reward.lender = ctx.accounts.lender.key();
-    ctx.accounts.lender_reward.sub_offer = ctx.accounts.sub_offer.key();
-    ctx.accounts.lender_reward.loan_mint = ctx.accounts.offer_mint.key();
-    ctx.accounts.lender_reward.loan_mint_decimals = ctx.accounts.offer_mint.decimals;
-    ctx.accounts.lender_reward.start_time = current_time;
-    ctx.accounts.lender_reward.last_claimed_time = current_time;
-    ctx.accounts.lender_reward.max_duration = ctx.accounts.sub_offer.loan_duration;
-    ctx.accounts.lender_reward.end_time = ctx.accounts.sub_offer.loan_duration.checked_add(current_time).unwrap();
-    ctx.accounts.lender_reward.loan_amount = ctx.accounts.sub_offer.offer_amount;
-    ctx.accounts.lender_reward.claimed_amount = 0;
-    ctx.accounts.lender_reward.collection = ctx.accounts.offer.collection;
-    ctx.accounts.lender_reward.total_point = ctx.accounts.voting.total_score;
-    ctx.accounts.lender_reward.collection_point = ctx.accounts.voting_item.voting_score;
+    ctx.accounts.user_reward.lender = ctx.accounts.lender.key();
+    ctx.accounts.user_reward.borrower = ctx.accounts.borrower.key();
+    ctx.accounts.user_reward.sub_offer = ctx.accounts.sub_offer.key();
+    ctx.accounts.user_reward.loan_mint = ctx.accounts.offer_mint.key();
+    ctx.accounts.user_reward.loan_mint_decimals = ctx.accounts.offer_mint.decimals;
+    ctx.accounts.user_reward.start_time = current_time;
+    ctx.accounts.user_reward.lender_last_claimed_time = current_time;
+    ctx.accounts.user_reward.borrower_last_claimed_time = current_time;
+    ctx.accounts.user_reward.max_duration = ctx.accounts.sub_offer.loan_duration;
+    ctx.accounts.user_reward.end_time = ctx.accounts.sub_offer.loan_duration.checked_add(current_time).unwrap();
+    ctx.accounts.user_reward.loan_amount = ctx.accounts.sub_offer.offer_amount;
+    ctx.accounts.user_reward.lender_claimed_amount = 0;
+    ctx.accounts.user_reward.borrower_claimed_amount = 0;
+    ctx.accounts.user_reward.collection = ctx.accounts.offer.collection;
+    ctx.accounts.user_reward.total_point = ctx.accounts.voting.total_score;
+    ctx.accounts.user_reward.collection_point = ctx.accounts.voting_item.voting_score;
     
 
     Ok(())
@@ -120,12 +123,12 @@ pub struct AcceptOffer<'info> {
 
     #[account(
         init,
-        seeds = [LENDER_REWARD_TAG, lender.key().as_ref(), sub_offer.key().as_ref()],
+        seeds = [LENDER_REWARD_TAG, lender.key().as_ref(), borrower.key().as_ref(), sub_offer.key().as_ref()],
         bump,
         payer = lender,
         space = std::mem::size_of::<LenderReward>() + 8
         )]
-    pub lender_reward:Box<Account<'info, LenderReward>>,
+    pub user_reward:Box<Account<'info, LenderReward>>,
 
     #[account(mut,
         constraint = sub_offer.offer_mint == offer_mint.key()
