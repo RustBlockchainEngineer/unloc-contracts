@@ -183,4 +183,10 @@ Stakers can vote for next UNLOC rewards points.
 Admin sets NFT collections as voting items for every voting.
 Then stakers can vote one collection to increase rewards for the collection.
 If one voting ends, next UNLOC rewards percent is determined per collection.
+Voting score depends on his unloc score in the staking protocol.
+Increase your staking level so that you can have more ability to vote.
+
+# NFT Loan Contract
+
+# Buyback burn Contract
 
