@@ -23,19 +23,10 @@ pub const WSOL_VAULT_SEED:&[u8] = b"WSOL_VAULT_SEED";
 pub const USDC_VAULT_SEED:&[u8] = b"USDC_VAULT_SEED";
 
 
-const DEVNET_MODE:bool = {
-    #[cfg(feature = "devnet")]
-    {
-        true
-    }
-    #[cfg(not(feature = "devnet"))]
-    {
-        false
-    }
-};
+const DEVNET_MODE:bool = true;
 pub const WSOL_MINT:&str = "So11111111111111111111111111111111111111112";
-pub const USDC_MINT:&str = if DEVNET_MODE {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
-pub const UNLOC_MINT:&str = if DEVNET_MODE {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
+pub const USDC_MINT:&str = if DEVNET_MODE {"GH1gUyAw7ems5MD46WGC9JPMHncLVBkHagpXgtYVUyPr"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
+pub const UNLOC_MINT:&str = if DEVNET_MODE {"Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67D4s3kRmut"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
 
 #[program]
 pub mod unloc_burn {
@@ -59,19 +50,8 @@ pub mod unloc_burn {
 
         ctx.accounts.global_state.amm_program = ctx.accounts.amm_program.key();
         ctx.accounts.global_state.amm = ctx.accounts.amm.key();
-        ctx.accounts.global_state.amm_authority = ctx.accounts.amm_authority.key();
-        ctx.accounts.global_state.amm_open_orders = ctx.accounts.amm_open_orders.key();
-        ctx.accounts.global_state.amm_target_orders = ctx.accounts.amm_target_orders.key();
-        ctx.accounts.global_state.pool_coin_token_account = ctx.accounts.pool_coin_token_account.key();
-        ctx.accounts.global_state.pool_pc_token_account = ctx.accounts.pool_pc_token_account.key();
         ctx.accounts.global_state.serum_program = ctx.accounts.serum_program.key();
         ctx.accounts.global_state.serum_market = ctx.accounts.serum_market.key();
-        ctx.accounts.global_state.serum_bids = ctx.accounts.serum_bids.key();
-        ctx.accounts.global_state.serum_asks = ctx.accounts.serum_asks.key();
-        ctx.accounts.global_state.serum_event_queue = ctx.accounts.serum_event_queue.key();
-        ctx.accounts.global_state.serum_coin_vault_account = ctx.accounts.serum_coin_vault_account.key();
-        ctx.accounts.global_state.serum_pc_vault_account = ctx.accounts.serum_pc_vault_account.key();
-        ctx.accounts.global_state.serum_vault_signer = ctx.accounts.serum_vault_signer.key();
 
         Ok(())
     }
@@ -171,41 +151,11 @@ pub struct SetGlobalState <'info>{
     #[account(mut)]
     pub amm: AccountInfo<'info>,
     /// CHECK: Safe
-    pub amm_authority: AccountInfo<'info>,
-    /// CHECK: Safe
-    #[account(mut)]
-    pub amm_open_orders: AccountInfo<'info>,
-    /// CHECK: Safe
-    #[account(mut)]
-    pub amm_target_orders: AccountInfo<'info>,
-    /// CHECK: Safe
-    #[account(mut)]
-    pub pool_coin_token_account: AccountInfo<'info>,
-    /// CHECK: Safe
-    #[account(mut)]
-    pub pool_pc_token_account: AccountInfo<'info>,
-    /// CHECK: Safe
     pub serum_program: AccountInfo<'info>,
     /// CHECK: Safe
     #[account(mut)]
     pub serum_market: AccountInfo<'info>,
     /// CHECK: Safe
-    #[account(mut)]
-    pub serum_bids: AccountInfo<'info>,
-    /// CHECK: Safe
-    #[account(mut)]
-    pub serum_asks: AccountInfo<'info>,
-    /// CHECK: Safe
-    #[account(mut)]
-    pub serum_event_queue: AccountInfo<'info>,
-    /// CHECK: Safe
-    #[account(mut)]
-    pub serum_coin_vault_account: AccountInfo<'info>,
-    /// CHECK: Safe
-    #[account(mut)]
-    pub serum_pc_vault_account: AccountInfo<'info>,
-    /// CHECK: Safe
-    pub serum_vault_signer: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -278,19 +228,8 @@ impl<'a, 'b, 'c, 'info> Buyback<'info> {
         
         require(self.global_state.amm_program == self.amm_program.key(), "wrong amm_program")?;
         require(self.global_state.amm == self.amm.key(), "wrong amm")?;
-        require(self.global_state.amm_authority == self.amm_authority.key(), "wrong amm_authority")?;
-        require(self.global_state.amm_open_orders == self.amm_open_orders.key(), "wrong amm_open_orders")?;
-        require(self.global_state.amm_target_orders == self.amm_target_orders.key(), "wrong amm_target_orders")?;
-        require(self.global_state.pool_coin_token_account == self.pool_coin_token_account.key(), "wrong pool_coin_token_account")?;
-        require(self.global_state.pool_pc_token_account == self.pool_pc_token_account.key(), "wrong pool_pc_token_account")?;
         require(self.global_state.serum_program == self.serum_program.key(), "wrong serum_program")?;
         require(self.global_state.serum_market == self.serum_market.key(), "wrong serum_market")?;
-        require(self.global_state.serum_bids == self.serum_bids.key(), "wrong serum_bids")?;
-        require(self.global_state.serum_asks == self.serum_asks.key(), "wrong serum_asks")?;
-        require(self.global_state.serum_event_queue == self.serum_event_queue.key(), "wrong serum_event_queue")?;
-        require(self.global_state.serum_coin_vault_account == self.serum_coin_vault_account.key(), "wrong serum_coin_vault_account")?;
-        require(self.global_state.serum_pc_vault_account == self.serum_pc_vault_account.key(), "wrong serum_pc_vault_account")?;
-        require(self.global_state.serum_vault_signer == self.serum_vault_signer.key(), "wrong serum_vault_signer")?;
 
         Ok(())
     }
@@ -328,10 +267,11 @@ pub struct BurnUnloc <'info> {
         bump,
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
+    #[account(mut)]
     pub unloc_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        seeds = [USDC_VAULT_SEED],
+        seeds = [UNLOC_VAULT_SEED],
         bump,
     )]
     pub unloc_vault:Box<Account<'info, TokenAccount>>,
@@ -344,19 +284,8 @@ pub struct GlobalState {
 
     pub amm_program: Pubkey,
     pub amm: Pubkey,
-    pub amm_authority: Pubkey,
-    pub amm_open_orders: Pubkey,
-    pub amm_target_orders: Pubkey,
-    pub pool_coin_token_account: Pubkey,
-    pub pool_pc_token_account: Pubkey,
     pub serum_program: Pubkey,
     pub serum_market: Pubkey,
-    pub serum_bids: Pubkey,
-    pub serum_asks: Pubkey,
-    pub serum_event_queue: Pubkey,
-    pub serum_coin_vault_account: Pubkey,
-    pub serum_pc_vault_account: Pubkey,
-    pub serum_vault_signer: Pubkey,
 }
 
 
