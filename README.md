@@ -32,9 +32,6 @@ Visit [unloc.xyz](https://www.unloc.xyz) to find out more and join the discussio
 - [Buyback & burn Contract](#buyback-burn-contract)
      - [Functional Requirements](#functional-requirements-of-burn)
     - [Use cases](#use-cases-of-burn)
-    - [Detailed Information](#detailed-information-of-burn)
-- [Liquidity Mining](#liquidity-mining)
-
 - [Issues & Improvements](#issues--improvements)
 
 ## Product Architecture
@@ -302,7 +299,48 @@ The borrower makes the offer. The lender accepts the terms set by Borrower (as i
 
 ### Use cases of Loan
 
+![loan](images/loan.png)
+
+1. Admin sets reward rate from voting system and deposit UNLOC tokens for rewards distribution.
+2. Borrower create loan offers.
+3. Lender accpets offer and lend SOL/SPL token to borrower.
+4. Borrower repays borrowed SOL/SPL and get his NFT again.
+5. Lender/Borrower gets UNLOC rewards for loaning duration.
+6. All UNLOC tokens from fees goes to buyback-burn program.
+
 ### Detailed Information of Loan
+
+- Global State
+
+        unlocNumerator = 1 
+
+Spec defines that Unloc adds an additional 1% on top of the APR user specified
+
+        denominator = 100 
+
+The denominator (I THINK) is used to normalize the APR percentages to actual decimal values, e.g. 120% to 1.2 and 1% to 0.01, meaning we need to divide it by 100.
+
+If we are using basis points however, then the denominator needs to be higher (10000)
+
+        secondsForYear = 3600 * 24 * 365
+
+- Loan Offer
+
+        origin = 100 // Principal
+
+        offerApr = 120 // Set as 120% in the UI
+
+        duration = 10 * 24 * 3600 (10 days, Unix TS)
+
+- Utility function
+
+        calcFee(total, feePercent, denominator) {
+            return total * feePercent / denominator
+        }
+
+![loan-formular-1](images/loan-formula-1.PNG)
+
+![loan-formular-2](images/loan-formula-2.PNG)
 
 ## Buyback burn Contract
 
@@ -315,10 +353,31 @@ We use raydium pool to buyback and burn UNLOC tokens.
 And for the interval actions, we call it from the backend regularly.
 
 ### Functional Requirements of Burn
+
+- UNLOC tokens are collected from Loan and Staking program.
+- SOL/USDC tokens are collected from Loan and Staking program too.
+- Contract buybacks SOL/USDC tokens to UNLOC via Raydium & Serum regularly.
+- Contract burns collected UNLOC tokens at certain intervals.
 ### Use cases of Burn
 
-### Detailed Information of Burn
+![buyback-burn](images/buyback-burn.png)
 
-## Liquidity Mining
+1. All fees go to buyback-burn program
+2. buyback-burn program uses raydium & serum to buyback SOL/USDC to UNLOC.
+3. All buybacked & collected UNLOC tokens are burnt at certain intervals.
+
 
 ## Issues & Improvements
+
+1. usage of NFT collection in the contract (loan & voting)
+
+mpl-token-metadata program supports nft collection as public key but past versions doesn't support it and there will be so many nft collections without collection key as public key.
+
+2. auto-liquidation process for expired NFTs in the loan contract
+
+We liquidate expired NFTs manually at the moment.
+But we need automation of liquidation process.
+
+3. weak security codes
+
+We need to write security codes and audit all smart contract codes so that it can be safe.
