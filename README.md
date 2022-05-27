@@ -8,10 +8,6 @@ At the moment, our product allows you to gain temporary liquidity by using your 
 
 This contains staking, voting, loan, buyback-burn and liquidity mining contract workflows.
 
-## More information
-
-Visit [unloc.xyz](https://www.unloc.xyz) to find out more and join the discussion.
-
 ## Unloc System Summary
 
 - [Product Architecture](#product-architecture)
@@ -84,26 +80,27 @@ You can use next commands to create global settings & pool for your token after 
 
 --devnet
 
-yarn run staking:createState:dev
+`yarn run staking:createState:dev`
 
-yarn run staking:createRewardConfig:dev
+`yarn run staking:createRewardConfig:dev`
 
-yarn run staking:createPool:dev
+`yarn run staking:createPool:dev`
 
-yarn run staking:fundReward:dev
+`yarn run staking:fundReward:dev`
 
 --mainnet
 
-yarn run staking:createState:main
+`yarn run staking:createState:main`
 
-yarn run staking:createRewardConfig:main
+`yarn run staking:createRewardConfig:main`
 
-yarn run staking:createPool:main
+`yarn run staking:createPool:main`
 
-yarn run staking:fundReward:main
+`yarn run staking:fundReward:main`
 
 ### How to install & run
 
+```
 git clone https://github.com/UNLOC-DEV/client
 
 npm i -g @project-serum/anchor-cli@0.24.2
@@ -121,6 +118,7 @@ anchor run idl
 anchor test
 
 anchor deploy
+```
 
 
 ## Staking Contract
@@ -173,7 +171,7 @@ This section contains detailed information about staking contract & scripts.
 
 set STAKING_RATE in the CONFIG.ts file to run this command.
 
-command: yarn run staking:createState:main
+command: `yarn run staking:createState:main`
 
 this creates global state and set super owner of this program.
 
@@ -187,7 +185,7 @@ duration means lock duration for the level.
 
 extraPercentage means extra reward than general reward.
 
-command: yarn run staking:createRewardConfig:main
+command: `yarn run staking:createRewardConfig:main`
 
 this creates extra reward configuration account.
 
@@ -201,7 +199,7 @@ POOL_POINT means reward percentage of total for this pool.
 
 POOL_AMOUNT_MULTIPLIER is amplifier of POOL_POINT.
 
-command: yarn run staking:createPool:main
+command: `yarn run staking:createPool:main`
 
 This creates one pool with given reward point.
 
@@ -209,7 +207,7 @@ This creates one pool with given reward point.
 
 set FUND_AMOUNT in the CONFIG.ts file to run this command.
 
-command: yarn run staking:fundReward:main
+command: `yarn run staking:fundReward:main`
 
 This funds reward token with given amount.
 
@@ -217,7 +215,7 @@ This funds reward token with given amount.
 
 set STAKING_RATE in the CONFIG.ts file to run this command.
 
-command: yarn run staking:changeStakingRate:main
+command: `yarn run staking:changeStakingRate:main`
 
 This changes staking reward rate in the global settings.
 
@@ -225,7 +223,7 @@ This changes staking reward rate in the global settings.
 
 set REWARD_CONFIGS in the CONFIG.ts file to run this command.
 
-command: yarn run staking:setRewardConfig:main
+command: `yarn run staking:setRewardConfig:main`
 
 This updates current extra reward configurations with given one.
 
@@ -233,7 +231,7 @@ This updates current extra reward configurations with given one.
 
 set POOL_POINT in the CONFIG.ts file to run this command.
 
-command: yarn run staking:changePoolPoint:main
+command: `yarn run staking:changePoolPoint:main`
 
 This updates current pool point with given one.
 
@@ -243,7 +241,7 @@ If you are using single pool for staking, the pool point is full point of reward
 
 set POOL_AMOUNT_MULTIPLIER in the CONFIG.ts file to run this command.
 
-command: yarn run staking:changePoolMultipler:main
+command: `yarn run staking:changePoolMultipler:main`
 
 This updates current pool multipler with given one.
 
@@ -276,9 +274,7 @@ Voting users should stake some UNLOC tokens to get voting power.
 
 ## NFT Loan Contract
 
-Unloc NFT Loaing is a peer-to-peer (P2P) and pool based decentralised protocol where NFT owners can take out a loan using their NFT token(s) as collateral. Initially, we aim to build momentum on the Solana blockchain due to it’s speed, growth, and it’s well-defined Metaplex NFT platform.
-
-
+Unloc NFT Loaning allows owners to take out a loan using their NFT token(s) as collateral.
 ### Functional Requirements of Loan
 
 - Fees
