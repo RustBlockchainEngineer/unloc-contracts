@@ -34,6 +34,7 @@ pub struct Offer {
     pub state: u8,
     pub sub_offer_count: u64,
     pub start_sub_offer_num: u64,
+    pub creation_date: u64,
 }
 
 #[account]
@@ -58,6 +59,7 @@ pub struct SubOffer {
     pub loan_duration: u64,
     pub min_repaid_numerator: u64,
     pub apr_numerator: u64,
+    pub creation_date: u64,
 }
 
 pub enum OfferState {

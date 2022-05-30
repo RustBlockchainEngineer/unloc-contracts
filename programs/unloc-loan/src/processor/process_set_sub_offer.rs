@@ -20,6 +20,7 @@ pub fn process_set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_o
         ctx.accounts.sub_offer.offer = ctx.accounts.offer.key();
         ctx.accounts.sub_offer.nft_mint = ctx.accounts.offer.nft_mint;
         ctx.accounts.sub_offer.borrower = ctx.accounts.offer.borrower;
+        ctx.accounts.sub_offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
     }
     
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
@@ -90,4 +91,5 @@ pub struct SetSubOffer<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
+    pub clock: Sysvar<'info, Clock>,
 }

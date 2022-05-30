@@ -22,6 +22,7 @@ pub fn process_set_offer(ctx: Context<SetOffer>) -> Result<()> {
         ctx.accounts.offer.nft_mint = ctx.accounts.nft_mint.key();
         ctx.accounts.offer.nft_vault = ctx.accounts.nft_vault.key();
         ctx.accounts.offer.collection = collection_key;
+        ctx.accounts.offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
     }
     if ctx.accounts.user_vault.amount > 0 {
         let cpi_accounts = Transfer {
@@ -91,4 +92,5 @@ pub struct SetOffer<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
+    pub clock: Sysvar<'info, Clock>,
 }
