@@ -23,8 +23,8 @@ declare_id!("6oVXrGCdtnTUR6xCvn2Z3f2CYaiboAGar1DKxzeX8QYh");
 pub mod unloc_loan {
     use super::*;
     
-    pub fn set_global_state(ctx: Context<SetGlobalState>, accrued_interest_numerator: u64, denominator: u64, apr_numerator: u64, reward_per_sol: u64, reward_per_usdc: u64, unloc_staking_pid: Pubkey, unloc_staking_pool_id: Pubkey, voting_pid: Pubkey, token_metadata_pid: Pubkey, current_voting_num: u64) -> Result<()> { 
-        process_set_global_state(ctx, accrued_interest_numerator, denominator, apr_numerator, reward_per_sol, reward_per_usdc, unloc_staking_pid, unloc_staking_pool_id, voting_pid, token_metadata_pid, current_voting_num)
+    pub fn set_global_state(ctx: Context<SetGlobalState>, accrued_interest_numerator: u64, denominator: u64, apr_numerator: u64, expire_loan_duration: u64, reward_per_sol: u64, reward_per_usdc: u64, unloc_staking_pid: Pubkey, unloc_staking_pool_id: Pubkey, voting_pid: Pubkey, token_metadata_pid: Pubkey, current_voting_num: u64) -> Result<()> { 
+        process_set_global_state(ctx, accrued_interest_numerator, denominator, apr_numerator, expire_loan_duration, reward_per_sol, reward_per_usdc, unloc_staking_pid, unloc_staking_pool_id, voting_pid, token_metadata_pid, current_voting_num)
     }
     pub fn deposit_rewards(ctx: Context<DepositRewards>, amount: u64) -> Result<()> { 
         process_deposit_rewards(ctx, amount) 
@@ -53,5 +53,8 @@ pub mod unloc_loan {
     }
     pub fn claim_collateral(ctx: Context<ClaimCollateral>) -> Result<()> { 
         process_claim_collateral(ctx) 
+    }
+    pub fn claim_expired_collateral(ctx: Context<ClaimExpiredCollateral>) -> Result<()> { 
+        process_claim_expired_collateral(ctx) 
     }
 }

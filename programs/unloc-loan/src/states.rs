@@ -1,7 +1,4 @@
 use anchor_lang::prelude::*;
-use mpl_token_metadata::{
-    state::Collection
-};
 
 #[account]
 #[derive(Default)]
@@ -11,6 +8,7 @@ pub struct GlobalState {
     pub treasury_wallet: Pubkey,
     pub accrued_interest_numerator: u64,
     pub apr_numerator: u64,
+    pub expire_loan_duration: u64,
     pub denominator: u64,
     
     pub reward_per_sol: u64,
@@ -21,6 +19,8 @@ pub struct GlobalState {
     pub current_voting_num: u64,
 
     pub token_metadata_pid: Pubkey,
+
+    pub reserved: [u128; 15],
 }
 
 #[account]
@@ -35,6 +35,8 @@ pub struct Offer {
     pub sub_offer_count: u64,
     pub start_sub_offer_num: u64,
     pub creation_date: u64,
+
+    pub reserved: [u128; 7],
 }
 
 #[account]
@@ -60,6 +62,8 @@ pub struct SubOffer {
     pub min_repaid_numerator: u64,
     pub apr_numerator: u64,
     pub creation_date: u64,
+
+    pub reserved: [u128; 7],
 }
 
 pub enum OfferState {

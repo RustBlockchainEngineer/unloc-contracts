@@ -1,14 +1,12 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount,Mint, Transfer};
+use anchor_spl::token::{Token};
 
 use crate::{
-    error::*,
+    // error::*,
     constant::*,
     states::*,
     utils::*,
 };
-use mpl_token_metadata::{state::Metadata};
-
 pub fn process_set_voting(ctx: Context<SetVoting>, voting_number: u64, voting_start_timestamp: u64, voting_end_timestamp: u64) -> Result<()> {
     assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?; 
     if is_zero_account(&ctx.accounts.voting.to_account_info()) {

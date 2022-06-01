@@ -1,12 +1,10 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token, TokenAccount, Mint};
+use anchor_spl::token::{Token};
 use crate::{
     constant::*,
     states::*,
     utils::*,
 };
-use std::str::FromStr;
-
 pub fn process_set_global_state(
     ctx: Context<SetGlobalState>, 
     new_super_owner: Pubkey, 

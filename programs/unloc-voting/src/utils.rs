@@ -1,9 +1,8 @@
 use anchor_lang::prelude::*;
 use crate::{
     error::*,
-    states::*,
+    // states::*,
 };
-use std::convert::TryInto;
 pub fn is_zero_account(account_info:&AccountInfo)->bool{
     let account_data: &[u8] = &account_info.data.borrow();
     let len = account_data.len();

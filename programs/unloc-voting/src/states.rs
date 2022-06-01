@@ -1,7 +1,4 @@
 use anchor_lang::prelude::*;
-use mpl_token_metadata::{
-    state::Collection
-};
 
 #[account]
 #[derive(Default)]

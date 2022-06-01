@@ -1,13 +1,12 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount,Mint, Transfer};
+use anchor_spl::token::{Token};
 
 use crate::{
-    error::*,
+    // error::*,
     constant::*,
     states::*,
-    utils::*,
+    // utils::*,
 };
-use mpl_token_metadata::{state::Metadata};
 use unloc_staking::FarmPoolUserAccount;
 pub fn process_vote(ctx: Context<Vote>) -> Result<()> { 
     ctx.accounts.voting_user.owner = ctx.accounts.user.key();

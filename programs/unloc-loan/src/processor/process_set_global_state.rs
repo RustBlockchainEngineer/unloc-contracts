@@ -12,6 +12,7 @@ pub fn process_set_global_state(
     accrued_interest_numerator: u64, 
     denominator: u64, 
     apr_numerator: u64,
+    expire_loan_duration: u64,
     reward_per_sol: u64,
     reward_per_usdc: u64,
     unloc_staking_pid: Pubkey,
@@ -40,6 +41,7 @@ pub fn process_set_global_state(
     ctx.accounts.global_state.voting_pid = voting_pid;
     ctx.accounts.global_state.current_voting_num = current_voting_num;
     ctx.accounts.global_state.token_metadata_pid = token_metadata_pid;
+    ctx.accounts.global_state.expire_loan_duration = expire_loan_duration;
 
     Ok(())
 }
