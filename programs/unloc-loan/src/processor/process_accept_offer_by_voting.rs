@@ -6,6 +6,8 @@ use anchor_lang::solana_program::{
         invoke, 
     },
 };
+use unloc_voting::constant::{VOTING_TAG, VOTING_ITEM_TAG};
+use unloc_voting::states::{Voting, VotingItem};
 
 use crate::{
     //error::*,
@@ -14,7 +16,7 @@ use crate::{
     states::*,
 };
 use std::str::FromStr;
-pub fn process_accept_offer(ctx: Context<AcceptOffer>) -> Result<()> { 
+pub fn process_accept_offer_by_voting(ctx: Context<AcceptOfferByVoting>) -> Result<()> { 
     require(ctx.accounts.sub_offer.sub_offer_number >= ctx.accounts.offer.start_sub_offer_num)?;
     require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed))?;
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
@@ -68,8 +70,8 @@ pub fn process_accept_offer(ctx: Context<AcceptOffer>) -> Result<()> {
     ctx.accounts.user_reward.lender_claimed_amount = 0;
     ctx.accounts.user_reward.borrower_claimed_amount = 0;
     ctx.accounts.user_reward.collection = ctx.accounts.offer.collection;
-    ctx.accounts.user_reward.total_point = 0;
-    ctx.accounts.user_reward.collection_point = 0;
+    ctx.accounts.user_reward.total_point = ctx.accounts.voting.total_score;
+    ctx.accounts.user_reward.collection_point = ctx.accounts.voting_item.voting_score;
     
 
     Ok(())
@@ -77,7 +79,7 @@ pub fn process_accept_offer(ctx: Context<AcceptOffer>) -> Result<()> {
 
 #[derive(Accounts)]
 #[instruction()]
-pub struct AcceptOffer<'info> {
+pub struct AcceptOfferByVoting<'info> {
     #[account(mut)]
     pub lender:  Signer<'info>,
 
@@ -96,6 +98,22 @@ pub struct AcceptOffer<'info> {
     bump,
     )]
     pub offer:Box<Account<'info, Offer>>,
+    
+    #[account(
+        mut,
+        seeds = [VOTING_TAG, &global_state.current_voting_num.to_be_bytes()],
+        seeds::program = global_state.voting_pid,
+        bump,
+    )]
+    pub voting:Box<Account<'info, Voting>>,
+
+    #[account(
+        mut,
+        seeds = [VOTING_ITEM_TAG, voting.key().as_ref(), offer.collection.as_ref()],
+        seeds::program = global_state.voting_pid,
+        bump,
+    )]
+    pub voting_item:Box<Account<'info, VotingItem>>,
 
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],

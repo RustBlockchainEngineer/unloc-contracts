@@ -36,6 +36,9 @@ pub mod unloc_loan {
     pub fn set_offer(ctx: Context<SetOffer>) -> Result<()> { 
         process_set_offer(ctx) 
     }
+    pub fn set_sub_offer_by_staking(ctx: Context<SetSubOfferByStaking>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64) -> Result<()> { 
+        process_set_sub_offer_by_staking(ctx, offer_amount, sub_offer_number, loan_duration, min_repaid_numerator, apr_numerator) 
+    }
     pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64) -> Result<()> { 
         process_set_sub_offer(ctx, offer_amount, sub_offer_number, loan_duration, min_repaid_numerator, apr_numerator) 
     }
@@ -44,6 +47,9 @@ pub mod unloc_loan {
     }
     pub fn cancel_sub_offer(ctx: Context<CancelSubOffer>, ) -> Result<()> { 
         process_cancel_sub_offer(ctx) 
+    }
+    pub fn accept_offer_by_voting(ctx: Context<AcceptOfferByVoting>) -> Result<()> { 
+        process_accept_offer_by_voting(ctx) 
     }
     pub fn accept_offer(ctx: Context<AcceptOffer>) -> Result<()> { 
         process_accept_offer(ctx) 

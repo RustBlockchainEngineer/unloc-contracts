@@ -7,6 +7,9 @@ pub use process_deposit_rewards::*;
 pub mod process_set_offer;
 pub use process_set_offer::*;
 
+pub mod process_set_sub_offer_by_staking;
+pub use process_set_sub_offer_by_staking::*;
+
 pub mod process_set_sub_offer;
 pub use process_set_sub_offer::*;
 
@@ -18,6 +21,9 @@ pub use process_cancel_sub_offer::*;
 
 pub mod process_accept_offer;
 pub use process_accept_offer::*;
+
+pub mod process_accept_offer_by_voting;
+pub use process_accept_offer_by_voting::*;
 
 pub mod process_repay_loan;
 pub use process_repay_loan::*;

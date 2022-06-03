@@ -7,8 +7,9 @@ use crate::{
     utils::*
 };
 use std::str::FromStr;
-pub fn process_set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64) -> Result<()> { 
-    let profile_level = 0;
+use unloc_staking::{FarmPoolUserAccount};
+pub fn process_set_sub_offer_by_staking(ctx: Context<SetSubOfferByStaking>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64) -> Result<()> { 
+    let profile_level = ctx.accounts.staking_user.profile_level;
     let available_sub_offer_count = DEFULT_SUB_OFFER_COUNT + profile_level * SUB_OFFER_COUNT_PER_LEVEL;
     let _available_sub_offer_count = ctx.accounts.offer.sub_offer_count.checked_sub(ctx.accounts.offer.start_sub_offer_num).unwrap();
     require(_available_sub_offer_count < available_sub_offer_count)?;
@@ -39,7 +40,7 @@ pub fn process_set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_o
 
 #[derive(Accounts)]
 #[instruction(offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64)]
-pub struct SetSubOffer<'info> {
+pub struct SetSubOfferByStaking<'info> {
     #[account(mut)]
     pub borrower:  Signer<'info>,
 
@@ -64,6 +65,13 @@ pub struct SetSubOffer<'info> {
     space = std::mem::size_of::<SubOffer>() + 8
     )]
     pub sub_offer:Box<Account<'info, SubOffer>>,
+
+    #[account( 
+        seeds = [staking_user.pool.as_ref(), borrower.key().as_ref()], 
+        seeds::program = global_state.unloc_staking_pid,
+        bump
+    )]
+    pub staking_user: Account<'info, FarmPoolUserAccount>,
 
     pub offer_mint: Box<Account<'info, Mint>>,
     /// CHECK: key only is used
