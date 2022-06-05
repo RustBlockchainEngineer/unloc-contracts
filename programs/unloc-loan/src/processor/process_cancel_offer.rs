@@ -1,39 +1,50 @@
+use crate::{constant::*, states::*, utils::*};
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Transfer};
-use crate::{
-    constant::*,
-    states::*,
-    utils::*,
-};
+use anchor_lang::solana_program::program::invoke_signed;
+use anchor_spl::token::{self, Mint, Token, TokenAccount};
+use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 
-pub fn process_cancel_offer(ctx: Context<CancelOffer>) -> Result<()> { 
-    let borrower = &mut ctx.accounts.borrower;
-    let borrower_key = borrower.key();
-    require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed) || ctx.accounts.offer.state == OfferState::get_state(OfferState::NFTClaimed))?;
+pub fn process_cancel_offer(ctx: Context<CancelOffer>) -> Result<()> {
+    require(
+        ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed)
+            || ctx.accounts.offer.state == OfferState::get_state(OfferState::NFTClaimed),
+    )?;
 
+    let borrower_key = ctx.accounts.borrower.key();
+    let nft_mint_key = ctx.accounts.nft_mint.key();
+
+    // Thaw with Offer PDA
+    let signer_seeds = &[
+        OFFER_TAG.as_ref(),
+        borrower_key.as_ref(),
+        nft_mint_key.as_ref(),
+        &[bump(
+            &[OFFER_TAG, borrower_key.as_ref(), nft_mint_key.as_ref()],
+            ctx.program_id,
+        )],
+    ];
+
+    invoke_signed(
+        &thaw_delegated_account(
+            metadata_id(),
+            ctx.accounts.offer.key(),
+            ctx.accounts.user_vault.key(),
+            ctx.accounts.edition.key(),
+            ctx.accounts.nft_mint.key(),
+        ),
+        &[
+            ctx.accounts.offer.to_account_info(),
+            ctx.accounts.user_vault.to_account_info(),
+            ctx.accounts.edition.to_account_info(),
+            ctx.accounts.nft_mint.to_account_info(),
+            ctx.accounts.metadata_program.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
+        ],
+        &[signer_seeds],
+    )?;
     ctx.accounts.offer.state = OfferState::get_state(OfferState::Canceled);
-    if ctx.accounts.nft_vault.amount > 0 {
-        // transfer from user to pool
-        let cpi_accounts = Transfer {
-            from: ctx.accounts.nft_vault.to_account_info(),
-            to: ctx.accounts.user_vault.to_account_info(),
-            authority: ctx.accounts.offer.to_account_info(),
-        };
 
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        
-        let signer_seeds = &[
-            OFFER_TAG, 
-            borrower_key.as_ref(),
-            ctx.accounts.offer.nft_mint.as_ref(),
-            &[bump(&[OFFER_TAG, borrower_key.as_ref(),ctx.accounts.offer.nft_mint.as_ref()], ctx.program_id)],
-        ];
-        let signer = &[&signer_seeds[..]];
-
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-
-        token::transfer(cpi_ctx, ctx.accounts.nft_vault.amount)?;
-    }
     Ok(())
 }
 
@@ -41,24 +52,26 @@ pub fn process_cancel_offer(ctx: Context<CancelOffer>) -> Result<()> {
 #[instruction()]
 pub struct CancelOffer<'info> {
     #[account(mut)]
-    pub borrower:  Signer<'info>,
+    pub borrower: Signer<'info>,
 
     #[account(mut,
     seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
     bump,
     )]
-    pub offer:Box<Account<'info, Offer>>,
+    pub offer: Box<Account<'info, Offer>>,
 
-    #[account(mut,
-        seeds = [NFT_VAULT_TAG, offer.key().as_ref()],
-        bump,
-    )]
-    pub nft_vault: Box<Account<'info, TokenAccount>>,
+    pub nft_mint: Box<Account<'info, Mint>>,
+
     #[account(mut,
         constraint = borrower.key() == user_vault.owner,
         constraint = user_vault.mint == offer.nft_mint
     )]
     pub user_vault: Box<Account<'info, TokenAccount>>,
 
+    /// CHECK: metaplex edition account
+    pub edition: UncheckedAccount<'info>,
+    /// CHECK: metaplex program
+    pub metadata_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
 }
