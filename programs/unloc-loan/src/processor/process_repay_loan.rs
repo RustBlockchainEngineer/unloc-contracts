@@ -197,6 +197,9 @@ pub struct RepayLoan<'info> {
         )]
     pub user_reward: Box<Account<'info, LenderReward>>,
 
+    #[account(
+        constraint = nft_mint.key() == offer.nft_mint
+    )]
     pub nft_mint: Box<Account<'info, Mint>>,
     #[account(mut,
         constraint = borrower_nft_vault.mint == offer.nft_mint,

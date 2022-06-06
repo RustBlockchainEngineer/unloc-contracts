@@ -89,6 +89,9 @@ pub struct SetOffer<'info> {
     )]
     pub offer: Box<Account<'info, Offer>>,
 
+    #[account(
+        constraint = nft_mint.key() == offer.nft_mint
+    )]
     pub nft_mint: Box<Account<'info, Mint>>,
 
     /// CHECK: metadata from token meta program.
