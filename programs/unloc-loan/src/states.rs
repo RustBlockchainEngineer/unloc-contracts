@@ -13,6 +13,10 @@ pub struct GlobalState {
     
     pub reward_per_sol: u64,
     pub reward_per_usdc: u64,
+
+    // borrower rewards percentage is the rest of lender rewards percentage
+    pub lender_rewards_percentage: u64,
+    
     pub unloc_staking_pid: Pubkey,
     pub unloc_staking_pool_id: Pubkey,
     pub voting_pid: Pubkey,
