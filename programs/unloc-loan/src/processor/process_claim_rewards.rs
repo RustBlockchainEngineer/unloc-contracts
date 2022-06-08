@@ -37,6 +37,11 @@ pub fn process_claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
     let full_reward_amount = calc_fee(reward_duration.checked_mul(token_per_second).unwrap(), loan_amount, decimals)?;
     let reward_amount = if total_point == 0 {0} else {calc_fee_u128(full_reward_amount, collection_point, total_point)?};
     
+    let denominator = ctx.accounts.global_state.denominator;
+    let lender_rewards_percentage = ctx.accounts.global_state.lender_rewards_percentage;
+    let percentage = if is_lender {lender_rewards_percentage} else {denominator - lender_rewards_percentage};
+    let final_rewards_amount = calc_fee(reward_amount, percentage, denominator)?;
+
     let cpi_accounts = Transfer {
         from: ctx.accounts.reward_vault.to_account_info(),
         to: ctx.accounts.user_reward_vault.to_account_info(),
@@ -53,12 +58,12 @@ pub fn process_claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
     let signer = &[&signer_seeds[..]];
     let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
 
-    token::transfer(cpi_ctx, reward_amount)?;
+    token::transfer(cpi_ctx, final_rewards_amount)?;
     if is_lender {
-        ctx.accounts.user_reward.lender_claimed_amount = ctx.accounts.user_reward.lender_claimed_amount.checked_add(reward_amount).unwrap();
+        ctx.accounts.user_reward.lender_claimed_amount = ctx.accounts.user_reward.lender_claimed_amount.checked_add(final_rewards_amount).unwrap();
         ctx.accounts.user_reward.lender_last_claimed_time = reward_end_time;
     } else {
-        ctx.accounts.user_reward.borrower_claimed_amount = ctx.accounts.user_reward.borrower_claimed_amount.checked_add(reward_amount).unwrap();
+        ctx.accounts.user_reward.borrower_claimed_amount = ctx.accounts.user_reward.borrower_claimed_amount.checked_add(final_rewards_amount).unwrap();
         ctx.accounts.user_reward.borrower_last_claimed_time = reward_end_time;
     }
     Ok(())

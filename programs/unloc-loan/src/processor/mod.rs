@@ -1,6 +1,9 @@
 pub mod process_set_global_state;
 pub use process_set_global_state::*;
 
+pub mod process_set_internal_info;
+pub use process_set_internal_info::*;
+
 pub mod process_deposit_rewards;
 pub use process_deposit_rewards::*;
 
