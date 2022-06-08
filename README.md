@@ -376,16 +376,16 @@ Liquidity mining tokens are allocated each second to the eligible users (lenders
 3. Voting system sets percentage for each NFT collections.
 4. Lender receives UNLOC rewards by claiming.
 
-formula:
+        formula:
 
-lenderReward = tokenPerSecond * loanDuration * loanAmount / currentTotalLoanAmount * collectionPercentage * lenderPercentage
+        lenderReward = tokenPerSecond * loanDuration * loanAmount / currentTotalLoanAmount * collectionPercentage * lenderPercentage
 
 5. Borrower receives UNLOC rewards by claiming.
 
 
-formula:
+        formula:
 
-borrowerReward = tokenPerSecond * loanDuration * loanAmount / currentTotalLoanAmount * collectionPercentage * borrowerPercentage
+        borrowerReward = tokenPerSecond * loanDuration * loanAmount / currentTotalLoanAmount * collectionPercentage * borrowerPercentage
 
 ## Issues & Improvements
 
