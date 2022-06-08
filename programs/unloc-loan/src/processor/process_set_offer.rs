@@ -62,6 +62,7 @@ pub fn process_set_offer(ctx: Context<SetOffer>) -> Result<()> {
             ],
             &[offer_seeds],
         )?;
+
         ctx.accounts.offer.state = OfferState::get_state(OfferState::Proposed);
         ctx.accounts.offer.start_sub_offer_num = ctx.accounts.offer.sub_offer_count;
     } else {
@@ -89,9 +90,6 @@ pub struct SetOffer<'info> {
     )]
     pub offer: Box<Account<'info, Offer>>,
 
-    #[account(
-        constraint = nft_mint.key() == offer.nft_mint
-    )]
     pub nft_mint: Box<Account<'info, Mint>>,
 
     /// CHECK: metadata from token meta program.
@@ -108,8 +106,14 @@ pub struct SetOffer<'info> {
     )]
     pub user_vault: Box<Account<'info, TokenAccount>>,
 
-    /// CHECK: metaplex edition account
-    pub edition: UncheckedAccount<'info>,
+    /// CHECK: edition from token meta program.
+    #[account(
+        seeds = [META_PREFIX, global_state.token_metadata_pid.as_ref(), nft_mint.key().as_ref(), EDITION_PREFIX],
+        seeds::program = global_state.token_metadata_pid,
+        bump,
+    )]
+    pub edition: AccountInfo<'info>,
+
     /// CHECK: metaplex program
     pub metadata_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
