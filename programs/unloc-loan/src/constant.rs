@@ -46,3 +46,4 @@ pub const SUB_OFFER_COUNT_PER_LEVEL: u64 = 5;
 pub const DEFULT_SUB_OFFER_COUNT: u64 = 3;
 
 pub const META_PREFIX: &[u8] = b"metadata";
+pub const EDITION_PREFIX: &[u8] = b"edition";

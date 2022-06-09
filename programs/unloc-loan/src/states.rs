@@ -34,7 +34,6 @@ pub struct Offer {
 
     pub nft_mint: Pubkey,
     pub collection: Pubkey,
-    pub nft_vault: Pubkey,
     pub state: u8,
     pub sub_offer_count: u64,
     pub start_sub_offer_num: u64,
