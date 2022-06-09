@@ -378,14 +378,21 @@ Liquidity mining tokens are allocated each second to the eligible users (lenders
 
         formula:
 
-        lenderReward = tokenPerSecond * loanDuration * loanAmount / currentTotalLoanAmount * collectionPercentage * lenderPercentage
+        rewardPerShare += tokenPerSecond * deltaDuration / currentTotalLoanAmount (whenever users interact with contract)
+
+        lenderReward = rewardPerShare  * loanAmount * collectionPercentage * lenderPercentage - lenderRewardDebt
+        lenderRewardDebt = rewardPerShare  * loanAmount * collectionPercentage * lenderPercentage (whenever lender start loan & claims his rewards)
 
 5. Borrower receives UNLOC rewards by claiming.
 
 
         formula:
 
-        borrowerReward = tokenPerSecond * loanDuration * loanAmount / currentTotalLoanAmount * collectionPercentage * borrowerPercentage
+        rewardPerShare += tokenPerSecond * deltaDuration / currentTotalLoanAmount (whenever users interact with contract)
+
+        borrowerReward = rewardPerShare  * loanAmount * collectionPercentage * borrowerPercentage - borrowerRewardDebt 
+        borrowerRewardDebt = rewardPerShare  * loanAmount * collectionPercentage * borrowerPercentage (whenever borrower start loan & claims his rewards) 
+
 
 ## Issues & Improvements
 
