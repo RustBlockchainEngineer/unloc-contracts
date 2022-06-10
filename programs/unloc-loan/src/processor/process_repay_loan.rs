@@ -1,7 +1,7 @@
 use crate::{constant::*, error::*, states::*, utils::*};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{program::invoke, program::invoke_signed, system_instruction};
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, Revoke};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 use std::str::FromStr;
 
@@ -154,6 +154,13 @@ pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
         &[signer_seeds],
     )?;
 
+    // Revoke with offer PDA
+    token::revoke(
+        ctx.accounts
+            .into_revoke_context()
+            .with_signer(&[signer_seeds]),
+    )?;
+
     ctx.accounts.offer.state = OfferState::get_state(OfferState::NFTClaimed);
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::NFTClaimed);
     Ok(())
@@ -206,11 +213,12 @@ pub struct RepayLoan<'info> {
         constraint = borrower_nft_vault.owner == borrower.key()
     )]
     pub borrower_nft_vault: Box<Account<'info, TokenAccount>>,
-    #[account(mut)]
-    pub lender_offer_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
+    pub lender_offer_vault: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
     pub borrower_offer_vault: Box<Account<'info, TokenAccount>>,
+
     #[account(mut,
         seeds = [TREASURY_VAULT_TAG, sub_offer.offer_mint.as_ref()],
         bump
@@ -224,4 +232,13 @@ pub struct RepayLoan<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
+}
+impl<'info> RepayLoan<'info> {
+    fn into_revoke_context(&self) -> CpiContext<'_, '_, '_, 'info, Revoke<'info>> {
+        let cpi_accounts = Revoke {
+            source: self.borrower_nft_vault.to_account_info().clone(),
+            authority: self.borrower.to_account_info().clone(),
+        };
+        CpiContext::new(self.token_program.to_account_info().clone(), cpi_accounts)
+    }
 }

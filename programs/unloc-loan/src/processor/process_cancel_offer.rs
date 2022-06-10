@@ -1,7 +1,7 @@
 use crate::{constant::*, states::*, utils::*};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::invoke_signed;
-use anchor_spl::token::{self, Mint, Token, TokenAccount};
+use anchor_spl::token::{self, Mint, Revoke, Token, TokenAccount};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 
 pub fn process_cancel_offer(ctx: Context<CancelOffer>) -> Result<()> {
@@ -43,6 +43,14 @@ pub fn process_cancel_offer(ctx: Context<CancelOffer>) -> Result<()> {
         ],
         &[signer_seeds],
     )?;
+
+    // Revoke with offer PDA
+    token::revoke(
+        ctx.accounts
+            .into_revoke_context()
+            .with_signer(&[signer_seeds]),
+    )?;
+
     ctx.accounts.offer.state = OfferState::get_state(OfferState::Canceled);
 
     Ok(())
@@ -77,4 +85,13 @@ pub struct CancelOffer<'info> {
     pub metadata_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
+}
+impl<'info> CancelOffer<'info> {
+    fn into_revoke_context(&self) -> CpiContext<'_, '_, '_, 'info, Revoke<'info>> {
+        let cpi_accounts = Revoke {
+            source: self.user_vault.to_account_info().clone(),
+            authority: self.borrower.to_account_info().clone(),
+        };
+        CpiContext::new(self.token_program.to_account_info().clone(), cpi_accounts)
+    }
 }
