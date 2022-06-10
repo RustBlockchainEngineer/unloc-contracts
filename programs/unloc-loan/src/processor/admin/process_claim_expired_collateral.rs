@@ -9,7 +9,7 @@ use anchor_lang::solana_program::program::invoke_signed;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 
-pub fn process_claim_expired_collateral(ctx: Context<ClaimExpiredCollateral>) -> Result<()> {
+pub fn handle(ctx: Context<ClaimExpiredCollateral>) -> Result<()> {
     require(ctx.accounts.borrower_nft_vault.amount > 0)?;
 
     let borrower_key = ctx.accounts.offer.borrower;

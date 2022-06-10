@@ -7,8 +7,11 @@ use crate::{
     utils::*
 };
 use std::str::FromStr;
-pub fn process_set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64) -> Result<()> { 
+pub fn handle(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64) -> Result<()> { 
     let profile_level = 0;
+    set_sub_offer(ctx, offer_amount, sub_offer_number, loan_duration, min_repaid_numerator, apr_numerator, profile_level)
+}
+pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64, profile_level: u64) -> Result<()> { 
     let available_sub_offer_count = DEFULT_SUB_OFFER_COUNT + profile_level * SUB_OFFER_COUNT_PER_LEVEL;
     let _available_sub_offer_count = ctx.accounts.offer.sub_offer_count.checked_sub(ctx.accounts.offer.start_sub_offer_num).unwrap();
     require(_available_sub_offer_count < available_sub_offer_count)?;
@@ -24,10 +27,14 @@ pub fn process_set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_o
     
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
-    let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
-    require(ctx.accounts.offer_mint.key() == wsol_mint || ctx.accounts.offer_mint.key() == usdc_mint || ctx.accounts.offer_mint.key() == unloc_mint)?;
+    // let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
+    require(
+        // ctx.accounts.offer_mint.key() == unloc_mint || // featured offer is not implemented yet
+        ctx.accounts.offer_mint.key() == usdc_mint || 
+        ctx.accounts.offer_mint.key() == wsol_mint)?;
 
     ctx.accounts.sub_offer.offer_mint = ctx.accounts.offer_mint.key();
+    ctx.accounts.sub_offer.offer_mint_decimals = ctx.accounts.offer_mint.decimals;
     ctx.accounts.sub_offer.offer_amount = offer_amount;
     ctx.accounts.sub_offer.sub_offer_number = sub_offer_number;
     ctx.accounts.sub_offer.loan_duration = loan_duration;
@@ -36,7 +43,6 @@ pub fn process_set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_o
     
     Ok(())
 }
-
 #[derive(Accounts)]
 #[instruction(offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64)]
 pub struct SetSubOffer<'info> {

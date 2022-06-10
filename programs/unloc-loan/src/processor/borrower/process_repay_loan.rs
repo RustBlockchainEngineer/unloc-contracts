@@ -5,8 +5,25 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, Revoke};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 use std::str::FromStr;
 
-pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
-    // require(ctx.accounts.nft_vault.amount > 0)?;
+pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
+    let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
+    let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
+    let current_time = ctx.accounts.clock.unix_timestamp as u64;
+    let reward_vault_amount = ctx.accounts.reward_vault.amount;
+    ctx.accounts.global_state.distribute(
+        reward_vault_amount, 
+        current_time, 
+        &ctx.accounts.chainlink_program.to_account_info(), 
+        &ctx.accounts.sol_feed.to_account_info(), 
+        &ctx.accounts.usdc_feed.to_account_info()
+    )?;
+    let rps = if usdc_mint == ctx.accounts.sub_offer.offer_mint {
+        ctx.accounts.global_state.rps_usdc
+    } else if wsol_mint == ctx.accounts.sub_offer.offer_mint {
+        ctx.accounts.global_state.rps_sol
+    } else {0};
+    ctx.accounts.sub_offer.update_rps(rps);
+
     require(ctx.accounts.lender.key() == ctx.accounts.sub_offer.lender)?;
 
     let borrower_key = ctx.accounts.borrower.key();
@@ -201,7 +218,7 @@ pub struct RepayLoan<'info> {
         seeds = [LENDER_REWARD_TAG, sub_offer.lender.as_ref(), user_reward.borrower.as_ref(), sub_offer.key().as_ref()],
         bump,
         )]
-    pub user_reward: Box<Account<'info, LenderReward>>,
+    pub user_reward: Box<Account<'info, UserReward>>,
 
     #[account(
         constraint = nft_mint.key() == offer.nft_mint
@@ -223,6 +240,21 @@ pub struct RepayLoan<'info> {
         bump
     )]
     pub treasury_vault: Box<Account<'info, TokenAccount>>,
+
+    /// CHECK: Safe
+    pub chainlink_program:  AccountInfo<'info>,
+
+    /// CHECK: Safe
+    pub sol_feed:  AccountInfo<'info>,
+
+    /// CHECK: Safe
+    pub usdc_feed:  AccountInfo<'info>,
+
+    #[account(
+        seeds = [REWARD_VAULT_TAG],
+        bump,
+    )]
+    pub reward_vault:Box<Account<'info, TokenAccount>>,
 
     /// CHECK: metaplex edition account
     pub edition: UncheckedAccount<'info>,

@@ -4,7 +4,7 @@ use anchor_lang::solana_program::program::invoke_signed;
 use anchor_spl::token::{self, Mint, Revoke, Token, TokenAccount};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 
-pub fn process_cancel_offer(ctx: Context<CancelOffer>) -> Result<()> {
+pub fn handle(ctx: Context<CancelOffer>) -> Result<()> {
     require(
         ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed)
             || ctx.accounts.offer.state == OfferState::get_state(OfferState::NFTClaimed),

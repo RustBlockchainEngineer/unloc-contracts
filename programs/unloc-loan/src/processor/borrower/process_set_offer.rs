@@ -6,7 +6,7 @@ use mpl_token_metadata::{id as metadata_id, instruction::freeze_delegated_accoun
 use crate::{constant::*, error::*, states::*, utils::*};
 use mpl_token_metadata::state::Metadata;
 
-pub fn process_set_offer(ctx: Context<SetOffer>) -> Result<()> {
+pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
     let metadata = Metadata::from_account_info(&ctx.accounts.nft_metadata.to_account_info())?;
     let collection = metadata.collection.unwrap();
     let collection_key = collection.key;
@@ -93,8 +93,8 @@ pub struct SetOffer<'info> {
 
     /// CHECK: metadata from token meta program.
     #[account(
-        seeds = [META_PREFIX, global_state.token_metadata_pid.as_ref(), nft_mint.key().as_ref()],
-        seeds::program = global_state.token_metadata_pid,
+        seeds = [META_PREFIX, mpl_token_metadata::id().as_ref(), nft_mint.key().as_ref()],
+        seeds::program = mpl_token_metadata::id(),
         bump,
     )]
     pub nft_metadata: AccountInfo<'info>,

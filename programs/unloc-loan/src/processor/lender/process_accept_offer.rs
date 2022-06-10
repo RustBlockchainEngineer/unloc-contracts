@@ -6,8 +6,6 @@ use anchor_lang::solana_program::{
         invoke, 
     },
 };
-use unloc_voting::constant::{VOTING_TAG, VOTING_ITEM_TAG};
-use unloc_voting::states::{Voting, VotingItem};
 
 use crate::{
     //error::*,
@@ -15,11 +13,34 @@ use crate::{
     utils::*,
     states::*,
 };
+use chainlink_solana as chainlink;
 use std::str::FromStr;
-pub fn process_accept_offer_by_voting(ctx: Context<AcceptOfferByVoting>) -> Result<()> { 
+pub fn handle(ctx: Context<AcceptOffer>) -> Result<()> { 
+    accept_offer(ctx, 0, 0)
+}
+pub fn accept_offer(ctx: Context<AcceptOffer>, total_point: u64, collection_point: u64) -> Result<()> {
+    let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
+    let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
+    let current_time = ctx.accounts.clock.unix_timestamp as u64;
+    let reward_vault_amount = ctx.accounts.reward_vault.amount;
+    ctx.accounts.global_state.distribute(
+        reward_vault_amount, 
+        current_time, 
+        &ctx.accounts.chainlink_program.to_account_info(), 
+        &ctx.accounts.sol_feed.to_account_info(), 
+        &ctx.accounts.usdc_feed.to_account_info()
+    )?;
+    let rps = if usdc_mint == ctx.accounts.sub_offer.offer_mint {
+        ctx.accounts.global_state.rps_usdc
+    } else if wsol_mint == ctx.accounts.sub_offer.offer_mint {
+        ctx.accounts.global_state.rps_sol
+    } else {0};
+    ctx.accounts.sub_offer.update_rps(rps);
+
     require(ctx.accounts.sub_offer.sub_offer_number >= ctx.accounts.offer.start_sub_offer_num)?;
     require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed))?;
-    let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
+
+    
     if ctx.accounts.offer_mint.key() == wsol_mint {
         require(ctx.accounts.lender.lamports() >= ctx.accounts.sub_offer.offer_amount)?;
         invoke(
@@ -56,30 +77,15 @@ pub fn process_accept_offer_by_voting(ctx: Context<AcceptOfferByVoting>) -> Resu
     ctx.accounts.sub_offer.loan_started_time = ctx.accounts.clock.unix_timestamp as u64;
 
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
-    ctx.accounts.user_reward.lender = ctx.accounts.lender.key();
-    ctx.accounts.user_reward.borrower = ctx.accounts.borrower.key();
-    ctx.accounts.user_reward.sub_offer = ctx.accounts.sub_offer.key();
-    ctx.accounts.user_reward.loan_mint = ctx.accounts.offer_mint.key();
-    ctx.accounts.user_reward.loan_mint_decimals = ctx.accounts.offer_mint.decimals;
-    ctx.accounts.user_reward.start_time = current_time;
-    ctx.accounts.user_reward.lender_last_claimed_time = current_time;
-    ctx.accounts.user_reward.borrower_last_claimed_time = current_time;
-    ctx.accounts.user_reward.max_duration = ctx.accounts.sub_offer.loan_duration;
-    ctx.accounts.user_reward.end_time = ctx.accounts.sub_offer.loan_duration.checked_add(current_time).unwrap();
-    ctx.accounts.user_reward.loan_amount = ctx.accounts.sub_offer.offer_amount;
-    ctx.accounts.user_reward.lender_claimed_amount = 0;
-    ctx.accounts.user_reward.borrower_claimed_amount = 0;
-    ctx.accounts.user_reward.collection = ctx.accounts.offer.collection;
-    ctx.accounts.user_reward.total_point = ctx.accounts.voting.total_score;
-    ctx.accounts.user_reward.collection_point = ctx.accounts.voting_item.voting_score;
-    
+    ctx.accounts.sub_offer.total_point = total_point;
+    ctx.accounts.sub_offer.collection_point = collection_point;
 
     Ok(())
 }
 
 #[derive(Accounts)]
 #[instruction()]
-pub struct AcceptOfferByVoting<'info> {
+pub struct AcceptOffer<'info> {
     #[account(mut)]
     pub lender:  Signer<'info>,
 
@@ -88,6 +94,7 @@ pub struct AcceptOfferByVoting<'info> {
     pub borrower:  AccountInfo<'info>,
 
     #[account(
+        mut,
         seeds = [GLOBAL_STATE_TAG],
         bump,
     )]
@@ -98,37 +105,12 @@ pub struct AcceptOfferByVoting<'info> {
     bump,
     )]
     pub offer:Box<Account<'info, Offer>>,
-    
-    #[account(
-        mut,
-        seeds = [VOTING_TAG, &global_state.current_voting_num.to_be_bytes()],
-        seeds::program = global_state.voting_pid,
-        bump,
-    )]
-    pub voting:Box<Account<'info, Voting>>,
-
-    #[account(
-        mut,
-        seeds = [VOTING_ITEM_TAG, voting.key().as_ref(), offer.collection.as_ref()],
-        seeds::program = global_state.voting_pid,
-        bump,
-    )]
-    pub voting_item:Box<Account<'info, VotingItem>>,
 
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
     bump,
     )]
     pub sub_offer:Box<Account<'info, SubOffer>>,
-
-    #[account(
-        init,
-        seeds = [LENDER_REWARD_TAG, lender.key().as_ref(), borrower.key().as_ref(), sub_offer.key().as_ref()],
-        bump,
-        payer = lender,
-        space = std::mem::size_of::<LenderReward>() + 8
-        )]
-    pub user_reward:Box<Account<'info, LenderReward>>,
 
     #[account(mut,
         constraint = sub_offer.offer_mint == offer_mint.key()
@@ -140,6 +122,22 @@ pub struct AcceptOfferByVoting<'info> {
 
     #[account(mut)]
     pub lender_offer_vault: Box<Account<'info, TokenAccount>>,
+
+    
+    /// CHECK: Safe
+    pub chainlink_program:  AccountInfo<'info>,
+
+    /// CHECK: Safe
+    pub sol_feed:  AccountInfo<'info>,
+
+    /// CHECK: Safe
+    pub usdc_feed:  AccountInfo<'info>,
+
+    #[account(
+        seeds = [REWARD_VAULT_TAG],
+        bump,
+    )]
+    pub reward_vault:Box<Account<'info, TokenAccount>>,
     
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

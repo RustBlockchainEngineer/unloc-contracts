@@ -9,7 +9,7 @@ use crate::{
 use std::str::FromStr;
 use std::cmp;
 
-pub fn process_claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> { 
+pub fn handle(ctx: Context<ClaimRewards>) -> Result<()> { 
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     // let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
@@ -85,7 +85,7 @@ pub struct ClaimRewards<'info> {
         seeds = [LENDER_REWARD_TAG, user_reward.lender.as_ref(), user_reward.borrower.as_ref(), user_reward.sub_offer.as_ref()],
         bump,
         )]
-    pub user_reward:Box<Account<'info, LenderReward>>,
+    pub user_reward:Box<Account<'info, UserReward>>,
 
     #[account(
         mut,

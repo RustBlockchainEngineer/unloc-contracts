@@ -23,47 +23,44 @@ declare_id!("6oVXrGCdtnTUR6xCvn2Z3f2CYaiboAGar1DKxzeX8QYh");
 pub mod unloc_loan {
     use super::*;
     
-    pub fn set_global_state(ctx: Context<SetGlobalState>, accrued_interest_numerator: u64, denominator: u64, apr_numerator: u64, expire_loan_duration: u64, reward_per_sol: u64, reward_per_usdc: u64, lender_rewards_percentage: u64) -> Result<()> { 
-        process_set_global_state(ctx, accrued_interest_numerator, denominator, apr_numerator, expire_loan_duration, reward_per_sol, reward_per_usdc, lender_rewards_percentage)
-    }
-    pub fn set_internal_info(ctx: Context<SetInternalInfo>, unloc_staking_pid: Pubkey, unloc_staking_pool_id: Pubkey, voting_pid: Pubkey, token_metadata_pid: Pubkey, current_voting_num: u64) -> Result<()> { 
-        process_set_internal_info(ctx, unloc_staking_pid, unloc_staking_pool_id, voting_pid, token_metadata_pid, current_voting_num)
+    pub fn set_global_state(ctx: Context<SetGlobalState>, accrued_interest_numerator: u64, denominator: u64, apr_numerator: u64, expire_loan_duration: u64, reward_rate: u64, lender_rewards_percentage: u64) -> Result<()> { 
+        process_set_global_state::handle(ctx, accrued_interest_numerator, denominator, apr_numerator, expire_loan_duration, reward_rate,  lender_rewards_percentage)
     }
     pub fn deposit_rewards(ctx: Context<DepositRewards>, amount: u64) -> Result<()> { 
-        process_deposit_rewards(ctx, amount) 
+        process_deposit_rewards::handle(ctx, amount) 
     }
     pub fn claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> { 
-        process_claim_rewards(ctx)
+        process_claim_rewards::handle(ctx)
     }
     // create offer & update offer
     pub fn set_offer(ctx: Context<SetOffer>) -> Result<()> { 
-        process_set_offer(ctx) 
+        process_set_offer::handle(ctx) 
     }
     pub fn set_sub_offer_by_staking(ctx: Context<SetSubOfferByStaking>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64) -> Result<()> { 
-        process_set_sub_offer_by_staking(ctx, offer_amount, sub_offer_number, loan_duration, min_repaid_numerator, apr_numerator) 
+        process_set_sub_offer_by_staking::handle(ctx, offer_amount, sub_offer_number, loan_duration, min_repaid_numerator, apr_numerator) 
     }
     pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64) -> Result<()> { 
-        process_set_sub_offer(ctx, offer_amount, sub_offer_number, loan_duration, min_repaid_numerator, apr_numerator) 
+        process_set_sub_offer::handle(ctx, offer_amount, sub_offer_number, loan_duration, min_repaid_numerator, apr_numerator) 
     }
     pub fn cancel_offer(ctx: Context<CancelOffer>) -> Result<()> { 
-        process_cancel_offer(ctx) 
+        process_cancel_offer::handle(ctx) 
     }
     pub fn cancel_sub_offer(ctx: Context<CancelSubOffer>, ) -> Result<()> { 
-        process_cancel_sub_offer(ctx) 
+        process_cancel_sub_offer::handle(ctx) 
     }
     pub fn accept_offer_by_voting(ctx: Context<AcceptOfferByVoting>) -> Result<()> { 
-        process_accept_offer_by_voting(ctx) 
+        process_accept_offer_by_voting::handle(ctx) 
     }
     pub fn accept_offer(ctx: Context<AcceptOffer>) -> Result<()> { 
-        process_accept_offer(ctx) 
+        process_accept_offer::handle(ctx) 
     }
     pub fn repay_loan(ctx: Context<RepayLoan>) -> Result<()> { 
-        process_repay_loan(ctx) 
+        process_repay_loan::handle(ctx) 
     }
     pub fn claim_collateral(ctx: Context<ClaimCollateral>) -> Result<()> { 
-        process_claim_collateral(ctx) 
+        process_claim_collateral::handle(ctx) 
     }
     pub fn claim_expired_collateral(ctx: Context<ClaimExpiredCollateral>) -> Result<()> { 
-        process_claim_expired_collateral(ctx) 
+        process_claim_expired_collateral::handle(ctx) 
     }
 }

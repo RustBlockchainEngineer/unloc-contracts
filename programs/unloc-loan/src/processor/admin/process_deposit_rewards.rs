@@ -3,13 +3,15 @@ use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
 use crate::{
     constant::*,
+    states::*,
     utils::*,
 };
 use std::str::FromStr;
-pub fn process_deposit_rewards(ctx: Context<DepositRewards>, amount: u64) -> Result<()> { 
+pub fn handle(ctx: Context<DepositRewards>, amount: u64) -> Result<()> { 
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
     require(ctx.accounts.user_reward_vault.mint == unloc_mint)?;
     require(ctx.accounts.user_reward_vault.owner == ctx.accounts.authority.key())?;
+    require(amount > 0)?;
 
     
     let cpi_accounts = Transfer {
@@ -23,6 +25,8 @@ pub fn process_deposit_rewards(ctx: Context<DepositRewards>, amount: u64) -> Res
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
 
     token::transfer(cpi_ctx, amount)?;
+
+    ctx.accounts.global_state.funded_amount += amount;
     Ok(())
 }
 
@@ -31,6 +35,12 @@ pub fn process_deposit_rewards(ctx: Context<DepositRewards>, amount: u64) -> Res
 pub struct DepositRewards<'info> {
     #[account(mut)]
     pub authority:  Signer<'info>,
+    #[account(
+        mut,
+        seeds = [GLOBAL_STATE_TAG],
+        bump,
+    )]
+    pub global_state:Box<Account<'info, GlobalState>>,
 
     #[account(
         mut,

@@ -20,3 +20,4 @@ anchor-spl = "0.24.2"
 unloc_staking = {path="../unloc-staking", features=["no-entrypoint"]}
 unloc_voting = {path="../unloc-voting", features=["no-entrypoint"]}
 mpl-token-metadata = { version="~1.2.7", features = [ "no-entrypoint" ] }
+chainlink_solana = "1.0.0"

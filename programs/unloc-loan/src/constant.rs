@@ -47,3 +47,10 @@ pub const DEFULT_SUB_OFFER_COUNT: u64 = 3;
 
 pub const META_PREFIX: &[u8] = b"metadata";
 pub const EDITION_PREFIX: &[u8] = b"edition";
+
+pub const PRICE_DECIMALS_AMP: u64 = 100_000_000;
+pub const SHARE_PRECISION: u128 = 1000_000_000_000;
+pub const DIFF_SOL_USDC_DECIMALS: u128 = 1000;
+
+pub const CHAINLINK_SOL_FEED:&str = "CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq";
+pub const CHAINLINK_USDC_FEED:&str = "7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G";

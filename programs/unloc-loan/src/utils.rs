@@ -4,6 +4,8 @@ use crate::{
     states::*,
 };
 use std::convert::TryInto;
+use chainlink_solana as chainlink;
+
 pub fn is_zero_account(account_info:&AccountInfo)->bool{
     let account_data: &[u8] = &account_info.data.borrow();
     let len = account_data.len();
@@ -84,7 +86,13 @@ pub fn calc_fee_u128(total: u64, fee_percent: u128, denominator: u128) -> Result
         .unwrap();
     Ok(result.try_into().unwrap())
 }
-
+pub fn get_chainlink_price(feed_account: &AccountInfo, chainlink_program: &AccountInfo) -> Result<i128> {
+    let round = chainlink::latest_round_data(
+        chainlink_program.clone(),
+        feed_account.clone(),
+    )?;
+    Ok(round.answer)
+}
 pub trait SafeCalc<T> {
     fn safe_add(&self, num: T) -> Result<T>;
     fn safe_sub(&self, num: T) -> Result<T>;

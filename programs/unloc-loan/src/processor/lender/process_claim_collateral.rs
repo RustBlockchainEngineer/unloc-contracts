@@ -7,7 +7,7 @@ use anchor_lang::solana_program::{
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 use std::str::FromStr;
-pub fn process_claim_collateral(ctx: Context<ClaimCollateral>) -> Result<()> {
+pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
     require(ctx.accounts.borrower_nft_vault.amount > 0)?;
     require(ctx.accounts.lender.key() == ctx.accounts.sub_offer.lender)?;
 
