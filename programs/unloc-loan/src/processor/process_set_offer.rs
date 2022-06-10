@@ -37,8 +37,7 @@ pub fn process_set_offer(ctx: Context<SetOffer>) -> Result<()> {
         // Approve with offer PDA
         token::approve(
             ctx.accounts
-                .into_approve_context()
-                .with_signer(&[offer_seeds]),
+                .into_approve_context(),
             1,
         )?;
 
