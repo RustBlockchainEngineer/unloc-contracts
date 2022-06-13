@@ -28,7 +28,12 @@ pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
     let denominator = ctx.accounts.global_state.denominator;
     let accrued_apr = ctx.accounts.global_state.accrued_interest_numerator;
 
-    let duration = current_time.checked_sub(started_time).unwrap();
+    let min_duration = ctx.accounts.sub_offer.loan_duration / 2;
+    let mut duration = current_time.checked_sub(started_time).unwrap();
+    if duration < min_duration {
+        duration = min_duration;
+    }
+    
     let accrued_amount = calc_fee(origin, offer_apr.checked_mul(duration).unwrap(),  denominator.checked_mul(seconds_for_year).unwrap())?;
     let accrued_unloc_fee = calc_fee(accrued_amount, accrued_apr,  denominator)?;
     let needed_amount = origin.checked_add(accrued_amount).unwrap()
