@@ -28,6 +28,7 @@ pub fn process_repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
     let denominator = ctx.accounts.global_state.denominator;
     let accrued_apr = ctx.accounts.global_state.accrued_interest_numerator;
 
+    // This formula works with linear case, if calc_fee formula updated with duration, this part also needs to updated
     let min_duration = ctx.accounts.sub_offer.loan_duration / 2;
     let mut duration = current_time.checked_sub(started_time).unwrap();
     if duration < min_duration {
