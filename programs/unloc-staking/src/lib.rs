@@ -3,14 +3,16 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::mem::size_of;
-
+use std::str::FromStr;
 declare_id!("EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU");
+
+const DEVNET_MODE:bool = true;
 
 const FULL_100: u64 = 100_000_000_000;
 const ACC_PRECISION: u128 = 100_000_000_000;
 const MAX_LEVEL: usize = 10;
 const MAX_PROFILE_LEVEL: usize = 5;
-
+pub const UNLOC_MINT:&str = if DEVNET_MODE {"Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67D4s3kRmut"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
 #[program]
 pub mod unloc_staking {
     use super::*;
@@ -22,6 +24,10 @@ pub mod unloc_staking {
         early_unlock_fee: u64,
         profile_levels: Vec<u128>,
     ) -> Result<()> {
+        let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
+
+        require!(_ctx.accounts.reward_mint.key() == unloc_mint, ErrorCode::InvalidMint);
+        require!(_ctx.accounts.reward_vault.mint == unloc_mint, ErrorCode::InvalidMint);
         require!(profile_levels.len() <= MAX_PROFILE_LEVEL, ErrorCode::OverflowMaxProfileLevel);
         let state = &mut _ctx.accounts.state;
         state.authority = _ctx.accounts.authority.key();
@@ -116,6 +122,11 @@ pub mod unloc_staking {
         point: u64,
         amount_multipler: u64,
     ) -> Result<()> {
+        let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
+
+        require!(_ctx.accounts.mint.key() == unloc_mint, ErrorCode::InvalidMint);
+        require!(_ctx.accounts.vault.mint == unloc_mint, ErrorCode::InvalidMint);
+
         let state = &mut _ctx.accounts.state;
         for pool_acc in _ctx.remaining_accounts.iter() {
             let loader = &mut Account::<FarmPoolAccount>::try_from(&pool_acc)?;
@@ -862,6 +873,8 @@ pub enum ErrorCode {
     InvalidDenominator,
     #[msg("Overlfow Max Profile Level")]
     OverflowMaxProfileLevel,
+    #[msg("Wrong Mint")]
+    InvalidMint,
 }
 #[event]
 pub struct RateChanged {

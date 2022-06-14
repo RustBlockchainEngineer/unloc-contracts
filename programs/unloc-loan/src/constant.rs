@@ -22,9 +22,6 @@ pub const REWARD_VAULT_TAG:&[u8] = REWARD_VAULT_SEED.as_bytes();
 pub const OFFER_SEED:&str = "OFFER_SEED";
 pub const OFFER_TAG:&[u8] = OFFER_SEED.as_bytes();
 #[constant]
-pub const LENDER_REWARD_SEED:&str = "LENDER_REWARD_SEED";
-pub const LENDER_REWARD_TAG:&[u8] = LENDER_REWARD_SEED.as_bytes();
-#[constant]
 pub const SUB_OFFER_SEED:&str = "SUB_OFFER_SEED";
 pub const SUB_OFFER_TAG:&[u8] = SUB_OFFER_SEED.as_bytes();
 #[constant]
@@ -46,3 +43,11 @@ pub const SUB_OFFER_COUNT_PER_LEVEL: u64 = 5;
 pub const DEFULT_SUB_OFFER_COUNT: u64 = 3;
 
 pub const META_PREFIX: &[u8] = b"metadata";
+pub const EDITION_PREFIX: &[u8] = b"edition";
+
+pub const PRICE_DECIMALS_AMP: u64 = 100_000_000;
+pub const SHARE_PRECISION: u128 = 1000_000_000_000;
+pub const DIFF_SOL_USDC_DECIMALS: u128 = 1000;
+
+pub const CHAINLINK_SOL_FEED:&str = "CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq";
+pub const CHAINLINK_USDC_FEED:&str = "7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G";

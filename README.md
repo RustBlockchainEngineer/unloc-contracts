@@ -25,6 +25,8 @@ This contains staking, voting, loan, buyback-burn and liquidity mining contract 
     - [Functional Requirements](#functional-requirements-of-loan)
     - [Use cases](#use-cases-of-loan)
     - [Detailed Information](#detailed-information-of-loan)
+- [Liquidity Mining](#liquidity-mining)
+    - [Use cases](#use-cases-of-mining)
 - [Buyback & burn Contract](#buyback-burn-contract)
      - [Functional Requirements](#functional-requirements-of-burn)
     - [Use cases](#use-cases-of-burn)
@@ -361,6 +363,35 @@ And for the interval actions, we call it from the backend regularly.
 1. All fees go to buyback-burn program
 2. buyback-burn program uses raydium & serum to buyback SOL/USDC to UNLOC.
 3. All buybacked & collected UNLOC tokens are burnt at certain intervals.
+
+## Liquidity Mining
+
+Liquidity mining tokens are allocated each second to the eligible users (lenders and borrowers)
+
+### Use cases of Mining
+
+
+1. Admin sets reward rate (amount per second for USD).
+2. Admin sets lender percentage and borrower percentage.
+3. Voting system sets percentage for each NFT collections.
+4. Lender receives UNLOC rewards by claiming.
+
+        formula:
+
+        rewardPerShare += tokenPerSecond * deltaDuration / currentTotalLoanAmount (whenever users interact with contract)
+
+        lenderReward = rewardPerShare  * loanAmount * collectionPercentage * lenderPercentage - lenderRewardDebt
+        lenderRewardDebt = rewardPerShare  * loanAmount * collectionPercentage * lenderPercentage (whenever lender start loan & claims his rewards)
+
+5. Borrower receives UNLOC rewards by claiming.
+
+
+        formula:
+
+        rewardPerShare += tokenPerSecond * deltaDuration / currentTotalLoanAmount (whenever users interact with contract)
+
+        borrowerReward = rewardPerShare  * loanAmount * collectionPercentage * borrowerPercentage - borrowerRewardDebt 
+        borrowerRewardDebt = rewardPerShare  * loanAmount * collectionPercentage * borrowerPercentage (whenever borrower start loan & claims his rewards) 
 
 
 ## Issues & Improvements
