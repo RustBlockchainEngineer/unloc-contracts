@@ -1,7 +1,7 @@
 use crate::{constant::*, error::*, states::*, utils::*};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{program::invoke, program::invoke_signed, system_instruction};
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, Revoke};
+use anchor_spl::token::{self, Mint, Revoke, Token, TokenAccount, Transfer};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 use std::str::FromStr;
 
@@ -9,14 +9,16 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let reward_vault_amount = ctx.accounts.reward_vault.amount;
     ctx.accounts.global_state.distribute(
-        reward_vault_amount, 
-        current_time, 
-        &ctx.accounts.chainlink_program.to_account_info(), 
-        &ctx.accounts.sol_feed.to_account_info(), 
-        &ctx.accounts.usdc_feed.to_account_info()
+        reward_vault_amount,
+        current_time,
+        &ctx.accounts.chainlink_program.to_account_info(),
+        &ctx.accounts.sol_feed.to_account_info(),
+        &ctx.accounts.usdc_feed.to_account_info(),
     )?;
     let offer_mint = ctx.accounts.sub_offer.offer_mint;
-    ctx.accounts.sub_offer.update_rps(&ctx.accounts.global_state, &offer_mint)?;
+    ctx.accounts
+        .sub_offer
+        .update_rps(&ctx.accounts.global_state, &offer_mint)?;
 
     require(ctx.accounts.lender.key() == ctx.accounts.sub_offer.lender)?;
 
@@ -30,7 +32,13 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     let denominator = ctx.accounts.global_state.denominator;
     let accrued_apr = ctx.accounts.global_state.accrued_interest_numerator;
 
-    let duration = current_time.checked_sub(started_time).unwrap();
+    // This formula works with linear case, if calc_fee formula updated with duration, this part also needs to updated
+    let min_duration = ctx.accounts.sub_offer.loan_duration / 2;
+    let mut duration = current_time.checked_sub(started_time).unwrap();
+    if duration < min_duration {
+        duration = min_duration;
+    }
+
     let accrued_amount = calc_fee(
         origin,
         offer_apr.checked_mul(duration).unwrap(),
@@ -164,10 +172,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     )?;
 
     // Revoke with offer PDA
-    token::revoke(
-        ctx.accounts
-            .into_revoke_context(),
-    )?;
+    token::revoke(ctx.accounts.into_revoke_context())?;
 
     ctx.accounts.offer.state = OfferState::get_state(OfferState::NFTClaimed);
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::NFTClaimed);
@@ -228,19 +233,19 @@ pub struct RepayLoan<'info> {
     pub treasury_vault: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: Safe
-    pub chainlink_program:  AccountInfo<'info>,
+    pub chainlink_program: AccountInfo<'info>,
 
     /// CHECK: Safe
-    pub sol_feed:  AccountInfo<'info>,
+    pub sol_feed: AccountInfo<'info>,
 
     /// CHECK: Safe
-    pub usdc_feed:  AccountInfo<'info>,
+    pub usdc_feed: AccountInfo<'info>,
 
     #[account(
         seeds = [REWARD_VAULT_TAG],
         bump,
     )]
-    pub reward_vault:Box<Account<'info, TokenAccount>>,
+    pub reward_vault: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: metaplex edition account
     pub edition: UncheckedAccount<'info>,
