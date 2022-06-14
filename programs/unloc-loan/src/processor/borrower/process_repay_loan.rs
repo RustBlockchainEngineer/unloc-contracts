@@ -6,8 +6,6 @@ use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account}
 use std::str::FromStr;
 
 pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
-    let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
-    let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let reward_vault_amount = ctx.accounts.reward_vault.amount;
     ctx.accounts.global_state.distribute(
@@ -17,12 +15,8 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
         &ctx.accounts.sol_feed.to_account_info(), 
         &ctx.accounts.usdc_feed.to_account_info()
     )?;
-    let rps = if usdc_mint == ctx.accounts.sub_offer.offer_mint {
-        ctx.accounts.global_state.rps_usdc
-    } else if wsol_mint == ctx.accounts.sub_offer.offer_mint {
-        ctx.accounts.global_state.rps_sol
-    } else {0};
-    ctx.accounts.sub_offer.update_rps(rps);
+    let offer_mint = ctx.accounts.sub_offer.offer_mint;
+    ctx.accounts.sub_offer.update_rps(&ctx.accounts.global_state, &offer_mint)?;
 
     require(ctx.accounts.lender.key() == ctx.accounts.sub_offer.lender)?;
 
@@ -137,8 +131,6 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Fulfilled);
     ctx.accounts.offer.state = OfferState::get_state(OfferState::Fulfilled);
 
-    ctx.accounts.user_reward.end_time = current_time;
-
     // Thaw borrower_nft_vault with offer PDA
     let nft_mint_key = ctx.accounts.nft_mint.key();
     let signer_seeds = &[
@@ -213,12 +205,6 @@ pub struct RepayLoan<'info> {
     bump,
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
-    #[account(
-        mut,
-        seeds = [LENDER_REWARD_TAG, sub_offer.lender.as_ref(), user_reward.borrower.as_ref(), sub_offer.key().as_ref()],
-        bump,
-        )]
-    pub user_reward: Box<Account<'info, UserReward>>,
 
     #[account(
         constraint = nft_mint.key() == offer.nft_mint

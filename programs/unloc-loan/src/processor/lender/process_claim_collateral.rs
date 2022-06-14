@@ -11,10 +11,21 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
     require(ctx.accounts.borrower_nft_vault.amount > 0)?;
     require(ctx.accounts.lender.key() == ctx.accounts.sub_offer.lender)?;
 
+    let current_time = ctx.accounts.clock.unix_timestamp as u64;
+    let reward_vault_amount = ctx.accounts.reward_vault.amount;
+    ctx.accounts.global_state.distribute(
+        reward_vault_amount, 
+        current_time, 
+        &ctx.accounts.chainlink_program.to_account_info(), 
+        &ctx.accounts.sol_feed.to_account_info(), 
+        &ctx.accounts.usdc_feed.to_account_info(), 
+    )?;
+    let offer_mint = ctx.accounts.sub_offer.offer_mint;
+    ctx.accounts.sub_offer.update_rps(&ctx.accounts.global_state, &offer_mint)?;
+    
     let borrower_key = ctx.accounts.offer.borrower;
     let origin = ctx.accounts.sub_offer.offer_amount;
     let started_time = ctx.accounts.sub_offer.loan_started_time;
-    let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let seconds_for_year = 3600 * 24 * 365;
     let unloc_apr = ctx.accounts.global_state.apr_numerator;
     let offer_apr = ctx.accounts.sub_offer.apr_numerator;
@@ -23,23 +34,25 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
     let accrued_apr = ctx.accounts.global_state.accrued_interest_numerator;
     let nft_mint_key = ctx.accounts.nft_mint.key();
 
+    let duration = current_time.safe_sub(started_time)?;
+
     require(current_time > started_time.checked_add(loan_duration).unwrap())?;
 
     let accrued_amount = calc_fee(
         origin,
-        offer_apr.checked_mul(loan_duration).unwrap(),
+        offer_apr.checked_mul(duration).unwrap(),
         denominator.checked_mul(seconds_for_year).unwrap(),
     )?;
     let accrued_unloc_fee = calc_fee(accrued_amount, accrued_apr, denominator)?;
     let _unloc_fee_amount = calc_fee(
         origin,
-        unloc_apr.checked_mul(loan_duration).unwrap(),
+        unloc_apr.checked_mul(duration).unwrap(),
         denominator.checked_mul(seconds_for_year).unwrap(),
     )?;
     let unloc_fee_amount = accrued_unloc_fee.checked_mul(_unloc_fee_amount).unwrap();
 
     // log fees
-    msg!("origin = {}, duration = {}", origin, loan_duration);
+    msg!("origin = {}, duration = {}", origin, duration);
     msg!(
         "offer apr = {}%, unloc apr = {}%, accrued apr = {}%",
         offer_apr * 100 / denominator,
@@ -51,6 +64,8 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
     msg!("total unloc fee = {}", unloc_fee_amount);
 
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
+    let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
+
     if ctx.accounts.sub_offer.offer_mint == wsol_mint {
         require(ctx.accounts.lender.lamports() >= unloc_fee_amount)?;
         // pay unloc_fee_amount to unloc
@@ -66,7 +81,7 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
                 ctx.accounts.system_program.to_account_info(),
             ],
         )?;
-    } else {
+    } else if ctx.accounts.sub_offer.offer_mint == usdc_mint {
         require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.sub_offer.lender)?;
         require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.sub_offer.offer_mint)?;
         require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.sub_offer.lender)?;
@@ -85,6 +100,8 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         token::transfer(cpi_ctx, unloc_fee_amount)?;
+    } else {
+        return Err(error!(LoanError::NotAllowed));
     }
     ctx.accounts.sub_offer.loan_ended_time = current_time;
 
@@ -128,6 +145,7 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
 
     ctx.accounts.offer.state = OfferState::get_state(OfferState::NFTClaimed);
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::NFTClaimed);
+
     Ok(())
 }
 
@@ -186,6 +204,22 @@ pub struct ClaimCollateral<'info> {
 
     /// CHECK: metaplex edition account
     pub edition: UncheckedAccount<'info>,
+
+    #[account(
+        seeds = [REWARD_VAULT_TAG],
+        bump,
+    )]
+    pub reward_vault:Box<Account<'info, TokenAccount>>,
+    
+    /// CHECK: Safe
+    pub chainlink_program:  AccountInfo<'info>,
+
+    /// CHECK: Safe
+    pub sol_feed:  AccountInfo<'info>,
+
+    /// CHECK: Safe
+    pub usdc_feed:  AccountInfo<'info>,
+
     /// CHECK: metaplex program
     pub metadata_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,

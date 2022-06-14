@@ -44,7 +44,13 @@ pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_num
     Ok(())
 }
 #[derive(Accounts)]
-#[instruction(offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64)]
+#[instruction(
+    offer_amount: u64, 
+    sub_offer_number: u64, 
+    loan_duration: u64, 
+    min_repaid_numerator: u64, 
+    apr_numerator: u64
+)]
 pub struct SetSubOffer<'info> {
     #[account(mut)]
     pub borrower:  Signer<'info>,

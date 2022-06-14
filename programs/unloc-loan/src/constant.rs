@@ -22,9 +22,6 @@ pub const REWARD_VAULT_TAG:&[u8] = REWARD_VAULT_SEED.as_bytes();
 pub const OFFER_SEED:&str = "OFFER_SEED";
 pub const OFFER_TAG:&[u8] = OFFER_SEED.as_bytes();
 #[constant]
-pub const LENDER_REWARD_SEED:&str = "LENDER_REWARD_SEED";
-pub const LENDER_REWARD_TAG:&[u8] = LENDER_REWARD_SEED.as_bytes();
-#[constant]
 pub const SUB_OFFER_SEED:&str = "SUB_OFFER_SEED";
 pub const SUB_OFFER_TAG:&[u8] = SUB_OFFER_SEED.as_bytes();
 #[constant]

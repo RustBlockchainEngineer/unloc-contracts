@@ -8,19 +8,16 @@ use anchor_lang::solana_program::{
 };
 
 use crate::{
-    //error::*,
+    error::*,
     constant::*,
     utils::*,
     states::*,
 };
-use chainlink_solana as chainlink;
 use std::str::FromStr;
 pub fn handle(ctx: Context<AcceptOffer>) -> Result<()> { 
     accept_offer(ctx, 0, 0)
 }
-pub fn accept_offer(ctx: Context<AcceptOffer>, total_point: u64, collection_point: u64) -> Result<()> {
-    let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
-    let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
+pub fn accept_offer(ctx: Context<AcceptOffer>, total_point: u128, collection_point: u128) -> Result<()> {
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let reward_vault_amount = ctx.accounts.reward_vault.amount;
     ctx.accounts.global_state.distribute(
@@ -28,19 +25,27 @@ pub fn accept_offer(ctx: Context<AcceptOffer>, total_point: u64, collection_poin
         current_time, 
         &ctx.accounts.chainlink_program.to_account_info(), 
         &ctx.accounts.sol_feed.to_account_info(), 
+        &ctx.accounts.usdc_feed.to_account_info(), 
+    )?;
+    let offer_mint = ctx.accounts.sub_offer.offer_mint;
+    ctx.accounts.sub_offer.update_rps(&ctx.accounts.global_state, &offer_mint)?;
+    ctx.accounts.sub_offer.update_reward_debt()?;
+
+    let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
+    let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
+    ctx.accounts.global_state.distribute(
+        reward_vault_amount, 
+        current_time, 
+        &ctx.accounts.chainlink_program.to_account_info(), 
+        &ctx.accounts.sol_feed.to_account_info(), 
         &ctx.accounts.usdc_feed.to_account_info()
     )?;
-    let rps = if usdc_mint == ctx.accounts.sub_offer.offer_mint {
-        ctx.accounts.global_state.rps_usdc
-    } else if wsol_mint == ctx.accounts.sub_offer.offer_mint {
-        ctx.accounts.global_state.rps_sol
-    } else {0};
-    ctx.accounts.sub_offer.update_rps(rps);
+    let offer_mint = ctx.accounts.sub_offer.offer_mint;
+    ctx.accounts.sub_offer.update_rps(&ctx.accounts.global_state, &offer_mint)?;
 
     require(ctx.accounts.sub_offer.sub_offer_number >= ctx.accounts.offer.start_sub_offer_num)?;
     require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed))?;
 
-    
     if ctx.accounts.offer_mint.key() == wsol_mint {
         require(ctx.accounts.lender.lamports() >= ctx.accounts.sub_offer.offer_amount)?;
         invoke(
@@ -52,7 +57,7 @@ pub fn accept_offer(ctx: Context<AcceptOffer>, total_point: u64, collection_poin
             ],
         )?;
     }
-    else {
+    else if ctx.accounts.offer_mint.key() == usdc_mint {
         require(ctx.accounts.lender_offer_vault.amount >= ctx.accounts.sub_offer.offer_amount)?;
         require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.lender.key())?;
         require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.offer_mint.key())?;
@@ -69,17 +74,19 @@ pub fn accept_offer(ctx: Context<AcceptOffer>, total_point: u64, collection_poin
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
     
         token::transfer(cpi_ctx, ctx.accounts.sub_offer.offer_amount)?;
+    } else {
+        return Err(error!(LoanError::NotAllowed));
     }
+
     ctx.accounts.offer.state = OfferState::get_state(OfferState::Accepted);
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Accepted);
     ctx.accounts.sub_offer.lender = ctx.accounts.lender.key();
     
     ctx.accounts.sub_offer.loan_started_time = ctx.accounts.clock.unix_timestamp as u64;
 
-    let current_time = ctx.accounts.clock.unix_timestamp as u64;
     ctx.accounts.sub_offer.total_point = total_point;
     ctx.accounts.sub_offer.collection_point = collection_point;
-
+    
     Ok(())
 }
 

@@ -107,8 +107,8 @@ pub struct SetOffer<'info> {
 
     /// CHECK: edition from token meta program.
     #[account(
-        seeds = [META_PREFIX, global_state.token_metadata_pid.as_ref(), nft_mint.key().as_ref(), EDITION_PREFIX],
-        seeds::program = global_state.token_metadata_pid,
+        seeds = [META_PREFIX, metadata_id().as_ref(), nft_mint.key().as_ref(), EDITION_PREFIX],
+        seeds::program = metadata_id(),
         bump,
     )]
     pub edition: AccountInfo<'info>,

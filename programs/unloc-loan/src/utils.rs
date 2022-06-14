@@ -86,7 +86,7 @@ pub fn calc_fee_u128(total: u64, fee_percent: u128, denominator: u128) -> Result
         .unwrap();
     Ok(result.try_into().unwrap())
 }
-pub fn get_chainlink_price(feed_account: &AccountInfo, chainlink_program: &AccountInfo) -> Result<i128> {
+pub fn get_chainlink_price<'info>(feed_account: &AccountInfo<'info>, chainlink_program: &AccountInfo<'info>) -> Result<i128> {
     let round = chainlink::latest_round_data(
         chainlink_program.clone(),
         feed_account.clone(),
