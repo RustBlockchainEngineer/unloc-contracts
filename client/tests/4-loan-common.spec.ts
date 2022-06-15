@@ -17,10 +17,12 @@ import {
   depositRewards,
   claimRewards,
   createLoanSubOfferByStaking,
-  setLoanInternalInfo,
   programProvider,
   checkWalletATA,
-  acceptLoanOffer
+  acceptLoanOffer,
+  setLoanStakingPool,
+  setLoanVoting,
+  getVotingKeyFromNum
 } from '../src'
 import * as anchor from '@project-serum/anchor';
 
@@ -37,8 +39,6 @@ import { Collection, CreateMasterEditionV3, CreateMetadataV2, DataV2, Edition, M
 import { mintAndCreateMetadata, mintAndCreateMetadataV2 } from '@metaplex-foundation/mpl-token-metadata/dist/test/actions';
 import { Keypair } from '@solana/web3.js';
 import { BN } from '@project-serum/anchor';
-import { getMintInfo, getTokenAccount, token } from '@project-serum/common';
-import { ASSOCIATED_PROGRAM_ID } from '@project-serum/anchor/dist/cjs/utils/token';
 
 describe('loan-common', () => {
 
@@ -193,8 +193,7 @@ describe('loan-common', () => {
     const accruedInterestNumerator = new anchor.BN(10000000);
 
     const aprNumerator = new anchor.BN(1 * denominator.toNumber() / 100); // 1%
-    const rewardPerSol = new anchor.BN(300);
-    const rewardPerUsdc = new anchor.BN(300);
+    const rewardRate = new anchor.BN(300);
     const expireLoanDuration = new anchor.BN(90 * 24 * 3600);
     const unlocStakingPid = STAKING_PID
     const votingPid = VOTING_PID
@@ -207,6 +206,7 @@ describe('loan-common', () => {
     );
 
     const currentVotingNum = new anchor.BN(0);
+    const currentVotingKey = await getVotingKeyFromNum(currentVotingNum)
     const globalState = await pda([GLOBAL_STATE_SEED], programId)
 
     const signers = [superOwnerKeypair]
@@ -215,8 +215,7 @@ describe('loan-common', () => {
       denominator,
       aprNumerator,
       expireLoanDuration,
-      rewardPerSol,
-      rewardPerUsdc,
+      rewardRate,
       lenderRewardsPercentage,
       rewardMint,
       treasury,
@@ -230,22 +229,27 @@ describe('loan-common', () => {
     assert(globalStateData.denominator.toNumber() == denominator.toNumber(), "denominator")
     assert(globalStateData.aprNumerator.toNumber() == aprNumerator.toNumber(), "aprNumerator")
 
-    await setLoanInternalInfo(
+    await setLoanStakingPool(
       unlocStakingPid,
       unlocStakingPoolId,
-      votingPid,
-      tokenMetadataPid,
-      currentVotingNum,
       superOwner,
       signers
     )
     // assert
     globalStateData = await program.account.globalState.fetch(globalState)
-    assert(globalStateData.currentVotingNum.toNumber() == currentVotingNum.toNumber(), "currentVotingNum")
     assert(globalStateData.unlocStakingPid.equals(unlocStakingPid), "unlocStakingPid")
     assert(globalStateData.unlocStakingPoolId.equals(unlocStakingPoolId), "unlocStakingPoolId")
+
+    await setLoanVoting(
+      votingPid,
+      currentVotingKey,
+      superOwner,
+      signers
+    )
+    // assert
+    globalStateData = await program.account.globalState.fetch(globalState)
     assert(globalStateData.votingPid.equals(votingPid), "votingPid")
-    assert(globalStateData.tokenMetadataPid.equals(tokenMetadataPid), "tokenMetadataPid")
+    assert(globalStateData.voting.equals(currentVotingKey), "currentVotingKey")
   });
 
   it('Deposit rewards', async () => {

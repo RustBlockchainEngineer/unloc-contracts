@@ -1,10 +1,14 @@
 {
-  "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "typeRoots": ["types/", "node_modules/@types"],
+    "lib": ["esnext"],
+    "allowJs": true,
+    "esModuleInterop": true,
     "moduleResolution": "node",
-    "module": "es2022",
-    "target": "es2019",
-    "outDir": "dist/esm/",
-    "rootDir": "./src",
-  }
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true
+  },
+  "include": ["./src/index.ts"]
 }

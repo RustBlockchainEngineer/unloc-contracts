@@ -22,17 +22,7 @@ export async function pda(seeds: (Buffer | Uint8Array)[], pid: anchor.web3.Publi
     const [pdaKey] = await anchor.web3.PublicKey.findProgramAddress(seeds, pid)
     return pdaKey
   }
-export const discriminatorLen = 8;
-export const systemProgram = anchor.web3.SystemProgram.programId
-export const tokenProgram = TOKEN_PROGRAM_ID
-export const rent = anchor.web3.SYSVAR_RENT_PUBKEY
-export const clock = anchor.web3.SYSVAR_CLOCK_PUBKEY
-export const defaults = {
-  systemProgram,
-  tokenProgram,
-  rent,
-  clock
-}
+
 export const commitment: Commitment = "confirmed";
 
 export async function createAssociatedTokenAccountIfNotExist2(

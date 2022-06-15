@@ -1,8 +1,8 @@
 import * as anchor from "@project-serum/anchor";
 import { BN } from "@project-serum/anchor";
-import { STAKING_PID, VOTING_PID } from "./../global-config";
+import { defaults, STAKING_PID, VOTING_PID } from "./../global-config";
 import { getFirstStakingPool } from "./../staking";
-import { defaults, pda, SOLANA_CONNECTION } from "./../utils";
+import { pda, SOLANA_CONNECTION } from "./../utils";
 
 const { PublicKey } = anchor.web3;
 
@@ -63,7 +63,12 @@ export const setVotingGlobalState = async (
   // eslint-disable-next-line no-console
   console.log("setGlobalState tx = ", tx);
 };
-
+export const getVotingKeyFromNum = async (votingNumber: anchor.BN) => {
+  return await pda(
+    [VOTING_TAG, votingNumber.toArrayLike(Buffer, "be", 8)],
+    votingProgramId
+  );
+}
 export const createVoting = async (
   votingStartTimestamp: BN,
   votingEndTimestamp: BN,

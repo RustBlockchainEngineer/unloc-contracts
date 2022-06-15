@@ -1,2 +1,2 @@
-# @unloc/client
+# @unloc-xyz/unloc-protocol
 

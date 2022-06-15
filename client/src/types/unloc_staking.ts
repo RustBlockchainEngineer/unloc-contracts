@@ -1087,6 +1087,11 @@ export type UnlocStaking = {
       "code": 6007,
       "name": "OverflowMaxProfileLevel",
       "msg": "Overlfow Max Profile Level"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidMint",
+      "msg": "Wrong Mint"
     }
   ]
 };
@@ -2180,6 +2185,11 @@ export const IDL: UnlocStaking = {
       "code": 6007,
       "name": "OverflowMaxProfileLevel",
       "msg": "Overlfow Max Profile Level"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidMint",
+      "msg": "Wrong Mint"
     }
   ]
 };

@@ -18,11 +18,6 @@ export type UnlocLoan = {
       "value": "\"OFFER_SEED\""
     },
     {
-      "name": "LENDER_REWARD_SEED",
-      "type": "string",
-      "value": "\"LENDER_REWARD_SEED\""
-    },
-    {
       "name": "SUB_OFFER_SEED",
       "type": "string",
       "value": "\"SUB_OFFER_SEED\""
@@ -101,6 +96,11 @@ export type UnlocLoan = {
           "name": "rent",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
@@ -121,11 +121,7 @@ export type UnlocLoan = {
           "type": "u64"
         },
         {
-          "name": "rewardPerSol",
-          "type": "u64"
-        },
-        {
-          "name": "rewardPerUsdc",
+          "name": "rewardRate",
           "type": "u64"
         },
         {
@@ -135,7 +131,7 @@ export type UnlocLoan = {
       ]
     },
     {
-      "name": "setInternalInfo",
+      "name": "setStakingPool",
       "accounts": [
         {
           "name": "superOwner",
@@ -156,18 +152,61 @@ export type UnlocLoan = {
         {
           "name": "unlocStakingPoolId",
           "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "setVoting",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
         },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
         {
           "name": "votingPid",
           "type": "publicKey"
         },
         {
-          "name": "tokenMetadataPid",
+          "name": "voting",
           "type": "publicKey"
-        },
-        {
-          "name": "currentVotingNum",
-          "type": "u64"
         }
       ]
     },
@@ -180,8 +219,28 @@ export type UnlocLoan = {
           "isSigner": true
         },
         {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "rewardVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -191,6 +250,11 @@ export type UnlocLoan = {
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
           "isMut": false,
           "isSigner": false
         }
@@ -203,7 +267,7 @@ export type UnlocLoan = {
       ]
     },
     {
-      "name": "claimRewards",
+      "name": "withdrawRewards",
       "accounts": [
         {
           "name": "authority",
@@ -212,11 +276,6 @@ export type UnlocLoan = {
         },
         {
           "name": "globalState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "userReward",
           "isMut": true,
           "isSigner": false
         },
@@ -226,8 +285,99 @@ export type UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "userRewardVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "claimExpiredCollateral",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryWallet",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "subOffer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userNftVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowerNftVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "edition",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "metadataProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -308,93 +458,6 @@ export type UnlocLoan = {
         }
       ],
       "args": []
-    },
-    {
-      "name": "setSubOfferByStaking",
-      "accounts": [
-        {
-          "name": "borrower",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "globalState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "offer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "subOffer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "stakingUser",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "offerMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryWallet",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "offerAmount",
-          "type": "u64"
-        },
-        {
-          "name": "subOfferNumber",
-          "type": "u64"
-        },
-        {
-          "name": "loanDuration",
-          "type": "u64"
-        },
-        {
-          "name": "minRepaidNumerator",
-          "type": "u64"
-        },
-        {
-          "name": "aprNumerator",
-          "type": "u64"
-        }
-      ]
     },
     {
       "name": "setSubOffer",
@@ -479,6 +542,204 @@ export type UnlocLoan = {
       ]
     },
     {
+      "name": "setSubOfferByStaking",
+      "accounts": [
+        {
+          "name": "subOfferCtx",
+          "accounts": [
+            {
+              "name": "borrower",
+              "isMut": true,
+              "isSigner": true
+            },
+            {
+              "name": "globalState",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "offer",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "subOffer",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "offerMint",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "treasuryWallet",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "treasuryVault",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "systemProgram",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "tokenProgram",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "rent",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "clock",
+              "isMut": false,
+              "isSigner": false
+            }
+          ]
+        },
+        {
+          "name": "stakingUser",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "offerAmount",
+          "type": "u64"
+        },
+        {
+          "name": "subOfferNumber",
+          "type": "u64"
+        },
+        {
+          "name": "loanDuration",
+          "type": "u64"
+        },
+        {
+          "name": "minRepaidNumerator",
+          "type": "u64"
+        },
+        {
+          "name": "aprNumerator",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "repayLoan",
+      "accounts": [
+        {
+          "name": "borrower",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lender",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryWallet",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "subOffer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowerNftVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lenderOfferVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowerOfferVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rewardVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "edition",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "metadataProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "cancelOffer",
       "accounts": [
         {
@@ -546,87 +807,6 @@ export type UnlocLoan = {
       "args": []
     },
     {
-      "name": "acceptOfferByVoting",
-      "accounts": [
-        {
-          "name": "lender",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "borrower",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "globalState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "offer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "voting",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "votingItem",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "subOffer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userReward",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "offerMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "borrowerOfferVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "lenderOfferVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "acceptOffer",
       "accounts": [
         {
@@ -641,7 +821,7 @@ export type UnlocLoan = {
         },
         {
           "name": "globalState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -651,11 +831,6 @@ export type UnlocLoan = {
         },
         {
           "name": "subOffer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userReward",
           "isMut": true,
           "isSigner": false
         },
@@ -672,6 +847,26 @@ export type UnlocLoan = {
         {
           "name": "lenderOfferVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rewardVault",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -698,91 +893,101 @@ export type UnlocLoan = {
       "args": []
     },
     {
-      "name": "repayLoan",
+      "name": "acceptOfferByVoting",
       "accounts": [
         {
-          "name": "borrower",
+          "name": "acceptOfferCtx",
+          "accounts": [
+            {
+              "name": "lender",
+              "isMut": true,
+              "isSigner": true
+            },
+            {
+              "name": "borrower",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "globalState",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "offer",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "subOffer",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "offerMint",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "borrowerOfferVault",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "lenderOfferVault",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "chainlinkProgram",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "solFeed",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "usdcFeed",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "rewardVault",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "systemProgram",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "tokenProgram",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "rent",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "clock",
+              "isMut": false,
+              "isSigner": false
+            }
+          ]
+        },
+        {
+          "name": "voting",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
-          "name": "lender",
+          "name": "votingItem",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "globalState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryWallet",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "offer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "subOffer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userReward",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "nftMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "borrowerNftVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "lenderOfferVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "borrowerOfferVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "edition",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "metadataProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
           "isSigner": false
         }
       ],
@@ -847,6 +1052,26 @@ export type UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "rewardVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "metadataProgram",
           "isMut": false,
           "isSigner": false
@@ -870,10 +1095,10 @@ export type UnlocLoan = {
       "args": []
     },
     {
-      "name": "claimExpiredCollateral",
+      "name": "claimRewards",
       "accounts": [
         {
-          "name": "superOwner",
+          "name": "authority",
           "isMut": true,
           "isSigner": true
         },
@@ -883,47 +1108,37 @@ export type UnlocLoan = {
           "isSigner": false
         },
         {
-          "name": "treasuryWallet",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "offer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "subOffer",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "userNftVault",
+          "name": "rewardVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "borrowerNftVault",
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lenderRewardVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "nftMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "edition",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "metadataProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
+          "name": "borrowerRewardVault",
           "isMut": false,
           "isSigner": false
         },
@@ -972,12 +1187,40 @@ export type UnlocLoan = {
             "type": "u64"
           },
           {
-            "name": "rewardPerSol",
+            "name": "rewardVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardRate",
             "type": "u64"
           },
           {
-            "name": "rewardPerUsdc",
+            "name": "tvlSol",
             "type": "u64"
+          },
+          {
+            "name": "tvlUsdc",
+            "type": "u64"
+          },
+          {
+            "name": "fundedAmount",
+            "type": "u64"
+          },
+          {
+            "name": "distributedAmount",
+            "type": "u64"
+          },
+          {
+            "name": "lastDistributedTime",
+            "type": "u64"
+          },
+          {
+            "name": "rpsSol",
+            "type": "u128"
+          },
+          {
+            "name": "rpsUsdc",
+            "type": "u128"
           },
           {
             "name": "lenderRewardsPercentage",
@@ -996,11 +1239,7 @@ export type UnlocLoan = {
             "type": "publicKey"
           },
           {
-            "name": "currentVotingNum",
-            "type": "u64"
-          },
-          {
-            "name": "tokenMetadataPid",
+            "name": "voting",
             "type": "publicKey"
           },
           {
@@ -1078,6 +1317,10 @@ export type UnlocLoan = {
             "type": "publicKey"
           },
           {
+            "name": "offerMintDecimals",
+            "type": "u8"
+          },
+          {
             "name": "state",
             "type": "u8"
           },
@@ -1138,35 +1381,6 @@ export type UnlocLoan = {
             "type": "u64"
           },
           {
-            "name": "reserved",
-            "type": {
-              "array": [
-                "u128",
-                7
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "lenderReward",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "lender",
-            "type": "publicKey"
-          },
-          {
-            "name": "borrower",
-            "type": "publicKey"
-          },
-          {
-            "name": "collection",
-            "type": "publicKey"
-          },
-          {
             "name": "totalPoint",
             "type": "u128"
           },
@@ -1175,48 +1389,21 @@ export type UnlocLoan = {
             "type": "u128"
           },
           {
-            "name": "subOffer",
-            "type": "publicKey"
+            "name": "rps",
+            "type": "u128"
           },
           {
-            "name": "loanMint",
-            "type": "publicKey"
+            "name": "rewardDebt",
+            "type": "u128"
           },
           {
-            "name": "loanMintDecimals",
-            "type": "u8"
-          },
-          {
-            "name": "startTime",
-            "type": "u64"
-          },
-          {
-            "name": "endTime",
-            "type": "u64"
-          },
-          {
-            "name": "lenderLastClaimedTime",
-            "type": "u64"
-          },
-          {
-            "name": "borrowerLastClaimedTime",
-            "type": "u64"
-          },
-          {
-            "name": "maxDuration",
-            "type": "u64"
-          },
-          {
-            "name": "loanAmount",
-            "type": "u64"
-          },
-          {
-            "name": "lenderClaimedAmount",
-            "type": "u64"
-          },
-          {
-            "name": "borrowerClaimedAmount",
-            "type": "u64"
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u128",
+                7
+              ]
+            }
           }
         ]
       }
@@ -1384,11 +1571,6 @@ export const IDL: UnlocLoan = {
       "value": "\"OFFER_SEED\""
     },
     {
-      "name": "LENDER_REWARD_SEED",
-      "type": "string",
-      "value": "\"LENDER_REWARD_SEED\""
-    },
-    {
       "name": "SUB_OFFER_SEED",
       "type": "string",
       "value": "\"SUB_OFFER_SEED\""
@@ -1467,6 +1649,11 @@ export const IDL: UnlocLoan = {
           "name": "rent",
           "isMut": false,
           "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
@@ -1487,11 +1674,7 @@ export const IDL: UnlocLoan = {
           "type": "u64"
         },
         {
-          "name": "rewardPerSol",
-          "type": "u64"
-        },
-        {
-          "name": "rewardPerUsdc",
+          "name": "rewardRate",
           "type": "u64"
         },
         {
@@ -1501,7 +1684,7 @@ export const IDL: UnlocLoan = {
       ]
     },
     {
-      "name": "setInternalInfo",
+      "name": "setStakingPool",
       "accounts": [
         {
           "name": "superOwner",
@@ -1522,18 +1705,61 @@ export const IDL: UnlocLoan = {
         {
           "name": "unlocStakingPoolId",
           "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "setVoting",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
         },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
         {
           "name": "votingPid",
           "type": "publicKey"
         },
         {
-          "name": "tokenMetadataPid",
+          "name": "voting",
           "type": "publicKey"
-        },
-        {
-          "name": "currentVotingNum",
-          "type": "u64"
         }
       ]
     },
@@ -1546,8 +1772,28 @@ export const IDL: UnlocLoan = {
           "isSigner": true
         },
         {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "rewardVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1557,6 +1803,11 @@ export const IDL: UnlocLoan = {
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
           "isMut": false,
           "isSigner": false
         }
@@ -1569,7 +1820,7 @@ export const IDL: UnlocLoan = {
       ]
     },
     {
-      "name": "claimRewards",
+      "name": "withdrawRewards",
       "accounts": [
         {
           "name": "authority",
@@ -1578,11 +1829,6 @@ export const IDL: UnlocLoan = {
         },
         {
           "name": "globalState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "userReward",
           "isMut": true,
           "isSigner": false
         },
@@ -1592,8 +1838,99 @@ export const IDL: UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "userRewardVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "claimExpiredCollateral",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryWallet",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "subOffer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userNftVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowerNftVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "edition",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "metadataProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1674,93 +2011,6 @@ export const IDL: UnlocLoan = {
         }
       ],
       "args": []
-    },
-    {
-      "name": "setSubOfferByStaking",
-      "accounts": [
-        {
-          "name": "borrower",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "globalState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "offer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "subOffer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "stakingUser",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "offerMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryWallet",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "offerAmount",
-          "type": "u64"
-        },
-        {
-          "name": "subOfferNumber",
-          "type": "u64"
-        },
-        {
-          "name": "loanDuration",
-          "type": "u64"
-        },
-        {
-          "name": "minRepaidNumerator",
-          "type": "u64"
-        },
-        {
-          "name": "aprNumerator",
-          "type": "u64"
-        }
-      ]
     },
     {
       "name": "setSubOffer",
@@ -1845,6 +2095,204 @@ export const IDL: UnlocLoan = {
       ]
     },
     {
+      "name": "setSubOfferByStaking",
+      "accounts": [
+        {
+          "name": "subOfferCtx",
+          "accounts": [
+            {
+              "name": "borrower",
+              "isMut": true,
+              "isSigner": true
+            },
+            {
+              "name": "globalState",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "offer",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "subOffer",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "offerMint",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "treasuryWallet",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "treasuryVault",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "systemProgram",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "tokenProgram",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "rent",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "clock",
+              "isMut": false,
+              "isSigner": false
+            }
+          ]
+        },
+        {
+          "name": "stakingUser",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "offerAmount",
+          "type": "u64"
+        },
+        {
+          "name": "subOfferNumber",
+          "type": "u64"
+        },
+        {
+          "name": "loanDuration",
+          "type": "u64"
+        },
+        {
+          "name": "minRepaidNumerator",
+          "type": "u64"
+        },
+        {
+          "name": "aprNumerator",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "repayLoan",
+      "accounts": [
+        {
+          "name": "borrower",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lender",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryWallet",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "subOffer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowerNftVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lenderOfferVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "borrowerOfferVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rewardVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "edition",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "metadataProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "cancelOffer",
       "accounts": [
         {
@@ -1912,87 +2360,6 @@ export const IDL: UnlocLoan = {
       "args": []
     },
     {
-      "name": "acceptOfferByVoting",
-      "accounts": [
-        {
-          "name": "lender",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "borrower",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "globalState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "offer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "voting",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "votingItem",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "subOffer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userReward",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "offerMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "borrowerOfferVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "lenderOfferVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "acceptOffer",
       "accounts": [
         {
@@ -2007,7 +2374,7 @@ export const IDL: UnlocLoan = {
         },
         {
           "name": "globalState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2017,11 +2384,6 @@ export const IDL: UnlocLoan = {
         },
         {
           "name": "subOffer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userReward",
           "isMut": true,
           "isSigner": false
         },
@@ -2038,6 +2400,26 @@ export const IDL: UnlocLoan = {
         {
           "name": "lenderOfferVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rewardVault",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2064,91 +2446,101 @@ export const IDL: UnlocLoan = {
       "args": []
     },
     {
-      "name": "repayLoan",
+      "name": "acceptOfferByVoting",
       "accounts": [
         {
-          "name": "borrower",
+          "name": "acceptOfferCtx",
+          "accounts": [
+            {
+              "name": "lender",
+              "isMut": true,
+              "isSigner": true
+            },
+            {
+              "name": "borrower",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "globalState",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "offer",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "subOffer",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "offerMint",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "borrowerOfferVault",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "lenderOfferVault",
+              "isMut": true,
+              "isSigner": false
+            },
+            {
+              "name": "chainlinkProgram",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "solFeed",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "usdcFeed",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "rewardVault",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "systemProgram",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "tokenProgram",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "rent",
+              "isMut": false,
+              "isSigner": false
+            },
+            {
+              "name": "clock",
+              "isMut": false,
+              "isSigner": false
+            }
+          ]
+        },
+        {
+          "name": "voting",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
-          "name": "lender",
+          "name": "votingItem",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "globalState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryWallet",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "offer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "subOffer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userReward",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "nftMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "borrowerNftVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "lenderOfferVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "borrowerOfferVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "edition",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "metadataProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
           "isSigner": false
         }
       ],
@@ -2213,6 +2605,26 @@ export const IDL: UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "rewardVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "metadataProgram",
           "isMut": false,
           "isSigner": false
@@ -2236,10 +2648,10 @@ export const IDL: UnlocLoan = {
       "args": []
     },
     {
-      "name": "claimExpiredCollateral",
+      "name": "claimRewards",
       "accounts": [
         {
-          "name": "superOwner",
+          "name": "authority",
           "isMut": true,
           "isSigner": true
         },
@@ -2249,47 +2661,37 @@ export const IDL: UnlocLoan = {
           "isSigner": false
         },
         {
-          "name": "treasuryWallet",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "offer",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "subOffer",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "userNftVault",
+          "name": "rewardVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "borrowerNftVault",
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lenderRewardVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "nftMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "edition",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "metadataProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
+          "name": "borrowerRewardVault",
           "isMut": false,
           "isSigner": false
         },
@@ -2338,12 +2740,40 @@ export const IDL: UnlocLoan = {
             "type": "u64"
           },
           {
-            "name": "rewardPerSol",
+            "name": "rewardVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardRate",
             "type": "u64"
           },
           {
-            "name": "rewardPerUsdc",
+            "name": "tvlSol",
             "type": "u64"
+          },
+          {
+            "name": "tvlUsdc",
+            "type": "u64"
+          },
+          {
+            "name": "fundedAmount",
+            "type": "u64"
+          },
+          {
+            "name": "distributedAmount",
+            "type": "u64"
+          },
+          {
+            "name": "lastDistributedTime",
+            "type": "u64"
+          },
+          {
+            "name": "rpsSol",
+            "type": "u128"
+          },
+          {
+            "name": "rpsUsdc",
+            "type": "u128"
           },
           {
             "name": "lenderRewardsPercentage",
@@ -2362,11 +2792,7 @@ export const IDL: UnlocLoan = {
             "type": "publicKey"
           },
           {
-            "name": "currentVotingNum",
-            "type": "u64"
-          },
-          {
-            "name": "tokenMetadataPid",
+            "name": "voting",
             "type": "publicKey"
           },
           {
@@ -2444,6 +2870,10 @@ export const IDL: UnlocLoan = {
             "type": "publicKey"
           },
           {
+            "name": "offerMintDecimals",
+            "type": "u8"
+          },
+          {
             "name": "state",
             "type": "u8"
           },
@@ -2504,35 +2934,6 @@ export const IDL: UnlocLoan = {
             "type": "u64"
           },
           {
-            "name": "reserved",
-            "type": {
-              "array": [
-                "u128",
-                7
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "lenderReward",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "lender",
-            "type": "publicKey"
-          },
-          {
-            "name": "borrower",
-            "type": "publicKey"
-          },
-          {
-            "name": "collection",
-            "type": "publicKey"
-          },
-          {
             "name": "totalPoint",
             "type": "u128"
           },
@@ -2541,48 +2942,21 @@ export const IDL: UnlocLoan = {
             "type": "u128"
           },
           {
-            "name": "subOffer",
-            "type": "publicKey"
+            "name": "rps",
+            "type": "u128"
           },
           {
-            "name": "loanMint",
-            "type": "publicKey"
+            "name": "rewardDebt",
+            "type": "u128"
           },
           {
-            "name": "loanMintDecimals",
-            "type": "u8"
-          },
-          {
-            "name": "startTime",
-            "type": "u64"
-          },
-          {
-            "name": "endTime",
-            "type": "u64"
-          },
-          {
-            "name": "lenderLastClaimedTime",
-            "type": "u64"
-          },
-          {
-            "name": "borrowerLastClaimedTime",
-            "type": "u64"
-          },
-          {
-            "name": "maxDuration",
-            "type": "u64"
-          },
-          {
-            "name": "loanAmount",
-            "type": "u64"
-          },
-          {
-            "name": "lenderClaimedAmount",
-            "type": "u64"
-          },
-          {
-            "name": "borrowerClaimedAmount",
-            "type": "u64"
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u128",
+                7
+              ]
+            }
           }
         ]
       }
