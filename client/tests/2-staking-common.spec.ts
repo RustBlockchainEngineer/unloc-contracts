@@ -378,7 +378,12 @@ async function getOrCreateAssociatedSPL (provider, mint) {
   const owner = provider.wallet.publicKey
   const ata = await Token.getAssociatedTokenAddress(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint.publicKey, owner, true)
   try {
-    await serumCmn.getTokenAccount(provider, ata)
+    const res = await (provider.connection as Connection).getAccountInfo(ata)
+    if(!res){
+      const tx = new Transaction()
+      tx.add(Token.createAssociatedTokenAccountInstruction(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint.publicKey, ata, owner, owner))
+      await provider.sendAndConfirm(tx, [], {})
+    }
   } catch (error) {
     const tx = new Transaction()
     tx.add(Token.createAssociatedTokenAccountInstruction(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint.publicKey, ata, owner, owner))

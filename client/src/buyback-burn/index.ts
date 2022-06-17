@@ -9,7 +9,7 @@ import {
 } from "./../global-config";
 import { pda, SOLANA_CONNECTION } from "./../utils";
 import { UnlocBurn, IDL } from "../types/unloc_burn";
-import { Liquidity, SERUM_PROGRAM_ID_V3 } from "@raydium-io/raydium-sdk";
+import { Liquidity, SERUM_PROGRAM_ID_V3 } from "@unloc-dev/raydium-sdk";
 import { getAssociatedPoolKeys, getMarket, getVaultOwnerAndNonce } from "./buyback-utils";
 
 export const BUYBACK_GLOBAL_STATE_SEED = Buffer.from("GLOBAL_STATE_SEED");

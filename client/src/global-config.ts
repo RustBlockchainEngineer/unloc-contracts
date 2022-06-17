@@ -1,4 +1,3 @@
-import { CHAINLINK_AGGREGATOR_PROGRAM_ID } from '@chainlink/solana-sdk'
 import * as anchor from '@project-serum/anchor'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 const {PublicKey} = anchor.web3
@@ -62,9 +61,14 @@ export const UNLOC_MINT = new PublicKey(
 export const USDC_MINT = new PublicKey(
   config.usdcMints[config.cluster]
 )
+
+const CHAINLINK_AGGREGATOR_PROGRAM_ID = new anchor.web3.PublicKey(
+  "cjg3oHmg9uuPsP8D6g29NWvhySJkdYdAo9D25PRbKXJ"
+);
+
 export const CHAINLINK_SOL_FEED = new PublicKey("CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq")
 export const CHAINLINK_USDC_FEED = new PublicKey("7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G")
-export const CHAINLINK_PID = new PublicKey("CHAINLINK_AGGREGATOR_PROGRAM_ID")
+export const CHAINLINK_PID = new PublicKey(CHAINLINK_AGGREGATOR_PROGRAM_ID)
 export const chainlinkIds = {
   chainlinkProgram: CHAINLINK_PID,
   solFeed: CHAINLINK_SOL_FEED,

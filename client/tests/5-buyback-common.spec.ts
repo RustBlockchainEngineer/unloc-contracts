@@ -14,7 +14,7 @@ import { DexInstructions } from '@project-serum/serum';
 import UNLOC_TOKEN_KEYPAIR from './keypairs/unloc-token.json'
 import USDC_TOKEN_KEYPAIR from './keypairs/usdc-token.json'
 import { createAssociatedTokenAccountIfNotExist, createSerumMarket, getAssociatedPoolKeys, getBigNumber, getFilteredTokenAccountsByOwner, getMarket, getMintDecimals } from './buyback-utils';
-import { Liquidity, SERUM_PROGRAM_ID_V3, Spl, SPL_ACCOUNT_LAYOUT, WSOL } from '@raydium-io/raydium-sdk';
+import { Liquidity, SERUM_PROGRAM_ID_V3, Spl, SPL_ACCOUNT_LAYOUT, WSOL } from '@unloc-dev/raydium-sdk';
 import {AmmProxy, IDL as AMM_IDL} from './amm_proxy_type'
 import { closeAccount, initializeAccount } from '@project-serum/serum/lib/token-instructions';
 import BigNumber from 'bignumber.js';

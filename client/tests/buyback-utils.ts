@@ -11,8 +11,7 @@ import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID} from "@solana/spl-
 import * as anchor from "@project-serum/anchor";
 import {DexInstructions, Market as MarketSerum, TokenInstructions,} from '@project-serum/serum';
 
-import {Liquidity, Market as raydiumSerum, Spl, SPL_MINT_LAYOUT} from "@raydium-io/raydium-sdk";
-import {LiquidityAssociatedPoolKeys} from "@raydium-io/raydium-sdk/src/liquidity"
+import {Liquidity, Market as raydiumSerum, Spl, SPL_MINT_LAYOUT, LiquidityAssociatedPoolKeys} from "@unloc-dev/raydium-sdk";
 
 export async function getAssociatedPoolKeys({
                                                 programId,
