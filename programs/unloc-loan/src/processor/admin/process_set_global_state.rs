@@ -10,7 +10,8 @@ use std::str::FromStr;
 pub fn handle(
     ctx: Context<SetGlobalState>, 
     accrued_interest_numerator: u64, 
-    denominator: u64, 
+    denominator: u64,     
+    min_repaid_numerator: u64,
     apr_numerator: u64,
     expire_loan_duration: u64,
     reward_rate: u64,
@@ -37,6 +38,7 @@ pub fn handle(
     ctx.accounts.global_state.treasury_wallet = *ctx.accounts.treasury_wallet.key;
     ctx.accounts.global_state.accrued_interest_numerator = accrued_interest_numerator;
     ctx.accounts.global_state.denominator = denominator;
+    ctx.accounts.global_state.min_repaid_numerator = min_repaid_numerator;
     ctx.accounts.global_state.apr_numerator = apr_numerator;
     ctx.accounts.global_state.reward_rate = reward_rate;
     ctx.accounts.global_state.expire_loan_duration = expire_loan_duration;

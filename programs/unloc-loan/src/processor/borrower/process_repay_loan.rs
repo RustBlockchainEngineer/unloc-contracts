@@ -26,11 +26,22 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let seconds_for_year = 3600 * 24 * 365;
     let offer_apr = ctx.accounts.sub_offer.apr_numerator;
+    let min_repaid_numerator = ctx.accounts.global_state.min_repaid_numerator;
     let unloc_apr = ctx.accounts.global_state.apr_numerator;
     let denominator = ctx.accounts.global_state.denominator;
     let accrued_apr = ctx.accounts.global_state.accrued_interest_numerator;
 
-    let duration = current_time.checked_sub(started_time).unwrap();
+    // This formula works with linear case, if calc_fee formula updated with duration, this part also needs to updated
+    let min_duration = ctx.accounts.sub_offer.loan_duration
+        .checked_mul(min_repaid_numerator)
+        .unwrap()
+        .checked_div(denominator)
+        .unwrap();
+    let mut duration = current_time.checked_sub(started_time).unwrap();
+    if duration < min_duration {
+        duration = min_duration;
+    }
+    
     let accrued_amount = calc_fee(
         origin,
         offer_apr.checked_mul(duration).unwrap(),

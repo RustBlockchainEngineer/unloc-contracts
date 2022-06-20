@@ -24,8 +24,8 @@ pub mod unloc_loan {
     use super::*;
     
     // admin
-    pub fn set_global_state(ctx: Context<SetGlobalState>, accrued_interest_numerator: u64, denominator: u64, apr_numerator: u64, expire_loan_duration: u64, reward_rate: u64, lender_rewards_percentage: u64) -> Result<()> { 
-        process_set_global_state::handle(ctx, accrued_interest_numerator, denominator, apr_numerator, expire_loan_duration, reward_rate,  lender_rewards_percentage)
+    pub fn set_global_state(ctx: Context<SetGlobalState>, accrued_interest_numerator: u64, denominator: u64, min_repaid_numerator: u64, apr_numerator: u64, expire_loan_duration: u64, reward_rate: u64, lender_rewards_percentage: u64) -> Result<()> { 
+        process_set_global_state::handle(ctx, accrued_interest_numerator, denominator, min_repaid_numerator, apr_numerator, expire_loan_duration, reward_rate,  lender_rewards_percentage)
     }
     pub fn set_staking_pool(ctx: Context<SetStakingPool>, unloc_staking_pid: Pubkey, unloc_staking_pool_id: Pubkey) -> Result<()> { 
         process_set_staking_pool::handle(ctx, unloc_staking_pid, unloc_staking_pool_id)
@@ -47,11 +47,11 @@ pub mod unloc_loan {
     pub fn set_offer(ctx: Context<SetOffer>) -> Result<()> { 
         process_set_offer::handle(ctx) 
     }
-    pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64) -> Result<()> { 
-        process_set_sub_offer::handle(ctx, offer_amount, sub_offer_number, loan_duration, min_repaid_numerator, apr_numerator) 
+    pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, apr_numerator: u64) -> Result<()> { 
+        process_set_sub_offer::handle(ctx, offer_amount, sub_offer_number, loan_duration, apr_numerator) 
     }
-    pub fn set_sub_offer_by_staking<'a, 'b, 'c, 'info>(ctx: Context<'a, 'b, 'c, 'info, SetSubOfferByStaking<'info>>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64) -> Result<()> { 
-        process_set_sub_offer_by_staking::handle(ctx, offer_amount, sub_offer_number, loan_duration, min_repaid_numerator, apr_numerator) 
+    pub fn set_sub_offer_by_staking<'a, 'b, 'c, 'info>(ctx: Context<'a, 'b, 'c, 'info, SetSubOfferByStaking<'info>>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, apr_numerator: u64) -> Result<()> { 
+        process_set_sub_offer_by_staking::handle(ctx, offer_amount, sub_offer_number, loan_duration, apr_numerator) 
     }
     pub fn repay_loan(ctx: Context<RepayLoan>) -> Result<()> { 
         process_repay_loan::handle(ctx) 
