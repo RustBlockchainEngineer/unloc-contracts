@@ -1,0 +1,79 @@
+{
+  "name": "@unloc-dev/raydium-sdk",
+  "version": "1.1.0-beta.3-5",
+  "description": "An SDK for building applications on top of Raydium.",
+  "license": "GPL-3.0",
+  "main": "./lib/index.js",
+  "module": "./lib/index.mjs",
+  "types": "./lib/index.d.ts",
+  "files": [
+    "./lib",
+    "./src"
+  ],
+  "repository": "https://github.com/raydium-io/raydium-sdk",
+  "keywords": [
+    "raydium",
+    "solana"
+  ],
+  "lint-staged": {
+    "{src,test,misc}/**/*.ts": [
+      "yarn lint"
+    ]
+  },
+  "scripts": {
+    "lint": "eslint src/**/*.ts",
+    "test": "jest",
+    "build-docs": "typedoc",
+    "build-docs-watch": "typedoc --watch",
+    "build-dist": "rm -rf dist && mkdir dist && yarn build-docs",
+    "build-lib": "rm -rf lib && tsup src --format cjs,esm --dts --sourcemap --no-splitting --minify -d lib --silent",
+    "build-all": "yarn build-dist && yarn build-lib",
+    "install-peers": "ts-node ./misc/install-peers.ts",
+    "build": "yarn build-lib",
+    "push": "yarn build && yarn publish",
+    "prepare": "husky install"
+  },
+  "peerDependencies": {
+    "@solana/web3.js": "^1.43.0",
+    "bn.js": "^5.2.0"
+  },
+  "dependencies": {
+    "@colors/colors": "^1.5.0",
+    "@solana/buffer-layout": "^3.0.0",
+    "@solana/spl-token": "^0.1.8",
+    "big.js": "^6.1.1",
+    "decimal.js-light": "^2.5.1",
+    "fecha": "^4.2.3",
+    "lodash": "^4.17.21",
+    "toformat": "^2.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.18.0",
+    "@babel/preset-env": "^7.18.0",
+    "@babel/preset-typescript": "^7.17.12",
+    "@solana/spl-token-registry": "^0.2.4041",
+    "@types/big.js": "^6.1.3",
+    "@types/bn.js": "^5.1.0",
+    "@types/jest": "^27.5.1",
+    "@types/node": "^17.0.35",
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
+    "ajv": "^8.11.0",
+    "babel-jest": "^27.5.1",
+    "chalk": "^4.1.2",
+    "consola": "^2.15.3",
+    "dotenv": "^10.0.0",
+    "eslint": "^8.15.0",
+    "eslint-plugin-tsdoc": "^0.2.16",
+    "got": "^11.8.3",
+    "husky": "^7.0.4",
+    "jest": "^27.5.1",
+    "lint-staged": "^12.4.1",
+    "npm-check-updates": "^12.5.12",
+    "prettier": "^2.6.2",
+    "ts-node": "^10.7.0",
+    "tsup": "^5.12.8",
+    "typedoc": "^0.22.15",
+    "typescript": "^4.6.4"
+  }
+}
