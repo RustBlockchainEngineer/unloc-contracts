@@ -76,11 +76,6 @@ pub struct SetOffer<'info> {
     #[account(mut)]
     pub borrower: Signer<'info>,
     #[account(
-        seeds = [GLOBAL_STATE_TAG],
-        bump,
-    )]
-    pub global_state: Box<Account<'info, GlobalState>>,
-    #[account(
     init_if_needed,
     seeds = [OFFER_TAG, borrower.key().as_ref(), nft_mint.key().as_ref()],
     bump,
