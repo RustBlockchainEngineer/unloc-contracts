@@ -22,12 +22,10 @@ pub fn handle(ctx: Context<WithdrawRewards>, amount: u64) -> Result<()> {
     require(ctx.accounts.user_reward_vault.mint == unloc_mint)?;
     require(ctx.accounts.user_reward_vault.owner == ctx.accounts.authority.key())?;
     require(amount > 0)?;
-
+    let global_bump = *ctx.bumps.get("global_state").unwrap();
     let signer_seeds = &[
         GLOBAL_STATE_TAG, 
-        &[bump(&[
-            GLOBAL_STATE_TAG, 
-        ], ctx.program_id)],
+        &[global_bump],
     ];
     let signer = &[&signer_seeds[..]];
 

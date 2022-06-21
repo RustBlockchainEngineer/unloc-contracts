@@ -46,11 +46,10 @@ pub fn handle(ctx: Context<ClaimRewards>) -> Result<()> {
     let lender_rewards_amount = calc_fee(reward_amount, lender_rewards_percentage, denominator)?;
     let borrower_rewards_amount = reward_amount.safe_sub(lender_rewards_amount)?;
 
+    let global_bump = *ctx.bumps.get("global_state").unwrap();
     let signer_seeds = &[
         GLOBAL_STATE_TAG, 
-        &[bump(&[
-            GLOBAL_STATE_TAG, 
-        ], ctx.program_id)],
+        &[global_bump],
     ];
     let signer = &[&signer_seeds[..]];
 
@@ -111,6 +110,7 @@ pub struct ClaimRewards<'info> {
 
     #[account(mut)]
     pub lender_reward_vault: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
     pub borrower_reward_vault: Box<Account<'info, TokenAccount>>,
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,

@@ -1,3 +1,5 @@
+[test.validator]
+url = "https://solana-api.projectserum.com"
 
 [programs.localnet]
 unloc_loan = "6oVXrGCdtnTUR6xCvn2Z3f2CYaiboAGar1DKxzeX8QYh"
@@ -24,6 +26,20 @@ program = "local-deploy/serum-dex-v3.so"
 [[test.genesis]]
 address = "BUv45aNgrs7LeGTs69junTor4JfMFkBU8FX6urtG6rpr"
 program = "local-deploy/amm_proxy.so"
+
+# chainlink program
+[[test.genesis]]
+address = "HEvSKofvBgfaexv23kMabbYqxasxU3mQ4ibBMEmJWHny"
+program = "local-deploy/chainlink.so"
+
+[[test.validator.clone]]
+address = "CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq"
+
+[[test.validator.clone]]
+address = "7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G"
+
+[test]
+startup_wait = 1000_000
 
 [registry]
 url = "https://anchor.projectserum.com"

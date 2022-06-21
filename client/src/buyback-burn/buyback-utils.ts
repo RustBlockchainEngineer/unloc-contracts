@@ -12,6 +12,7 @@ import * as anchor from "@project-serum/anchor";
 import {DexInstructions, Market as MarketSerum, TokenInstructions,} from '@project-serum/serum';
 
 import {Liquidity, Market as raydiumSerum, Spl, SPL_MINT_LAYOUT, LiquidityAssociatedPoolKeys} from "@unloc-dev/raydium-sdk";
+import { MarketOptions } from '@project-serum/serum/lib/market';
 
 export async function getAssociatedPoolKeys({
                                                 programId,
@@ -110,10 +111,10 @@ export function getBigNumber(num: any) {
     return num === undefined || num === null ? 0 : parseFloat(num.toString())
 }
 
-export async function getMarket(conn: any, marketAddress: string, serumProgramId: string): Promise<Market> {
+export async function getMarket(conn: any, marketAddress: string, serumProgramId: string): Promise<MarketSerum> {
     try {
         const marketAddressPubKey = new PublicKey(marketAddress)
-        const market = await Market.load(conn, marketAddressPubKey, undefined, new PublicKey(serumProgramId))
+        const market = await MarketSerum.load(conn, marketAddressPubKey, undefined, new PublicKey(serumProgramId))
         return market
     } catch (error: any) {
         console.log("get market err: ", error)
@@ -121,7 +122,7 @@ export async function getMarket(conn: any, marketAddress: string, serumProgramId
     }
 }
 
-export class Market extends MarketSerum {
+export class CustomMarket extends MarketSerum {
     public baseVault: PublicKey | null = null
     public quoteVault: PublicKey | null = null
     public requestQueue: PublicKey | null = null
@@ -134,7 +135,9 @@ export class Market extends MarketSerum {
     public quoteMint: PublicKey | null = null
     public baseMint: PublicKey | null = null
     public vaultSignerNonce: Number | null = null
-
+    constructor(decoded: any, baseMintDecimals: number, quoteMintDecimals: number, options: MarketOptions | undefined, programId: PublicKey, layoutOverride?: any) {
+        super(decoded, baseMintDecimals, quoteMintDecimals, options, programId, layoutOverride)
+    }
     static async load(connection: Connection, address: PublicKey, options: any = {}, programId: PublicKey) {
         const {owner, data} = throwIfNull(await connection.getAccountInfo(address), 'Market not found')
         if (!owner.equals(programId)) {
@@ -147,9 +150,9 @@ export class Market extends MarketSerum {
         const [baseMintDecimals, quoteMintDecimals] = await Promise.all([
             getMintDecimals(connection, decoded.baseMint),
             getMintDecimals(connection, decoded.quoteMint)
-        ])
+        ]);
 
-        const market = new Market(decoded, baseMintDecimals, quoteMintDecimals, options, programId)
+        const market = new CustomMarket(decoded, baseMintDecimals, quoteMintDecimals, options, programId)
         // market._decoded = decoded
         market.baseLotSize = decoded.baseLotSize
         market.quoteLotSize = decoded.quoteLotSize
@@ -333,9 +336,9 @@ export async function createSerumMarket({
             fromPubkey: wallet.publicKey,
             newAccountPubkey: market.publicKey,
             lamports: await connection.getMinimumBalanceForRentExemption(
-                Market.getLayout(dexProgram).span,
+                MarketSerum.getLayout(dexProgram).span,
             ),
-            space: Market.getLayout(dexProgram).span,
+            space: MarketSerum.getLayout(dexProgram).span,
             programId: dexProgram,
         }),
         SystemProgram.createAccount({

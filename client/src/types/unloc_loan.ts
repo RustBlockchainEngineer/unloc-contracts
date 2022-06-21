@@ -113,6 +113,10 @@ export type UnlocLoan = {
           "type": "u64"
         },
         {
+          "name": "minRepaidNumerator",
+          "type": "u64"
+        },
+        {
           "name": "aprNumerator",
           "type": "u64"
         },
@@ -402,11 +406,6 @@ export type UnlocLoan = {
           "isSigner": true
         },
         {
-          "name": "globalState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "offer",
           "isMut": true,
           "isSigner": false
@@ -532,10 +531,6 @@ export type UnlocLoan = {
           "type": "u64"
         },
         {
-          "name": "minRepaidNumerator",
-          "type": "u64"
-        },
-        {
           "name": "aprNumerator",
           "type": "u64"
         }
@@ -621,10 +616,6 @@ export type UnlocLoan = {
         },
         {
           "name": "loanDuration",
-          "type": "u64"
-        },
-        {
-          "name": "minRepaidNumerator",
           "type": "u64"
         },
         {
@@ -1139,7 +1130,7 @@ export type UnlocLoan = {
         },
         {
           "name": "borrowerRewardVault",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1172,6 +1163,10 @@ export type UnlocLoan = {
           },
           {
             "name": "accruedInterestNumerator",
+            "type": "u64"
+          },
+          {
+            "name": "minRepaidNumerator",
             "type": "u64"
           },
           {
@@ -1366,10 +1361,6 @@ export type UnlocLoan = {
           },
           {
             "name": "loanDuration",
-            "type": "u64"
-          },
-          {
-            "name": "minRepaidNumerator",
             "type": "u64"
           },
           {
@@ -1666,6 +1657,10 @@ export const IDL: UnlocLoan = {
           "type": "u64"
         },
         {
+          "name": "minRepaidNumerator",
+          "type": "u64"
+        },
+        {
           "name": "aprNumerator",
           "type": "u64"
         },
@@ -1955,11 +1950,6 @@ export const IDL: UnlocLoan = {
           "isSigner": true
         },
         {
-          "name": "globalState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "offer",
           "isMut": true,
           "isSigner": false
@@ -2085,10 +2075,6 @@ export const IDL: UnlocLoan = {
           "type": "u64"
         },
         {
-          "name": "minRepaidNumerator",
-          "type": "u64"
-        },
-        {
           "name": "aprNumerator",
           "type": "u64"
         }
@@ -2174,10 +2160,6 @@ export const IDL: UnlocLoan = {
         },
         {
           "name": "loanDuration",
-          "type": "u64"
-        },
-        {
-          "name": "minRepaidNumerator",
           "type": "u64"
         },
         {
@@ -2692,7 +2674,7 @@ export const IDL: UnlocLoan = {
         },
         {
           "name": "borrowerRewardVault",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2725,6 +2707,10 @@ export const IDL: UnlocLoan = {
           },
           {
             "name": "accruedInterestNumerator",
+            "type": "u64"
+          },
+          {
+            "name": "minRepaidNumerator",
             "type": "u64"
           },
           {
@@ -2919,10 +2905,6 @@ export const IDL: UnlocLoan = {
           },
           {
             "name": "loanDuration",
-            "type": "u64"
-          },
-          {
-            "name": "minRepaidNumerator",
             "type": "u64"
           },
           {

@@ -8,16 +8,16 @@ import { SystemProgram, Transaction, TransactionInstruction } from '@solana/web3
 
 describe('global-init', () => {
 
-  
-  // Configure the client to use the local cluster.
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
-
   const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
   const superOwner = superOwnerKeypair.publicKey;
   
   const unlocTokenKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(UNLOC_TOKEN_KEYPAIR))
   const usdcTokenKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(USDC_TOKEN_KEYPAIR))
+  
+  // Configure the client to use the local cluster.
+  const envProvider = anchor.AnchorProvider.env();
+  const provider = new anchor.AnchorProvider(envProvider.connection, new anchor.Wallet(superOwnerKeypair), envProvider.opts)
+  anchor.setProvider(provider);
 
   it('Is initialized!', async () => {
     
