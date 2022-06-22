@@ -1,16 +1,13 @@
+use crate::{error::*, states::*};
 use anchor_lang::prelude::*;
-use crate::{
-    error::*,
-    states::*,
-};
-use std::convert::TryInto;
 use chainlink_solana as chainlink;
+use std::convert::TryInto;
 
-pub fn is_zero_account(account_info:&AccountInfo)->bool{
+pub fn is_zero_account(account_info: &AccountInfo) -> bool {
     let account_data: &[u8] = &account_info.data.borrow();
     let len = account_data.len();
     let mut is_zero = true;
-    for i in 0..len-1 {
+    for i in 0..len - 1 {
         if account_data[i] != 0 {
             is_zero = false;
         }
@@ -32,8 +29,7 @@ pub fn require(flag: bool) -> Result<()> {
     Ok(())
 }
 
-
-pub fn bump(seeds:&[&[u8]], program_id: &Pubkey) -> u8 {
+pub fn bump(seeds: &[&[u8]], program_id: &Pubkey) -> u8 {
     let (_found_key, bump) = Pubkey::find_program_address(seeds, program_id);
     bump
 }
@@ -53,7 +49,6 @@ pub fn assert_unclaimed_loan_payment(sub_offer: &SubOffer) -> Result<()> {
 }
 
 pub fn assert_lender_claimable_nft(sub_offer: &SubOffer, current_time: u64) -> Result<()> {
-
     if sub_offer.loan_duration + sub_offer.loan_started_time >= current_time {
         return Err(error!(LoanError::NotAllowed));
     }
@@ -61,7 +56,6 @@ pub fn assert_lender_claimable_nft(sub_offer: &SubOffer, current_time: u64) -> R
 }
 
 pub fn assert_borrower_claimable_nft(sub_offer: &SubOffer, current_time: u64) -> Result<()> {
-
     if sub_offer.loan_duration + sub_offer.loan_started_time < current_time {
         return Err(error!(LoanError::NotAllowed));
     }
@@ -80,17 +74,14 @@ pub fn calc_fee_u128(total: u64, fee_percent: u128, denominator: u128) -> Result
     if _denominator == 0 {
         return Err(error!(LoanError::InvalidDenominator));
     }
-    let result = _total.checked_mul(_fee_percent)
-        .unwrap()
-        .checked_div(_denominator)
-        .unwrap();
+    let result = _total.safe_mul(_fee_percent)?.safe_div(_denominator)?;
     Ok(result.try_into().unwrap())
 }
-pub fn get_chainlink_price<'info>(feed_account: &AccountInfo<'info>, chainlink_program: &AccountInfo<'info>) -> Result<i128> {
-    let round = chainlink::latest_round_data(
-        chainlink_program.clone(),
-        feed_account.clone(),
-    )?;
+pub fn get_chainlink_price<'info>(
+    feed_account: &AccountInfo<'info>,
+    chainlink_program: &AccountInfo<'info>,
+) -> Result<i128> {
+    let round = chainlink::latest_round_data(chainlink_program.clone(), feed_account.clone())?;
     Ok(round.answer)
 }
 pub trait SafeCalc<T> {

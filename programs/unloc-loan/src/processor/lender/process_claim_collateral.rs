@@ -14,15 +14,16 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let reward_vault_amount = ctx.accounts.reward_vault.amount;
     ctx.accounts.global_state.distribute(
-        reward_vault_amount, 
-        current_time, 
-        &ctx.accounts.chainlink_program.to_account_info(), 
-        &ctx.accounts.sol_feed.to_account_info(), 
-        &ctx.accounts.usdc_feed.to_account_info(), 
+        reward_vault_amount,
+        current_time,
+        &ctx.accounts.chainlink_program.to_account_info(),
+        &ctx.accounts.sol_feed.to_account_info(),
+        &ctx.accounts.usdc_feed.to_account_info(),
     )?;
     let offer_mint = ctx.accounts.sub_offer.offer_mint;
-    ctx.accounts.sub_offer.update_rps(&ctx.accounts.global_state, &offer_mint)?;
-    
+    ctx.accounts
+        .sub_offer
+        .update_rps(&ctx.accounts.global_state, &offer_mint)?;
     let borrower_key = ctx.accounts.offer.borrower;
     let origin = ctx.accounts.sub_offer.offer_amount;
     let started_time = ctx.accounts.sub_offer.loan_started_time;
@@ -36,20 +37,20 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
 
     let duration = current_time.safe_sub(started_time)?;
 
-    require(current_time > started_time.checked_add(loan_duration).unwrap())?;
+    require(current_time > started_time.safe_add(loan_duration)?)?;
 
     let accrued_amount = calc_fee(
         origin,
-        offer_apr.checked_mul(duration).unwrap(),
-        denominator.checked_mul(seconds_for_year).unwrap(),
+        offer_apr.safe_mul(duration)?,
+        denominator.safe_mul(seconds_for_year)?,
     )?;
     let accrued_unloc_fee = calc_fee(accrued_amount, accrued_apr, denominator)?;
     let _unloc_fee_amount = calc_fee(
         origin,
-        unloc_apr.checked_mul(duration).unwrap(),
-        denominator.checked_mul(seconds_for_year).unwrap(),
+        unloc_apr.safe_mul(duration)?,
+        denominator.safe_mul(seconds_for_year)?,
     )?;
-    let unloc_fee_amount = accrued_unloc_fee.checked_mul(_unloc_fee_amount).unwrap();
+    let unloc_fee_amount = accrued_unloc_fee.safe_mul(_unloc_fee_amount)?;
 
     // log fees
     msg!("origin = {}, duration = {}", origin, duration);
@@ -207,16 +208,15 @@ pub struct ClaimCollateral<'info> {
         seeds = [REWARD_VAULT_TAG],
         bump,
     )]
-    pub reward_vault:Box<Account<'info, TokenAccount>>,
-    
+    pub reward_vault: Box<Account<'info, TokenAccount>>,
     /// CHECK: Safe
-    pub chainlink_program:  AccountInfo<'info>,
+    pub chainlink_program: AccountInfo<'info>,
 
     /// CHECK: Safe
-    pub sol_feed:  AccountInfo<'info>,
+    pub sol_feed: AccountInfo<'info>,
 
     /// CHECK: Safe
-    pub usdc_feed:  AccountInfo<'info>,
+    pub usdc_feed: AccountInfo<'info>,
 
     /// CHECK: metaplex program
     pub metadata_program: UncheckedAccount<'info>,
