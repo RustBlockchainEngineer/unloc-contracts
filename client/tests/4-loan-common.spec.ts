@@ -319,7 +319,7 @@ describe('loan-common', () => {
     const offerAmount = new anchor.BN(10 * offerDecimal)
     const aprNumerator = new anchor.BN(12 * denominator.toNumber() / 100)
     const signers = [borrowerKeypair]
-    await createLoanSubOffer(
+    await createLoanSubOfferByStaking(
       offerAmount,
       loanDuration,
       aprNumerator,
@@ -411,7 +411,7 @@ describe('loan-common', () => {
     const offerAmount = new anchor.BN(10 * offerDecimal)
     const aprNumerator = new anchor.BN(12 * denominator.toNumber() / 100)
     const signers = [borrowerKeypair]
-    await createLoanSubOffer(
+    await createLoanSubOfferByStaking(
       offerAmount,
       loanDuration,
       aprNumerator,

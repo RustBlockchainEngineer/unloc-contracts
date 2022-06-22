@@ -612,20 +612,20 @@ export const createLoanSubOfferByStaking = async (
   const treasuryWallet = globalStateData.treasuryWallet
   try {
     const tx = await program.methods
-      .setSubOfferByStaking(offerAmount, subOfferNumer, loanDuration, aprNumerator)
+      .setSubOffer(offerAmount, subOfferNumer, loanDuration, aprNumerator)
       .accounts({
-        subOfferCtx: {
-          borrower,
-          globalState,
-          offer,
-          subOffer,
-          offerMint,
-          treasuryWallet,
-          treasuryVault,
-          ...defaults
-        },
-        stakingUser
+        borrower,
+        globalState,
+        offer,
+        subOffer,
+        offerMint,
+        treasuryWallet,
+        treasuryVault,
+        ...defaults
       })
+      .remainingAccounts([
+        {pubkey: stakingUser, isSigner: false, isWritable: false}
+      ])
       .signers(signers)
       .rpc()
 

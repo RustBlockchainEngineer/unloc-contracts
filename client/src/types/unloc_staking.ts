@@ -1092,6 +1092,11 @@ export type UnlocStaking = {
       "code": 6008,
       "name": "InvalidMint",
       "msg": "Wrong Mint"
+    },
+    {
+      "code": 6009,
+      "name": "MathOverflow",
+      "msg": "Math operation overflow"
     }
   ]
 };
@@ -2190,6 +2195,11 @@ export const IDL: UnlocStaking = {
       "code": 6008,
       "name": "InvalidMint",
       "msg": "Wrong Mint"
+    },
+    {
+      "code": 6009,
+      "name": "MathOverflow",
+      "msg": "Math operation overflow"
     }
   ]
 };

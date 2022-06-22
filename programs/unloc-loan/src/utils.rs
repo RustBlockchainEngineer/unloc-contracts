@@ -33,7 +33,13 @@ pub fn bump(seeds: &[&[u8]], program_id: &Pubkey) -> u8 {
     let (_found_key, bump) = Pubkey::find_program_address(seeds, program_id);
     bump
 }
-
+pub fn assert_pda(seeds: &[&[u8]], program_id: &Pubkey, pda: &Pubkey) -> Result<()> {
+    let (found_key, _bump) = Pubkey::find_program_address(seeds, program_id);
+    if found_key != *pda {
+        return Err(error!(LoanError::InvalidProgramAddress));
+    }
+    Ok(())
+}
 pub fn assert_repaid_loan(sub_offer: &SubOffer) -> Result<()> {
     if sub_offer.repaid_amount == 0 {
         return Err(error!(LoanError::InvalidAmount));

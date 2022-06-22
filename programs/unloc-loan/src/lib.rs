@@ -50,9 +50,6 @@ pub mod unloc_loan {
     pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, apr_numerator: u64) -> Result<()> { 
         process_set_sub_offer::handle(ctx, offer_amount, sub_offer_number, loan_duration, apr_numerator) 
     }
-    pub fn set_sub_offer_by_staking<'a, 'b, 'c, 'info>(ctx: Context<'a, 'b, 'c, 'info, SetSubOfferByStaking<'info>>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, apr_numerator: u64) -> Result<()> { 
-        process_set_sub_offer_by_staking::handle(ctx, offer_amount, sub_offer_number, loan_duration, apr_numerator) 
-    }
     pub fn repay_loan(ctx: Context<RepayLoan>) -> Result<()> { 
         process_repay_loan::handle(ctx) 
     }

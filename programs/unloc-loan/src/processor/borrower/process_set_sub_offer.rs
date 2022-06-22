@@ -7,8 +7,20 @@ use crate::{
     utils::*
 };
 use std::str::FromStr;
+use unloc_staking::{FarmPoolUserAccount};
+
 pub fn handle(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, apr_numerator: u64) -> Result<()> { 
-    let profile_level = 0;
+    let mut profile_level = 0;
+    if ctx.remaining_accounts.len() > 0 {
+        let staking_user_info = ctx.remaining_accounts[0].to_account_info();
+        let mut data: &[u8] = &staking_user_info.try_borrow_data()?;
+        let staking_user = FarmPoolUserAccount::try_deserialize(&mut data)?;
+
+        assert_pda(&[staking_user.pool.as_ref(), ctx.accounts.borrower.key().as_ref()], &ctx.accounts.global_state.unloc_staking_pid, &staking_user_info.key())?;
+
+        profile_level = staking_user.profile_level;
+    }
+    
     set_sub_offer(ctx, offer_amount, sub_offer_number, loan_duration, apr_numerator, profile_level)
 }
 pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, apr_numerator: u64, profile_level: u64) -> Result<()> { 
