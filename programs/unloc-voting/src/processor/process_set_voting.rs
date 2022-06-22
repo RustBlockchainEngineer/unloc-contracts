@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token};
+use anchor_spl::token::Token;
 
 use crate::{
     // error::*,
@@ -7,32 +7,38 @@ use crate::{
     states::*,
     utils::*,
 };
-pub fn process_set_voting(ctx: Context<SetVoting>, voting_number: u64, voting_start_timestamp: u64, voting_end_timestamp: u64) -> Result<()> {
-    assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?; 
+pub fn process_set_voting(
+    ctx: Context<SetVoting>,
+    voting_number: u64,
+    voting_start_timestamp: u64,
+    voting_end_timestamp: u64,
+) -> Result<()> {
+    assert_owner(
+        ctx.accounts.global_state.super_owner,
+        ctx.accounts.super_owner.key(),
+    )?;
     if is_zero_account(&ctx.accounts.voting.to_account_info()) {
-        ctx.accounts.global_state.voting_count = ctx.accounts.global_state.voting_count.checked_add(1).unwrap();
+        ctx.accounts.global_state.voting_count =
+            ctx.accounts.global_state.voting_count.safe_add(1)?;
         ctx.accounts.voting.voting_number = voting_number;
         ctx.accounts.voting.total_score = 0;
         ctx.accounts.voting.total_items = 0;
     }
-    
     ctx.accounts.voting.voting_start_timestamp = voting_start_timestamp;
     ctx.accounts.voting.voting_end_timestamp = voting_end_timestamp;
-    
     Ok(())
 }
- 
 #[derive(Accounts)]
 #[instruction(voting_number: u64)]
 pub struct SetVoting<'info> {
     #[account(mut)]
-    pub super_owner:  Signer<'info>,
+    pub super_owner: Signer<'info>,
     #[account(
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump,
     )]
-    pub global_state:Box<Account<'info, GlobalState>>,
+    pub global_state: Box<Account<'info, GlobalState>>,
 
     #[account(
         init_if_needed,
@@ -42,7 +48,7 @@ pub struct SetVoting<'info> {
         space = std::mem::size_of::<Voting>() + 8,
         constraint = voting_number <= global_state.voting_count,
     )]
-    pub voting:Box<Account<'info, Voting>>,
+    pub voting: Box<Account<'info, Voting>>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

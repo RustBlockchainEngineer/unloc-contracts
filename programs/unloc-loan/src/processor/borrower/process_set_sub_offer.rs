@@ -13,12 +13,12 @@ pub fn handle(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u6
 }
 pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, apr_numerator: u64, profile_level: u64) -> Result<()> { 
     let available_sub_offer_count = DEFULT_SUB_OFFER_COUNT + profile_level * SUB_OFFER_COUNT_PER_LEVEL;
-    let _available_sub_offer_count = ctx.accounts.offer.sub_offer_count.checked_sub(ctx.accounts.offer.start_sub_offer_num).unwrap();
+    let _available_sub_offer_count = ctx.accounts.offer.sub_offer_count.safe_sub(ctx.accounts.offer.start_sub_offer_num)?;
     require(_available_sub_offer_count < available_sub_offer_count)?;
 
     if is_zero_account(&ctx.accounts.sub_offer.to_account_info()) {
         ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Proposed);
-        ctx.accounts.offer.sub_offer_count = ctx.accounts.offer.sub_offer_count.checked_add(1).unwrap();
+        ctx.accounts.offer.sub_offer_count = ctx.accounts.offer.sub_offer_count.safe_add(1)?;
         ctx.accounts.sub_offer.offer = ctx.accounts.offer.key();
         ctx.accounts.sub_offer.nft_mint = ctx.accounts.offer.nft_mint;
         ctx.accounts.sub_offer.borrower = ctx.accounts.offer.borrower;
