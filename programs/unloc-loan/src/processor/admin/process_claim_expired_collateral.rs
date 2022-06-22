@@ -22,10 +22,8 @@ pub fn handle(ctx: Context<ClaimExpiredCollateral>) -> Result<()> {
     require(
         current_time
             > started_time
-                .checked_add(loan_duration)
-                .unwrap()
-                .checked_add(expire_loan_duration)
-                .unwrap(),
+                .safe_add(loan_duration)?
+                .safe_add(expire_loan_duration)?,
     )?;
 
     ctx.accounts.sub_offer.loan_ended_time = current_time;

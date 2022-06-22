@@ -4,6 +4,12 @@ use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::mem::size_of;
 use std::str::FromStr;
+
+pub mod utils;
+pub mod error;
+
+use crate::{utils::*, error::*};
+
 declare_id!("EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU");
 
 const DEVNET_MODE:bool = true;
@@ -26,9 +32,9 @@ pub mod unloc_staking {
     ) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
 
-        require!(_ctx.accounts.reward_mint.key() == unloc_mint, ErrorCode::InvalidMint);
-        require!(_ctx.accounts.reward_vault.mint == unloc_mint, ErrorCode::InvalidMint);
-        require!(profile_levels.len() <= MAX_PROFILE_LEVEL, ErrorCode::OverflowMaxProfileLevel);
+        require!(_ctx.accounts.reward_mint.key() == unloc_mint, StakingError::InvalidMint);
+        require!(_ctx.accounts.reward_vault.mint == unloc_mint, StakingError::InvalidMint);
+        require!(profile_levels.len() <= MAX_PROFILE_LEVEL, StakingError::OverflowMaxProfileLevel);
         let state = &mut _ctx.accounts.state;
         state.authority = _ctx.accounts.authority.key();
         state.bump = bump;
@@ -103,7 +109,7 @@ pub mod unloc_staking {
         _ctx: Context<ChangeProfileLevels>,
         profile_levels: Vec<u128>,
     ) -> Result<()> {
-        require!(profile_levels.len() <= MAX_PROFILE_LEVEL, ErrorCode::OverflowMaxProfileLevel);
+        require!(profile_levels.len() <= MAX_PROFILE_LEVEL, StakingError::OverflowMaxProfileLevel);
         let state = &mut _ctx.accounts.state;
         state.profile_levels = profile_levels;
         Ok(())
@@ -124,8 +130,8 @@ pub mod unloc_staking {
     ) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
 
-        require!(_ctx.accounts.mint.key() == unloc_mint, ErrorCode::InvalidMint);
-        require!(_ctx.accounts.vault.mint == unloc_mint, ErrorCode::InvalidMint);
+        require!(_ctx.accounts.mint.key() == unloc_mint, StakingError::InvalidMint);
+        require!(_ctx.accounts.vault.mint == unloc_mint, StakingError::InvalidMint);
 
         let state = &mut _ctx.accounts.state;
         for pool_acc in _ctx.remaining_accounts.iter() {
@@ -141,7 +147,7 @@ pub mod unloc_staking {
         pool.amount_multipler = amount_multipler;
         pool.authority = _ctx.accounts.authority.key();
 
-        state.total_point = state.total_point.checked_add(point).unwrap();
+        state.total_point = state.total_point.safe_add(point)?;
 
         emit!(PoolCreated {
             pool: _ctx.accounts.pool.key(),
@@ -157,8 +163,8 @@ pub mod unloc_staking {
             loader.update(state, &_ctx.accounts.clock)?;
         }
         let pool = &_ctx.accounts.pool;
-        require!(pool.amount == 0, ErrorCode::WorkingPool);
-        state.total_point = state.total_point.checked_sub(pool.point).unwrap();
+        require!(pool.amount == 0, StakingError::WorkingPool);
+        state.total_point = state.total_point.safe_sub(pool.point)?;
         Ok(())
     }
 
@@ -184,10 +190,8 @@ pub mod unloc_staking {
         let pool = &mut _ctx.accounts.pool;
         state.total_point = state
             .total_point
-            .checked_sub(pool.point)
-            .unwrap()
-            .checked_add(point)
-            .unwrap();
+            .safe_sub(pool.point)?
+            .safe_add(point)?;
         pool.point = point;
         emit!(PoolPointChanged {
             pool: _ctx.accounts.pool.key(),
@@ -203,7 +207,7 @@ pub mod unloc_staking {
         user.pool = _ctx.accounts.pool.key();
 
         let pool = &mut _ctx.accounts.pool;
-        pool.total_user = pool.total_user.checked_add(1).unwrap();
+        pool.total_user = pool.total_user.safe_add(1)?;
         emit!(UserCreated {
             pool: _ctx.accounts.pool.key(),
             user: _ctx.accounts.user.key(),
@@ -216,7 +220,7 @@ pub mod unloc_staking {
     pub fn stake(_ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()> {
         require!(
             _ctx.accounts.user_vault.owner == _ctx.accounts.authority.key(),
-            ErrorCode::InvalidOwner
+            StakingError::InvalidOwner
         );
 
         let state = &_ctx.accounts.state;
@@ -227,15 +231,15 @@ pub mod unloc_staking {
         extra_account.validate_lock_duration(&lock_duration)?;
         require!(
             lock_duration >= user.lock_duration,
-            ErrorCode::InvalidLockDuration
+            StakingError::InvalidLockDuration
         );
 
         pool.update(state, &_ctx.accounts.clock)?;
         let user_lock_duration = user.lock_duration;
         user.calculate_reward_amount(pool, &extra_account.get_extra_reward_percentage(&user_lock_duration))?;
 
-        user.amount = user.amount.checked_add(amount).unwrap();
-        pool.amount = pool.amount.checked_add(amount).unwrap();
+        user.amount = user.amount.safe_add(amount)?;
+        pool.amount = pool.amount.safe_add(amount)?;
 
         user.lock_duration = lock_duration;
         user.calculate_reward_debt(pool)?;
@@ -266,16 +270,16 @@ pub mod unloc_staking {
         let user = &mut _ctx.accounts.user;
         let pool = &mut _ctx.accounts.pool;
 
-        require!(user.amount >= amount, ErrorCode::UnstakeOverAmount);
-        let is_early_unlock = user.last_stake_time.checked_add(user.lock_duration).unwrap() > _ctx.accounts.clock.unix_timestamp;
+        require!(user.amount >= amount, StakingError::UnstakeOverAmount);
+        let is_early_unlock = user.last_stake_time.safe_add(user.lock_duration)? > _ctx.accounts.clock.unix_timestamp;
         if is_early_unlock {
             // flexible reward, pay early_unlock_fee percentage, unstake the rest only
             pool.update(state, &_ctx.accounts.clock)?;
             user.calculate_reward_amount(pool, &0)?;
 
             user.last_stake_time = _ctx.accounts.clock.unix_timestamp;
-            user.amount = user.amount.checked_sub(amount).unwrap();
-            pool.amount = pool.amount.checked_sub(amount).unwrap();
+            user.amount = user.amount.safe_sub(amount)?;
+            pool.amount = pool.amount.safe_sub(amount)?;
 
             if user.amount == 0
             {
@@ -286,7 +290,7 @@ pub mod unloc_staking {
             drop(pool);
             let early_unlock_fee = _ctx.accounts.state.early_unlock_fee;
             let early_unlock_fee_amount = calc_fee(amount, early_unlock_fee, ACC_PRECISION.try_into().unwrap())?;
-            let unstake_amount = amount.checked_sub(early_unlock_fee_amount).unwrap();
+            let unstake_amount = amount.safe_sub(early_unlock_fee_amount)?;
             let new_pool = &_ctx.accounts.pool;
             let cpi_accounts = Transfer {
                 from: _ctx.accounts.pool_vault.to_account_info(),
@@ -322,8 +326,8 @@ pub mod unloc_staking {
             user.calculate_reward_amount(pool, &extra_account.get_extra_reward_percentage(&user_lock_duration))?;
 
             user.last_stake_time = _ctx.accounts.clock.unix_timestamp;
-            user.amount = user.amount.checked_sub(amount).unwrap();
-            pool.amount = pool.amount.checked_sub(amount).unwrap();
+            user.amount = user.amount.safe_sub(amount)?;
+            pool.amount = pool.amount.safe_sub(amount)?;
 
             if user.amount == 0
             {
@@ -367,7 +371,7 @@ pub mod unloc_staking {
         let user_lock_duration = user.lock_duration;
         user.calculate_reward_amount(pool, &extra_account.get_extra_reward_percentage(&user_lock_duration))?;
 
-        let total_reward = user.reward_amount.checked_add(user.extra_reward).unwrap().try_into().unwrap();
+        let total_reward = user.reward_amount.safe_add(user.extra_reward)?.try_into().unwrap();
 
         let cpi_accounts = Transfer {
             from: _ctx.accounts.reward_vault.to_account_info(),
@@ -668,7 +672,7 @@ impl StateAccount {
             if score >= *level {
                 return (profile_levels.len() - i).try_into().unwrap();
             }
-            i = i.checked_add(1).unwrap();
+            i = i + 1;
         }
         return 0;
     }
@@ -693,10 +697,10 @@ impl ExtraRewardsAccount {
             let mut duration = 0;
             let mut extra_percentage = 0;
             for config in self.configs.iter() {
-                require!(config.duration >= duration, ErrorCode::InvalidSEQ);
+                require!(config.duration >= duration, StakingError::InvalidSEQ);
                 require!(
                     config.extra_percentage >= extra_percentage,
-                    ErrorCode::InvalidSEQ
+                    StakingError::InvalidSEQ
                 );
                 duration = config.duration;
                 extra_percentage = config.extra_percentage;
@@ -710,7 +714,7 @@ impl ExtraRewardsAccount {
                 return Ok(())
             }
         }
-        Err(ErrorCode::InvalidLockDuration.into())
+        Err(StakingError::InvalidLockDuration.into())
     }
     fn get_extra_reward_percentage<'info>(&self, lock_duration: &i64) -> u64 {
         let reversed_configs: Vec<DurationExtraRewardConfig> =
@@ -744,28 +748,21 @@ impl FarmPoolAccount {
         let seconds = u128::try_from(
             clock
                 .unix_timestamp
-                .checked_sub(self.last_reward_time)
-                .unwrap(),
+                .safe_sub(self.last_reward_time)?,
         )
         .unwrap();
         let mut reward_per_share: u128 = 0;
         if self.amount > 0 && seconds > 0 && self.point > 0 {
             reward_per_share = u128::from(state.token_per_second)
-                .checked_mul(seconds)
-                .unwrap()
-                .checked_mul(u128::from(self.point))
-                .unwrap()
-                .checked_mul(ACC_PRECISION)
-                .unwrap()
-                .checked_div(u128::from(state.total_point))
-                .unwrap()
-                .checked_div(u128::from(self.amount))
-                .unwrap();
+                .safe_mul(seconds)?
+                .safe_mul(u128::from(self.point))?
+                .safe_mul(ACC_PRECISION)?
+                .safe_div(u128::from(state.total_point))?
+                .safe_div(u128::from(self.amount))?;
         }
         self.acc_reward_per_share = self
             .acc_reward_per_share
-            .checked_add(reward_per_share)
-            .unwrap();
+            .safe_add(reward_per_share)?;
         self.last_reward_time = clock.unix_timestamp;
 
         Ok(())
@@ -799,33 +796,28 @@ impl FarmPoolUserAccount {
         extra_percentage: &u64,
     ) -> Result<()> {
         let pending_amount: u128 = u128::from(self.amount)
-            .checked_mul(pool.acc_reward_per_share)
-            .unwrap()
-            .checked_div(ACC_PRECISION)
-            .unwrap()
-            .checked_sub(u128::from(self.reward_debt))
-            .unwrap();
-        self.reward_amount = self.reward_amount.checked_add(pending_amount).unwrap();
+            .safe_mul(pool.acc_reward_per_share)?
+            .safe_div(ACC_PRECISION)?
+            .safe_sub(u128::from(self.reward_debt))?;
+        self.reward_amount = self.reward_amount.safe_add(pending_amount)?;
         let extra_amount: u128 = u128::from(pending_amount)
-            .checked_mul(u128::from(*extra_percentage))
-            .unwrap()
-            .checked_div(u128::from(FULL_100))
-            .unwrap();
-        self.extra_reward = self.extra_reward.checked_add(extra_amount).unwrap();
+            .safe_mul(u128::from(*extra_percentage))?
+            .safe_div(u128::from(FULL_100))?;
+        self.extra_reward = self.extra_reward.safe_add(extra_amount)?;
         Ok(())
     }
     fn calculate_reward_debt<'info>(&mut self, pool: &FarmPoolAccount) -> Result<()> {
 
         msg!("amount {}", self.amount);
         msg!("acc_per_share {}", pool.acc_reward_per_share);
-        msg!("multiplied {}", u128::from(self.amount).checked_mul(pool.acc_reward_per_share).unwrap());
-        msg!("scaled {}", u128::from(self.amount).checked_mul(pool.acc_reward_per_share).unwrap().checked_div(ACC_PRECISION).unwrap());
+        msg!("multiplied {}", u128::from(self.amount).safe_mul(pool.acc_reward_per_share)?);
+        msg!("scaled {}", u128::from(self.amount)
+            .safe_mul(pool.acc_reward_per_share)?
+            .safe_div(ACC_PRECISION)?);
 
         self.reward_debt = u128::from(self.amount)
-            .checked_mul(pool.acc_reward_per_share)
-            .unwrap()
-            .checked_div(ACC_PRECISION)
-            .unwrap();
+            .safe_mul(pool.acc_reward_per_share)?
+            .safe_div(ACC_PRECISION)?;
         Ok(())
     }
     fn get_score<'info>(
@@ -833,12 +825,9 @@ impl FarmPoolUserAccount {
         extra_percentage: &u64,
     ) -> Result<u128> {
         let score: u128 = u128::from(self.amount)
-            .checked_mul(u128::from(*extra_percentage))
-            .unwrap()
-            .checked_div(u128::from(FULL_100))
-            .unwrap()
-            .checked_mul(100u128)
-            .unwrap();
+            .safe_mul(u128::from(*extra_percentage))?
+            .safe_div(u128::from(FULL_100))?
+            .safe_mul(100u128)?;
         Ok(score)
     }
     fn update_score_and_level<'info>(
@@ -855,27 +844,6 @@ impl FarmPoolUserAccount {
     }
 }
 
-#[error_code]
-pub enum ErrorCode {
-    #[msg("Invalid Owner")]
-    InvalidOwner,
-    #[msg("Over staked amount")]
-    UnstakeOverAmount,
-    #[msg("Under locked")]
-    UnderLocked,
-    #[msg("Pool is working")]
-    WorkingPool,
-    #[msg("Invalid Lock Duration")]
-    InvalidLockDuration,
-    #[msg("Invalid SEQ")]
-    InvalidSEQ,
-    #[msg("InvalidDenominator")]
-    InvalidDenominator,
-    #[msg("Overlfow Max Profile Level")]
-    OverflowMaxProfileLevel,
-    #[msg("Wrong Mint")]
-    InvalidMint,
-}
 #[event]
 pub struct RateChanged {
     token_per_second: u64,
@@ -939,9 +907,9 @@ pub fn calc_fee(total: u64, fee_percent: u64, denominator: u64) -> Result<u64> {
     let _denominator: u128 = denominator as u128;
 
     if _denominator == 0 {
-        return Err(error!(ErrorCode::InvalidDenominator));
+        return Err(error!(StakingError::InvalidDenominator));
     }
-    let result = _total.checked_mul(_fee_percent).unwrap()
-        .checked_div(_denominator).unwrap();
+    let result = _total.safe_mul(_fee_percent)?
+        .safe_div(_denominator)?;
     Ok(result.try_into().unwrap())
 }

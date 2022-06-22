@@ -11,7 +11,7 @@ use crate::{
 pub fn process_set_voting_item(ctx: Context<SetVotingItem>, key: Pubkey) -> Result<()> { 
     assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?;
     if is_zero_account(&ctx.accounts.voting_item.to_account_info()) {
-        ctx.accounts.voting.total_items = ctx.accounts.voting.total_items.checked_add(1).unwrap();
+        ctx.accounts.voting.total_items = ctx.accounts.voting.total_items.safe_add(1)?;
         ctx.accounts.voting_item.key = key;
         ctx.accounts.voting_item.voting = ctx.accounts.voting.key();
         ctx.accounts.voting_item.voting_score = 0;
