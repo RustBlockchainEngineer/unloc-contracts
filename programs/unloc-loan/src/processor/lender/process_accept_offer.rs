@@ -14,8 +14,27 @@ use crate::{
     states::*,
 };
 use std::str::FromStr;
+use unloc_voting::constant::{VOTING_TAG, VOTING_ITEM_TAG};
+use unloc_voting::states::{Voting, VotingItem};
+
 pub fn handle(ctx: Context<AcceptOffer>) -> Result<()> { 
-    accept_offer(ctx, 0, 0)
+    let mut total_point = 0;
+    let mut collection_point = 0;
+    if ctx.remaining_accounts.len() > 1 {
+        let voting_info = ctx.remaining_accounts[0].to_account_info();
+        let voting_item_info = ctx.remaining_accounts[1].to_account_info();
+        let mut voting_data: &[u8] = &voting_info.try_borrow_data()?;
+        let mut voting_item_data: &[u8] = &voting_item_info.try_borrow_data()?;
+        let voting = Voting::try_deserialize(&mut voting_data)?;
+        let voting_item = VotingItem::try_deserialize(&mut voting_item_data)?;
+
+        assert_pda(&[VOTING_TAG, &voting.voting_number.to_be_bytes()], &ctx.accounts.global_state.voting_pid, &voting_info.key())?;
+        assert_pda(&[VOTING_ITEM_TAG, voting_info.key().as_ref(), ctx.accounts.offer.collection.as_ref()], &ctx.accounts.global_state.voting_pid, &voting_item_info.key())?;
+        
+        total_point = voting.total_score;
+        collection_point = voting_item.voting_score;
+    }
+    accept_offer(ctx, total_point, collection_point)
 }
 pub fn accept_offer(ctx: Context<AcceptOffer>, total_point: u128, collection_point: u128) -> Result<()> {
     let current_time = ctx.accounts.clock.unix_timestamp as u64;

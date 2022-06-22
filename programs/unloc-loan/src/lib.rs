@@ -64,9 +64,6 @@ pub mod unloc_loan {
     pub fn accept_offer(ctx: Context<AcceptOffer>) -> Result<()> { 
         process_accept_offer::handle(ctx) 
     }
-    pub fn accept_offer_by_voting<'a, 'b, 'c, 'info>(ctx: Context<'a, 'b, 'c, 'info, AcceptOfferByVoting<'info>>) -> Result<()> { 
-        process_accept_offer_by_voting::handle(ctx) 
-    }
     pub fn claim_collateral(ctx: Context<ClaimCollateral>) -> Result<()> { 
         process_claim_collateral::handle(ctx) 
     }

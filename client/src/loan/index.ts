@@ -843,28 +843,29 @@ export const acceptLoanOfferByVoting = async (
   const currentVotingKey = await getCurrentVotingKey();
   const votingItemKey = await pda([VOTING_ITEM_TAG, currentVotingKey.toBuffer(), offerData.collection.toBuffer()], votingPid)
   try {
-    const tx = await program.rpc.acceptOfferByVoting({
-      accounts: {
-        acceptOfferCtx: {
-          lender,
-          borrower,
-          globalState,
-          offer,
-          subOffer,
-          offerMint,
-          borrowerOfferVault,
-          lenderOfferVault,
-          rewardVault,
-        ...chainlinkIds,
-        ...defaults
-        },
-        voting: currentVotingKey,
-        votingItem: votingItemKey,
-      },
-      preInstructions,
-      postInstructions,
-      signers
+    const tx = await program.methods.acceptOffer()
+    .accounts({
+      lender,
+      borrower,
+      globalState,
+      offer,
+      subOffer,
+      offerMint,
+      borrowerOfferVault,
+      lenderOfferVault,
+      rewardVault,
+      ...chainlinkIds,
+      ...defaults,
     })
+    .remainingAccounts([
+      {pubkey: currentVotingKey, isSigner: false, isWritable: false},
+      {pubkey: votingItemKey, isSigner: false, isWritable: false}
+    ])
+    .preInstructions(preInstructions)
+    .postInstructions(postInstructions)
+    .signers(signers)
+    .rpc()
+    
 
     // eslint-disable-next-line no-console
     console.log('acceptOffer tx = ', tx)
