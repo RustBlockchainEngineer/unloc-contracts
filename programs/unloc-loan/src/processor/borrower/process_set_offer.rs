@@ -24,14 +24,12 @@ pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
         ctx.accounts.offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
     }
     if ctx.accounts.user_vault.amount > 0 {
+        let offer_bump = *ctx.bumps.get("offer").unwrap();
         let offer_seeds = &[
             OFFER_TAG.as_ref(),
             borrower_key.as_ref(),
             nft_mint_key.as_ref(),
-            &[bump(
-                &[OFFER_TAG, borrower_key.as_ref(), nft_mint_key.as_ref()],
-                ctx.program_id,
-            )],
+            &[offer_bump],
         ];
 
         // Approve with offer PDA
@@ -75,11 +73,6 @@ pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
 pub struct SetOffer<'info> {
     #[account(mut)]
     pub borrower: Signer<'info>,
-    #[account(
-        seeds = [GLOBAL_STATE_TAG],
-        bump,
-    )]
-    pub global_state: Box<Account<'info, GlobalState>>,
     #[account(
     init_if_needed,
     seeds = [OFFER_TAG, borrower.key().as_ref(), nft_mint.key().as_ref()],

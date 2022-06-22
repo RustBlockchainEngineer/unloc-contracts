@@ -33,13 +33,6 @@ pub fn accept_offer(ctx: Context<AcceptOffer>, total_point: u128, collection_poi
 
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
-    ctx.accounts.global_state.distribute(
-        reward_vault_amount, 
-        current_time, 
-        &ctx.accounts.chainlink_program.to_account_info(), 
-        &ctx.accounts.sol_feed.to_account_info(), 
-        &ctx.accounts.usdc_feed.to_account_info()
-    )?;
     let offer_mint = ctx.accounts.sub_offer.offer_mint;
     ctx.accounts.sub_offer.update_rps(&ctx.accounts.global_state, &offer_mint)?;
 

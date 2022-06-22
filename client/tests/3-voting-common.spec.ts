@@ -13,8 +13,14 @@ import { PublicKey } from '@solana/web3.js';
 
 describe('voting-common', () => {
 
+  const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
+  const borrower1Keypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(BORROWER1_KEYPAIR))
+
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
+  const envProvider = anchor.AnchorProvider.env();
+  const provider = new anchor.AnchorProvider(envProvider.connection, new anchor.Wallet(superOwnerKeypair), envProvider.opts)
+  anchor.setProvider(provider);
+
 
   const program = anchor.workspace.UnlocVoting as anchor.Program<UnlocVoting>;
   
@@ -33,8 +39,7 @@ describe('voting-common', () => {
     clock
   }
   
-  const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
-  const borrower1Keypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(BORROWER1_KEYPAIR))
+  
   const superOwner = superOwnerKeypair.publicKey;
 
   it('Is initialized!', async () => {

@@ -107,14 +107,12 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
     ctx.accounts.sub_offer.loan_ended_time = current_time;
 
     // Thaw with Offer PDA
+    let offer_bump = *ctx.bumps.get("offer").unwrap();
     let signer_seeds = &[
         OFFER_TAG.as_ref(),
         borrower_key.as_ref(),
         nft_mint_key.as_ref(),
-        &[bump(
-            &[OFFER_TAG, borrower_key.as_ref(), nft_mint_key.as_ref()],
-            ctx.program_id,
-        )],
+        &[offer_bump],
     ];
     invoke_signed(
         &thaw_delegated_account(

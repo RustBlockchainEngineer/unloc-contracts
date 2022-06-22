@@ -77,26 +77,30 @@ impl GlobalState {
         if remained_rewards < delta_rewards {
             delta_rewards = remained_rewards;
         }
-
-        let tvl_sol_to_usd = (sol_price as u128).safe_mul(self.tvl_sol as u128)?;
-        let tvl_usdc_to_usd = (usdc_price as u128)
-            .safe_mul(self.tvl_usdc as u128)?
-            .safe_mul(DIFF_SOL_USDC_DECIMALS)?;
-        let tvl_usd = tvl_sol_to_usd.safe_add(tvl_usdc_to_usd)?;
-
-        self.rps_sol = self.rps_sol.safe_add(
-            (delta_rewards as u128)
-                .safe_mul(SHARE_PRECISION)?
-                .safe_mul(tvl_sol_to_usd)?
-                .safe_div(tvl_usd)?,
-        )?;
-        self.rps_usdc = self.rps_usdc.safe_add(
-            (delta_rewards as u128)
-                .safe_mul(SHARE_PRECISION)?
-                .safe_mul(tvl_usdc_to_usd)?
-                .safe_div(tvl_usd)?,
-        )?;
-        self.distributed_amount = self.distributed_amount.safe_add(delta_rewards)?;
+      
+        if delta_rewards > 0 {
+            let tvl_sol_to_usd = (sol_price as u128).safe_mul(self.tvl_sol as u128)?;
+            let tvl_usdc_to_usd = (usdc_price as u128).safe_mul(self.tvl_usdc as u128)?.safe_mul(DIFF_SOL_USDC_DECIMALS)?;
+            let tvl_usd = tvl_sol_to_usd.safe_add(tvl_usdc_to_usd)?;
+            if tvl_usd > 0 {
+                self.rps_sol = self.rps_sol
+                    .safe_add(
+                        (delta_rewards as u128)
+                        .safe_mul(SHARE_PRECISION)?
+                        .safe_mul(tvl_sol_to_usd)?
+                        .safe_div(tvl_usd)?
+                    )?;
+                self.rps_usdc = self.rps_usdc
+                    .safe_add(
+                        (delta_rewards as u128)
+                        .safe_mul(SHARE_PRECISION)?
+                        .safe_mul(tvl_usdc_to_usd)?
+                        .safe_div(tvl_usd)?
+                    )?;
+                self.distributed_amount = self.distributed_amount.safe_add(delta_rewards)?;
+            }
+        }
+      
         self.last_distributed_time = current_time;
         Ok(())
     }

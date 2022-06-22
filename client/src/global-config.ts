@@ -63,7 +63,7 @@ export const USDC_MINT = new PublicKey(
 )
 
 const CHAINLINK_AGGREGATOR_PROGRAM_ID = new anchor.web3.PublicKey(
-  "cjg3oHmg9uuPsP8D6g29NWvhySJkdYdAo9D25PRbKXJ"
+  "HEvSKofvBgfaexv23kMabbYqxasxU3mQ4ibBMEmJWHny"
 );
 
 export const CHAINLINK_SOL_FEED = new PublicKey("CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq")

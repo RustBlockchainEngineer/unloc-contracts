@@ -14,14 +14,12 @@ pub fn handle(ctx: Context<CancelOffer>) -> Result<()> {
     let nft_mint_key = ctx.accounts.nft_mint.key();
 
     // Thaw with Offer PDA
+    let offer_bump = *ctx.bumps.get("offer").unwrap();
     let signer_seeds = &[
         OFFER_TAG.as_ref(),
         borrower_key.as_ref(),
         nft_mint_key.as_ref(),
-        &[bump(
-            &[OFFER_TAG, borrower_key.as_ref(), nft_mint_key.as_ref()],
-            ctx.program_id,
-        )],
+        &[offer_bump],
     ];
 
     invoke_signed(

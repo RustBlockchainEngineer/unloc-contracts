@@ -1,6 +1,5 @@
 import * as anchor from '@project-serum/anchor';
 const {BN, web3} = anchor
-import serumCmn from '@project-serum/common';
 import { TOKEN_PROGRAM_ID, Token, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import _ from 'lodash';
 import assert from 'assert';
@@ -21,30 +20,34 @@ let stateRewardVault = Keypair.generate().publicKey
 let extraRewardSigner = Keypair.generate().publicKey
 let extraRewardBump = 255
 
-let rewardMint: Token = null
+let rewardMint: Token = null as any
 let poolSigner = Keypair.generate().publicKey
 let poolVault = Keypair.generate().publicKey
 let poolBump = 255
 
-let lpMint: Token = null
+let lpMint: Token = null as any
 let lpPoolSigner = Keypair.generate().publicKey
 let lpPoolVault = Keypair.generate().publicKey
 let lpPoolBump = 255
 
+
+const borrower1Keypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(BORROWER1_KEYPAIR))
+const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
+
 const utf8 = anchor.utils.bytes.utf8;
-const provider = anchor.AnchorProvider.local()
+const envProvider = anchor.AnchorProvider.env();
+const provider = new anchor.AnchorProvider(envProvider.connection, new anchor.Wallet(superOwnerKeypair), envProvider.opts)
 anchor.setProvider(provider);
 
-let creatorKey = provider.wallet.publicKey
+let creatorKey = superOwnerKeypair.publicKey
 let program = anchor.workspace.UnlocStaking as anchor.Program<UnlocStaking>
 let connection = provider.connection
 
 const cccc = new Connection(connection.rpcEndpoint, { commitment: 'confirmed' })
 
-initStakingProgram(cccc, provider.wallet, program.programId);
+initStakingProgram(cccc, new anchor.Wallet(superOwnerKeypair), program.programId);
 
-const borrower1Keypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(BORROWER1_KEYPAIR))
-const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
+
 const borrower1 = {
   lastHarvestTime1: 0, 
   user: borrower1Keypair, 
@@ -80,7 +83,7 @@ const defaultAccounts = {
 describe('staking-common', () => {
   it('Is initialized!', async function () {
     rewardMint = new Token(provider.connection, UNLOC_MINT, TOKEN_PROGRAM_ID, superOwnerKeypair);
-    lpMint = await createMint(provider, provider.wallet.publicKey);
+    lpMint = await createMint(provider, superOwnerKeypair.publicKey);
     [stateSigner, stateBump] = await anchor.web3.PublicKey.findProgramAddress(
       [utf8.encode('state')],
       program.programId
@@ -111,16 +114,16 @@ describe('staking-common', () => {
       u.bump1 = bump1
       u.rewardUserVault = await getOrCreateAssociatedSPL(u.provider, rewardMint)
     }))
-    await rewardMint.mintTo(user1.rewardUserVault, creatorKey, [provider.wallet as any], new BN(100).toString())
-    await rewardMint.mintTo(user2.rewardUserVault, creatorKey, [provider.wallet as any], new BN(400).toString())
-    await rewardMint.mintTo(user3.rewardUserVault, creatorKey, [provider.wallet as any], new BN(600).toString())
-    await rewardMint.mintTo(user4.rewardUserVault, creatorKey, [provider.wallet as any], new BN(800).toString())
-    await rewardMint.mintTo(master.rewardUserVault, creatorKey, [provider.wallet as any], new BN(10000).toString())
+    await rewardMint.mintTo(user1.rewardUserVault, superOwnerKeypair, [superOwnerKeypair as any], 100)
+    await rewardMint.mintTo(user2.rewardUserVault, superOwnerKeypair, [superOwnerKeypair as any], 400)
+    await rewardMint.mintTo(user3.rewardUserVault, superOwnerKeypair, [superOwnerKeypair as any], 600)
+    await rewardMint.mintTo(user4.rewardUserVault, superOwnerKeypair, [superOwnerKeypair as any], 800)
+    await rewardMint.mintTo(master.rewardUserVault, superOwnerKeypair, [superOwnerKeypair as any], 10000)
   })
   it('Create State', async function () {
     const tokenPerSecond = 20;
     try {
-      await createStakingState(connection, provider.wallet, tokenPerSecond, 1000, [new BN(100), new BN(1000)], rewardMint.publicKey.toBase58())
+      await createStakingState(connection, superOwnerKeypair, tokenPerSecond, 1000, [new BN(100), new BN(1000)], rewardMint.publicKey.toBase58())
     }
     catch(e) {
       console.log(e);
@@ -151,8 +154,8 @@ describe('staking-common', () => {
     })
     const extraRewardConfigs = await program.account.extraRewardsAccount.fetch(extraRewardSigner)
     assert.ok((extraRewardConfigs.configs as any).length === 3)
-    assert.ok(new BN(1).eq(extraRewardConfigs.configs[1].duration))
-    assert.ok(getNumber(50).eq(extraRewardConfigs.configs[1].extraPercentage))
+    assert.ok(new BN(1).eq((extraRewardConfigs.configs as any)[1].duration))
+    assert.ok(getNumber(50).eq((extraRewardConfigs.configs as any)[1].extraPercentage))
   })
   
   it('Create Pool', async function () {
@@ -209,7 +212,7 @@ describe('staking-common', () => {
     assert.ok(poolInfo.amountMultipler.eq(new BN(0)))
   })
   it('Fund to program', async function () {
-    // await rewardMint.mintTo(stateRewardVault, creatorKey, [provider.wallet], getNumber(10000).toString())
+    // await rewardMint.mintTo(stateRewardVault, creatorKey, [superOwnerKeypair], getNumber(10000).toString())
     const tx = program.transaction.fundRewardToken(new BN(10000), {
       accounts: {
         state: stateSigner,
@@ -351,11 +354,11 @@ async function stake (u, amount, lock = 0) {
 }
 async function createMint (provider, authority, decimals = 9) {
   if (authority === undefined) {
-    authority = provider.wallet.publicKey;
+    authority = superOwnerKeypair.publicKey;
   }
   const mint = await Token.createMint(
     provider.connection,
-    provider.wallet.payer,
+    superOwnerKeypair,
     authority,
     null,
     decimals,

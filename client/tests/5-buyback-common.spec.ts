@@ -9,11 +9,9 @@ import SUPER_OWNER_WALLET from './test-users/super_owner.json'
 import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { BN } from '@project-serum/anchor';
 import { Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from '@solana/web3.js';
-import { Market } from '@project-serum/serum';
-import { DexInstructions } from '@project-serum/serum';
 import UNLOC_TOKEN_KEYPAIR from './keypairs/unloc-token.json'
 import USDC_TOKEN_KEYPAIR from './keypairs/usdc-token.json'
-import { createAssociatedTokenAccountIfNotExist, createSerumMarket, getAssociatedPoolKeys, getBigNumber, getFilteredTokenAccountsByOwner, getMarket, getMintDecimals } from './buyback-utils';
+import { createAssociatedTokenAccountIfNotExist, createSerumMarket, getAssociatedPoolKeys, getMarket, getMintDecimals } from './../src';
 import { Liquidity, SERUM_PROGRAM_ID_V3, Spl, SPL_ACCOUNT_LAYOUT, WSOL } from '@unloc-dev/raydium-sdk';
 import {AmmProxy, IDL as AMM_IDL} from './amm_proxy_type'
 import { closeAccount, initializeAccount } from '@project-serum/serum/lib/token-instructions';
@@ -21,8 +19,12 @@ import BigNumber from 'bignumber.js';
 import { AnchorProvider } from '@project-serum/anchor';
 describe('buyback-common', () => {
 
+  const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
+
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
+  const envProvider = anchor.AnchorProvider.env();
+  const provider = new anchor.AnchorProvider(envProvider.connection, new anchor.Wallet(superOwnerKeypair), envProvider.opts)
+  anchor.setProvider(provider);
 
   const program = anchor.workspace.UnlocBurn as anchor.Program<UnlocBurn>;
   
@@ -48,7 +50,7 @@ describe('buyback-common', () => {
     clock
   }
   
-  const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
+  
   const superOwner = superOwnerKeypair.publicKey;
   const unlocUsdcMarketKeypair = Keypair.generate()
   const unlocUsdcMarket = unlocUsdcMarketKeypair.publicKey
@@ -79,32 +81,32 @@ describe('buyback-common', () => {
       programId: Liquidity.getProgramId(4),
       serumProgramId: SERUM_PROGRAM_ID_V3,
       marketId: market.address,
-      baseMint: market.baseMint,
-      quoteMint: market.quoteMint
+      baseMint: market.baseMintAddress,
+      quoteMint: market.quoteMintAddress
     })
 
     const transaction = new Transaction();
     const userCoinTokenAccount = await createAssociatedTokenAccountIfNotExist(
         (program.provider as any).wallet.publicKey,
-        market.baseMint,
+        market.baseMintAddress,
         transaction,
         (program.provider as any).connection
     )
     const userPcTokenAccount = await createAssociatedTokenAccountIfNotExist(
       (program.provider as any).wallet.publicKey,
-        market.quoteMint,
+        market.quoteMintAddress,
         transaction,
         (program.provider as any).connection
     )
 
     if (transaction.instructions.length > 0) {
-        const txid = await (program.provider as AnchorProvider).sendAndConfirm(transaction, null, {
+        const txid = await (program.provider as AnchorProvider).sendAndConfirm(transaction, [], {
             skipPreflight: true,
             preflightCommitment: "confirmed"
         })
         console.log("create user token accounts txid:", txid)
-        console.log("baseMint:", market.baseMint.toString())
-        console.log("quoteMint:", market.quoteMint.toString())
+        console.log("baseMintAddress:", market.baseMintAddress.toString())
+        console.log("quoteMintAddress:", market.quoteMintAddress.toString())
         console.log("userCoinTokenAccount:", userCoinTokenAccount.toString())
         console.log("userPcTokenAccount:", userPcTokenAccount.toString())
     }
@@ -209,7 +211,7 @@ describe('buyback-common', () => {
     )
 
     if (transaction2.instructions.length > 0) {
-        const txid = await (program.provider as AnchorProvider).sendAndConfirm(transaction2, null, {
+        const txid = await (program.provider as AnchorProvider).sendAndConfirm(transaction2, [], {
             skipPreflight: true,
             preflightCommitment: "confirmed"
         })

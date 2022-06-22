@@ -221,6 +221,7 @@ export const getLoanSubOfferMultiple = async (keys: anchor.web3.PublicKey[], off
 export const setLoanGlobalState = async (
   accruedInterestNumerator: anchor.BN,
   denominator: anchor.BN,
+  minRepaidNumerator: anchor.BN,
   aprNumerator: anchor.BN,
   expireLoanDuration: anchor.BN,
   rewardRate: anchor.BN,
@@ -238,6 +239,7 @@ export const setLoanGlobalState = async (
     const tx = await program.rpc.setGlobalState(
       accruedInterestNumerator,
       denominator,
+      minRepaidNumerator,
       aprNumerator,
       expireLoanDuration,
       rewardRate,
@@ -489,7 +491,6 @@ export const setLoanOffer = async (
     const tx = await program.rpc.setOffer({
       accounts: {
         borrower,
-        globalState,
         offer,
         nftMint,
         nftMetadata,
@@ -547,7 +548,6 @@ export const cancelLoanOffer = async (
 export const createLoanSubOffer = async (
   offerAmount: anchor.BN,
   loanDuration: anchor.BN,
-  minRepaidNumerator: anchor.BN,
   aprNumerator: anchor.BN,
   nftMint: anchor.web3.PublicKey,
   offerMint: anchor.web3.PublicKey,
@@ -567,7 +567,7 @@ export const createLoanSubOffer = async (
   const globalStateData = await program.account.globalState.fetch(globalState)
   const treasuryWallet = globalStateData.treasuryWallet
   try {
-    const tx = await program.rpc.setSubOffer(offerAmount, subOfferNumer, loanDuration, minRepaidNumerator, aprNumerator, {
+    const tx = await program.rpc.setSubOffer(offerAmount, subOfferNumer, loanDuration, aprNumerator, {
       accounts: {
         borrower,
         globalState,
@@ -591,7 +591,6 @@ export const createLoanSubOffer = async (
 export const createLoanSubOfferByStaking = async (
   offerAmount: anchor.BN,
   loanDuration: anchor.BN,
-  minRepaidNumerator: anchor.BN,
   aprNumerator: anchor.BN,
   nftMint: anchor.web3.PublicKey,
   offerMint: anchor.web3.PublicKey,
@@ -612,8 +611,9 @@ export const createLoanSubOfferByStaking = async (
   const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], globalStateData.unlocStakingPid)
   const treasuryWallet = globalStateData.treasuryWallet
   try {
-    const tx = await program.rpc.setSubOfferByStaking(offerAmount, subOfferNumer, loanDuration, minRepaidNumerator, aprNumerator, {
-      accounts: {
+    const tx = await program.methods
+      .setSubOfferByStaking(offerAmount, subOfferNumer, loanDuration, aprNumerator)
+      .accounts({
         subOfferCtx: {
           borrower,
           globalState,
@@ -624,10 +624,10 @@ export const createLoanSubOfferByStaking = async (
           treasuryVault,
           ...defaults
         },
-        stakingUser,
-      },
-      signers
-    })
+        stakingUser
+      })
+      .signers(signers)
+      .rpc()
 
     // eslint-disable-next-line no-console
     console.log('createSubOffer tx = ', tx)

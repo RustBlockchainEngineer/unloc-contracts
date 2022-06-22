@@ -42,8 +42,19 @@ import { BN } from '@project-serum/anchor';
 
 describe('loan-common', () => {
 
+  const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
+  const superOwner = superOwnerKeypair.publicKey;
+  const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))
+  const borrower = borrowerKeypair.publicKey;
+  const lender1Keypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(LOANER1_WALLET))
+  const lender1 = lender1Keypair.publicKey;
+  const treasuryKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(TREASURY))
+  const treasury = treasuryKeypair.publicKey;
+
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
+  const envProvider = anchor.AnchorProvider.env();
+  const provider = new anchor.AnchorProvider(envProvider.connection, new anchor.Wallet(superOwnerKeypair), envProvider.opts)
+  anchor.setProvider(provider);
 
   const program = anchor.workspace.UnlocLoan as anchor.Program<UnlocLoan>;
 
@@ -70,14 +81,7 @@ describe('loan-common', () => {
   const TREASURY_VAULT_SEED = Buffer.from("TREASURY_VAULT_SEED");
   const USER_REWARD_TAG = Buffer.from('LENDER_REWARD_SEED')
 
-  const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
-  const superOwner = superOwnerKeypair.publicKey;
-  const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))
-  const borrower = borrowerKeypair.publicKey;
-  const lender1Keypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(LOANER1_WALLET))
-  const lender1 = lender1Keypair.publicKey;
-  const treasuryKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(TREASURY))
-  const treasury = treasuryKeypair.publicKey;
+  
 
   let nftMint: Token = null as any;
   let nftMetadataKey: anchor.web3.PublicKey = null as any;
@@ -131,7 +135,7 @@ describe('loan-common', () => {
       mint: nftMint.publicKey,
       mintAuthority: superOwner
     })
-    const tx = (await program.provider as anchor.AnchorProvider).sendAndConfirm(createMetadataTx, [superOwnerKeypair])
+    const tx = await (program.provider as anchor.AnchorProvider).sendAndConfirm(createMetadataTx, [superOwnerKeypair])
     console.log('creating nft meta tx = ', tx)
 
     borrowerNftVault = await nftMint.createAccount(borrower);
@@ -154,7 +158,7 @@ describe('loan-common', () => {
       maxSupply: 0
     })
     try {
-      const tx2 = (await program.provider as anchor.AnchorProvider).sendAndConfirm(createEditionTx, [superOwnerKeypair])
+      const tx2 = await (program.provider as anchor.AnchorProvider).sendAndConfirm(createEditionTx, [superOwnerKeypair])
       console.log('creating nft edition tx = ', tx2)
     }
     catch (e) {
@@ -193,6 +197,7 @@ describe('loan-common', () => {
     const accruedInterestNumerator = new anchor.BN(10000000);
 
     const aprNumerator = new anchor.BN(1 * denominator.toNumber() / 100); // 1%
+    const minRepaidNumerator = new anchor.BN(denominator.toNumber() / 2); // 0.5
     const rewardRate = new anchor.BN(300);
     const expireLoanDuration = new anchor.BN(90 * 24 * 3600);
     const unlocStakingPid = STAKING_PID
@@ -213,6 +218,7 @@ describe('loan-common', () => {
     await setLoanGlobalState(
       accruedInterestNumerator,
       denominator,
+      minRepaidNumerator,
       aprNumerator,
       expireLoanDuration,
       rewardRate,
@@ -311,13 +317,11 @@ describe('loan-common', () => {
     const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
 
     const offerAmount = new anchor.BN(10 * offerDecimal)
-    const minRepaidNumerator = new anchor.BN(10 * offerDecimal)
     const aprNumerator = new anchor.BN(12 * denominator.toNumber() / 100)
     const signers = [borrowerKeypair]
-    await createLoanSubOfferByStaking(
+    await createLoanSubOffer(
       offerAmount,
       loanDuration,
-      minRepaidNumerator,
       aprNumerator,
       nftMint.publicKey,
       offerMint.publicKey,
@@ -330,7 +334,6 @@ describe('loan-common', () => {
     assert(subOfferData.offer.equals(offer), "offer")
     assert(subOfferData.offerMint.equals(offerMint.publicKey), "offerMint")
     assert(subOfferData.loanDuration.toNumber() == loanDuration.toNumber(), "loanDuration")
-    assert(subOfferData.minRepaidNumerator.toNumber() == minRepaidNumerator.toNumber(), "minRepaidNumerator")
     assert(subOfferData.aprNumerator.toNumber() == aprNumerator.toNumber(), "aprNumerator")
   });
 
@@ -406,13 +409,11 @@ describe('loan-common', () => {
     const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
 
     const offerAmount = new anchor.BN(10 * offerDecimal)
-    const minRepaidNumerator = new anchor.BN(10 * offerDecimal)
     const aprNumerator = new anchor.BN(12 * denominator.toNumber() / 100)
     const signers = [borrowerKeypair]
-    await createLoanSubOfferByStaking(
+    await createLoanSubOffer(
       offerAmount,
       loanDuration,
-      minRepaidNumerator,
       aprNumerator,
       nftMint.publicKey,
       offerMint.publicKey,
@@ -425,7 +426,6 @@ describe('loan-common', () => {
     assert(subOfferData.offer.equals(offer), "offer")
     assert(subOfferData.offerMint.equals(offerMint.publicKey), "offerMint")
     assert(subOfferData.loanDuration.toNumber() == loanDuration.toNumber(), "loanDuration")
-    assert(subOfferData.minRepaidNumerator.toNumber() == minRepaidNumerator.toNumber(), "minRepaidNumerator")
     assert(subOfferData.aprNumerator.toNumber() == aprNumerator.toNumber(), "aprNumerator")
   });
 
@@ -487,17 +487,10 @@ describe('loan-common', () => {
     const offerDataBefore = await program.account.offer.fetch(offer)
     const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))
     const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
-    const subOfferData = await program.account.subOffer.fetch(subOffer)
-    const userReward = await pda([USER_REWARD_TAG, subOfferData.lender.toBuffer(), subOfferData.borrower.toBuffer(), subOffer.toBuffer()], programId)
     await claimRewards(
-      userReward,
+      subOffer,
       lender1,
       [lender1Keypair]
-    );
-    await claimRewards(
-      userReward,
-      borrower,
-      [borrowerKeypair]
     );
   });
 
