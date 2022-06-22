@@ -7,11 +7,11 @@ use crate::{
     utils::*
 };
 use std::str::FromStr;
-pub fn handle(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64) -> Result<()> { 
+pub fn handle(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, apr_numerator: u64) -> Result<()> { 
     let profile_level = 0;
-    set_sub_offer(ctx, offer_amount, sub_offer_number, loan_duration, min_repaid_numerator, apr_numerator, profile_level)
+    set_sub_offer(ctx, offer_amount, sub_offer_number, loan_duration, apr_numerator, profile_level)
 }
-pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, min_repaid_numerator: u64, apr_numerator: u64, profile_level: u64) -> Result<()> { 
+pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u64, loan_duration: u64, apr_numerator: u64, profile_level: u64) -> Result<()> { 
     let available_sub_offer_count = DEFULT_SUB_OFFER_COUNT + profile_level * SUB_OFFER_COUNT_PER_LEVEL;
     let _available_sub_offer_count = ctx.accounts.offer.sub_offer_count.safe_sub(ctx.accounts.offer.start_sub_offer_num)?;
     require(_available_sub_offer_count < available_sub_offer_count)?;
@@ -38,7 +38,6 @@ pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_num
     ctx.accounts.sub_offer.offer_amount = offer_amount;
     ctx.accounts.sub_offer.sub_offer_number = sub_offer_number;
     ctx.accounts.sub_offer.loan_duration = loan_duration;
-    ctx.accounts.sub_offer.min_repaid_numerator = min_repaid_numerator;
     ctx.accounts.sub_offer.apr_numerator = apr_numerator;
     
     Ok(())
@@ -48,7 +47,6 @@ pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_num
     offer_amount: u64, 
     sub_offer_number: u64, 
     loan_duration: u64, 
-    min_repaid_numerator: u64, 
     apr_numerator: u64
 )]
 pub struct SetSubOffer<'info> {

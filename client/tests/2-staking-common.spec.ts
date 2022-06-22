@@ -110,9 +110,6 @@ describe('staking-common', () => {
       u.userAccount1 = userAccount1
       u.bump1 = bump1
       u.rewardUserVault = await getOrCreateAssociatedSPL(u.provider, rewardMint)
-      const [lpUserAccount, lpBump] = await PublicKey.findProgramAddress([
-        lpPoolSigner.toBuffer(), u.publicKey.toBuffer()
-      ], program.programId)
     }))
     await rewardMint.mintTo(user1.rewardUserVault, creatorKey, [provider.wallet as any], new BN(100).toString())
     await rewardMint.mintTo(user2.rewardUserVault, creatorKey, [provider.wallet as any], new BN(400).toString())

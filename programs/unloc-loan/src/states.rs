@@ -11,6 +11,7 @@ pub struct GlobalState {
 
     pub treasury_wallet: Pubkey,
     pub accrued_interest_numerator: u64,
+    pub min_repaid_numerator: u64,
     pub apr_numerator: u64,
     pub expire_loan_duration: u64,
     pub denominator: u64,
@@ -143,7 +144,6 @@ pub struct SubOffer {
     pub loan_started_time: u64,
     pub loan_ended_time: u64,
     pub loan_duration: u64,
-    pub min_repaid_numerator: u64,
     pub apr_numerator: u64,
     pub creation_date: u64,
 
