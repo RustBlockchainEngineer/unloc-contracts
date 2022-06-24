@@ -33,6 +33,8 @@ pub fn process_set_voting(
 pub struct SetVoting<'info> {
     #[account(mut)]
     pub super_owner: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
     #[account(
         mut,
         seeds = [GLOBAL_STATE_TAG],
@@ -44,7 +46,7 @@ pub struct SetVoting<'info> {
         init_if_needed,
         seeds = [VOTING_TAG, &voting_number.to_be_bytes()],
         bump,
-        payer = super_owner,
+        payer = payer,
         space = std::mem::size_of::<Voting>() + 8,
         constraint = voting_number <= global_state.voting_count,
     )]

@@ -406,7 +406,7 @@ pub struct CreateState<'info> {
         init,
         seeds = [b"state".as_ref()],
         bump,
-        payer = authority,
+        payer = payer,
         space = 8 + size_of::<StateAccount>() + 16 * MAX_PROFILE_LEVEL
     )]
     pub state: Account<'info, StateAccount>,
@@ -416,6 +416,8 @@ pub struct CreateState<'info> {
     pub fee_vault: Account<'info, TokenAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
     /// CHECK: unchecked account
     pub system_program: UncheckedAccount<'info>,
     #[account(constraint = token_program.key == &token::ID)]
@@ -485,7 +487,7 @@ pub struct CreateFarmPool<'info> {
         init,
         seeds = [mint.key().as_ref()],
         bump,
-        payer = authority,
+        payer = payer,
         space = 8 + size_of::<FarmPoolAccount>()
     )]
     pub pool: Account<'info, FarmPoolAccount>,
@@ -498,6 +500,8 @@ pub struct CreateFarmPool<'info> {
     pub vault: Account<'info, TokenAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
     /// CHECK: unchecked account
     pub system_program: UncheckedAccount<'info>,
     #[account(constraint = token_program.key == &token::ID)]
@@ -567,7 +571,7 @@ pub struct CreatePoolUser<'info> {
         init,
         seeds = [pool.key().as_ref(), authority.key().as_ref()],
         bump,
-        payer = authority,
+        payer = payer,
         space = 8 + size_of::<FarmPoolUserAccount>()
     )]
     pub user: Account<'info, FarmPoolUserAccount>,
@@ -579,6 +583,8 @@ pub struct CreatePoolUser<'info> {
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
     /// CHECK: unchecked account
     pub system_program: UncheckedAccount<'info>,
     #[account(constraint = token_program.key == &token::ID)]

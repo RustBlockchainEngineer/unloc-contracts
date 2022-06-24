@@ -73,11 +73,13 @@ pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
 pub struct SetOffer<'info> {
     #[account(mut)]
     pub borrower: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
     #[account(
     init_if_needed,
     seeds = [OFFER_TAG, borrower.key().as_ref(), nft_mint.key().as_ref()],
     bump,
-    payer = borrower,
+    payer = payer,
     space = std::mem::size_of::<Offer>() + 8
     )]
     pub offer: Box<Account<'info, Offer>>,

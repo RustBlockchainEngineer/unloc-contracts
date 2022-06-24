@@ -103,12 +103,14 @@ pub mod unloc_burn {
 pub struct SetGlobalState <'info>{
     #[account(mut)]
     pub authority:  Signer<'info>,
+    #[account(mut)]
+    pub payer:  Signer<'info>,
 
     #[account(
         init_if_needed,
         seeds = [GLOBAL_STATE_SEED],
         bump,
-        payer = authority,
+        payer = payer,
         space = std::mem::size_of::<GlobalState>() + 8
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
@@ -120,7 +122,7 @@ pub struct SetGlobalState <'info>{
         token::authority = global_state,
         seeds = [UNLOC_VAULT_SEED],
         bump,
-        payer = authority,
+        payer = payer,
     )]
     pub unloc_vault:Box<Account<'info, TokenAccount>>,
     pub usdc_mint: Box<Account<'info, Mint>>,
@@ -130,7 +132,7 @@ pub struct SetGlobalState <'info>{
         token::authority = global_state,
         seeds = [USDC_VAULT_SEED],
         bump,
-        payer = authority,
+        payer = payer,
     )]
     pub usdc_vault:Box<Account<'info, TokenAccount>>,
 
@@ -141,7 +143,7 @@ pub struct SetGlobalState <'info>{
         token::authority = global_state,
         seeds = [WSOL_VAULT_SEED],
         bump,
-        payer = authority,
+        payer = payer,
     )]
     pub wsol_vault:Box<Account<'info, TokenAccount>>,
 

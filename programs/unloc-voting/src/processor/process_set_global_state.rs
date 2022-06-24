@@ -27,12 +27,14 @@ pub fn process_set_global_state(
 pub struct SetGlobalState <'info>{
     #[account(mut)]
     pub super_owner:  Signer<'info>,
+    #[account(mut)]
+    pub payer:  Signer<'info>,
 
     #[account(
         init_if_needed,
         seeds = [GLOBAL_STATE_TAG],
         bump,
-        payer = super_owner,
+        payer = payer,
         space = std::mem::size_of::<GlobalState>() + 8
     )]
     pub global_state:Box<Account<'info, GlobalState>>,

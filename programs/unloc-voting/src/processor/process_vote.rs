@@ -24,6 +24,9 @@ pub fn process_vote(ctx: Context<Vote>) -> Result<()> {
 pub struct Vote<'info> {
     #[account(mut)]
     pub user:  Signer<'info>,
+    
+    #[account(mut)]
+    pub payer:  Signer<'info>,
 
     #[account(
         mut,
@@ -50,7 +53,7 @@ pub struct Vote<'info> {
         init,
         seeds = [VOTING_USER_TAG, voting.key().as_ref(), user.key().as_ref()],
         bump,
-        payer = user,
+        payer = payer,
         space = std::mem::size_of::<VotingUser>() + 8,
     )]
     pub voting_user:Box<Account<'info, VotingUser>>,

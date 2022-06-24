@@ -24,6 +24,9 @@ pub fn process_set_voting_item(ctx: Context<SetVotingItem>, key: Pubkey) -> Resu
 pub struct SetVotingItem<'info> {
     #[account(mut)]
     pub super_owner:  Signer<'info>,
+    #[account(mut)]
+    pub payer:  Signer<'info>,
+    
     #[account(
         mut,
         seeds = [GLOBAL_STATE_TAG],
@@ -42,7 +45,7 @@ pub struct SetVotingItem<'info> {
         init_if_needed,
         seeds = [VOTING_ITEM_TAG, voting.key().as_ref(), key.as_ref()],
         bump,
-        payer = super_owner,
+        payer = payer,
         space = std::mem::size_of::<VotingItem>() + 8,
     )]
     pub voting_item:Box<Account<'info, VotingItem>>,

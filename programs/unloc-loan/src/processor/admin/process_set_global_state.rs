@@ -53,12 +53,14 @@ pub fn handle(
 pub struct SetGlobalState <'info>{
     #[account(mut)]
     pub super_owner:  Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
 
     #[account(
         init_if_needed,
         seeds = [GLOBAL_STATE_TAG],
         bump,
-        payer = super_owner,
+        payer = payer,
         space = std::mem::size_of::<GlobalState>() + 8
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
@@ -70,7 +72,7 @@ pub struct SetGlobalState <'info>{
         token::authority = global_state,
         seeds = [REWARD_VAULT_TAG],
         bump,
-        payer = super_owner,
+        payer = payer,
     )]
     pub reward_vault:Box<Account<'info, TokenAccount>>,
     /// CHECK: key only is used

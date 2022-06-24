@@ -64,6 +64,8 @@ pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_num
 pub struct SetSubOffer<'info> {
     #[account(mut)]
     pub borrower:  Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
 
     #[account(
     seeds = [GLOBAL_STATE_TAG],
@@ -81,7 +83,7 @@ pub struct SetSubOffer<'info> {
     init_if_needed,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer_number.to_be_bytes()],
     bump,
-    payer = borrower,
+    payer = payer,
     constraint = sub_offer_number <= offer.sub_offer_count,
     space = std::mem::size_of::<SubOffer>() + 8
     )]
@@ -99,7 +101,7 @@ pub struct SetSubOffer<'info> {
         token::authority = treasury_wallet,
         seeds = [TREASURY_VAULT_TAG, offer_mint.key().as_ref()],
         bump,
-        payer = borrower)]
+        payer = payer)]
     pub treasury_vault: Box<Account<'info, TokenAccount>>,
 
     pub system_program: Program<'info, System>,
