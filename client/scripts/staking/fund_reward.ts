@@ -10,17 +10,17 @@ const utf8 = anchor.utils.bytes.utf8;
 import { ENV_CONFIG, utils, STAKING_CONFIG } from './CONFIG';
 const { program, provider } = ENV_CONFIG
 
-async function main () {
+async function main() {
   const stateAccount = await utils.getStateAccount()
-  await program.rpc.fundRewardToken(STAKING_CONFIG.FUND_AMOUNT, {
-    accounts: {
+  await program.methods.fundRewardToken(STAKING_CONFIG.FUND_AMOUNT)
+    .accounts({
       state: stateAccount.publicKey,
       rewardVault: stateAccount.rewardVault,
       userVault: STAKING_CONFIG.FUND_TOKEN_VAULT,
       authority: provider.wallet.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
-    }
-  })
+    })
+    .rpc()
 }
 
 console.log('Running client.');

@@ -13,16 +13,16 @@ import { ENV_CONFIG, utils, STAKING_CONFIG } from './CONFIG';
 
 const { program, provider } = ENV_CONFIG
 
-async function main () {
+async function main() {
   const stateAccount = await utils.getStateAccount()
-  await program.rpc.changePoolAmountMultipler(STAKING_CONFIG.POOL_AMOUNT_MULTIPLIER, {
+  await program.methods.changePoolAmountMultipler([STAKING_CONFIG.POOL_AMOUNT_MULTIPLIER, {
     accounts: {
       pool: await utils.getPoolSigner(),
       state: stateAccount.publicKey,
       authority: provider.wallet.publicKey,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
     }
-  })
+  }]).rpc()
   let poolInfo = await program.account.farmPoolAccount.fetch(await utils.getPoolSigner())
   console.log(poolInfo)
 }

@@ -10,19 +10,18 @@ const utf8 = anchor.utils.bytes.utf8;
 import { ENV_CONFIG, utils, STAKING_CONFIG } from './CONFIG';
 const { program, provider } = ENV_CONFIG
 
-async function main () {
+async function main() {
   const [extraRewardAccount, extraRewardBump] = await anchor.web3.PublicKey.findProgramAddress(
     [utf8.encode('extra')],
     program.programId
   );
-  await program.rpc.createExtraRewardConfigs(extraRewardBump, STAKING_CONFIG.REWARD_CONFIGS,
-  {
-      accounts: {
-        extraRewardAccount: extraRewardAccount,
-        authority: provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      }
+  await program.methods.createExtraRewardConfigs(extraRewardBump, STAKING_CONFIG.REWARD_CONFIGS)
+    .accounts({
+      extraRewardAccount: extraRewardAccount,
+      authority: provider.wallet.publicKey,
+      systemProgram: SystemProgram.programId,
     })
+    .rpc()
   const reward = await program.account.extraRewardsAccount.fetch(extraRewardAccount)
   console.log(reward)
 }

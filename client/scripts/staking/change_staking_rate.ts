@@ -10,23 +10,24 @@ const utf8 = anchor.utils.bytes.utf8;
 import { ENV_CONFIG, utils, STAKING_CONFIG } from './CONFIG';
 const { program, provider } = ENV_CONFIG
 
-async function main () {
+async function main() {
   let pools = await program.account.farmPoolAccount.all()
-  await program.rpc.changeTokensPerSecond(STAKING_CONFIG.STAKING_RATE, {
-    accounts: {
+  await program.methods.changeTokensPerSecond(STAKING_CONFIG.STAKING_RATE)
+    .accounts({
       state: await utils.getStateSigner(),
       authority: provider.wallet.publicKey,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
-    },
-    remainingAccounts: pools.map(p => ({
+    })
+    .remainingAccounts(pools.map(p => ({
       pubkey: p.publicKey,
       isWritable: true,
       isSigner: false
-    }))
-  })
+    })))
+    .rpc()
+
   let poolInfo = await program.account.farmPoolAccount.fetch(await utils.getPoolSigner())
   let stateInfo = await program.account.stateAccount.fetch(await utils.getStateSigner())
-  console.log({stateInfo, poolInfo})
+  console.log({ stateInfo, poolInfo })
 }
 
 console.log('Running client.');

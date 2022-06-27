@@ -10,15 +10,14 @@ const utf8 = anchor.utils.bytes.utf8;
 import { ENV_CONFIG, utils, STAKING_CONFIG } from './CONFIG';
 const { program, provider } = ENV_CONFIG
 
-async function main () {
-  await program.rpc.setExtraRewardConfigs(STAKING_CONFIG.REWARD_CONFIGS,
-  {
-      accounts: {
-        extraRewardAccount: await utils.getRewardConfigSigner(),
-        authority: provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      }
+async function main() {
+  await program.methods.setExtraRewardConfigs(STAKING_CONFIG.REWARD_CONFIGS)
+    .accounts({
+      extraRewardAccount: await utils.getRewardConfigSigner(),
+      authority: provider.wallet.publicKey,
+      systemProgram: SystemProgram.programId,
     })
+    .rpc()
   const reward = await program.account.extraRewardsAccount.fetch(await utils.getRewardConfigSigner())
   console.log(reward)
 }

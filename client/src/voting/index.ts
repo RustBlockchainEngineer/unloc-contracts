@@ -51,14 +51,14 @@ export const setVotingGlobalState = async (
   const globalState = await pda([VOTING_GLOBAL_STATE_TAG], votingProgramId);
   const superOwner = signer;
 
-  const tx = await votingProgram.rpc.setGlobalState(newSuperOwner,stakingPid, {
-    accounts: {
+  const tx = await votingProgram.methods.setGlobalState(newSuperOwner, stakingPid)
+    .accounts({
       superOwner,
       globalState,
       ...defaults,
-    },
-    signers,
-  });
+    })
+    .signers(signers)
+    .rpc()
 
   // eslint-disable-next-line no-console
   console.log("setGlobalState tx = ", tx);
@@ -86,20 +86,15 @@ export const createVoting = async (
   );
   const superOwner = signer;
 
-  const tx = await votingProgram.rpc.setVoting(
-    votingNumber,
-    votingStartTimestamp,
-    votingEndTimestamp,
-    {
-      accounts: {
-        superOwner,
-        globalState,
-        voting,
-        ...defaults,
-      },
-      signers,
-    }
-  );
+  const tx = await votingProgram.methods.setVoting(votingNumber, votingStartTimestamp, votingEndTimestamp)
+    .accounts({
+      superOwner,
+      globalState,
+      voting,
+      ...defaults,
+    })
+    .signers(signers)
+    .rpc()
 
   // eslint-disable-next-line no-console
   console.log("createVoting tx = ", tx);
@@ -119,20 +114,15 @@ export const setVoting = async (
   );
   const superOwner = signer;
 
-  const tx = await votingProgram.rpc.setVoting(
-    votingNumber,
-    votingStartTimestamp,
-    votingEndTimestamp,
-    {
-      accounts: {
-        superOwner,
-        globalState,
-        voting,
-        ...defaults,
-      },
-      signers,
-    }
-  );
+  const tx = await votingProgram.methods.setVoting(votingNumber, votingStartTimestamp, votingEndTimestamp)
+    .accounts({
+      superOwner,
+      globalState,
+      voting,
+      ...defaults,
+    })
+    .signers(signers)
+    .rpc()
 
   // eslint-disable-next-line no-console
   console.log("setVoting tx = ", tx);
@@ -150,24 +140,24 @@ export const setVotingItem = async (
     [VOTING_ITEM_TAG, voting.toBuffer(), collectionKey.toBuffer()],
     votingProgramId
   );
-  try{
-    const tx = await votingProgram.rpc.setVotingItem(collectionKey, {
-      accounts: {
+  try {
+    const tx = await votingProgram.methods.setVotingItem(collectionKey)
+      .accounts({
         superOwner,
         globalState,
         voting,
         votingItem,
         ...defaults,
-      },
-      signers,
-    });
-  
+      })
+      .signers(signers)
+      .rpc()
+
     // eslint-disable-next-line no-console
     console.log("setVotingItem tx = ", tx);
-  } catch(e) {
+  } catch (e) {
     console.log(e);
   }
-  
+
 };
 
 export const delVotingItem = async (
@@ -182,16 +172,16 @@ export const delVotingItem = async (
   );
   const voting = votingItemData.voting;
 
-  const tx = await votingProgram.rpc.setVotingItem({
-    accounts: {
+  const tx = await votingProgram.methods.delVotingItem()
+    .accounts({
       superOwner,
       globalState,
       voting,
       votingItem,
       ...defaults,
-    },
-    signers,
-  });
+    })
+    .signers(signers)
+    .rpc()
 
   // eslint-disable-next-line no-console
   console.log("delVotingItem tx = ", tx);
@@ -217,9 +207,9 @@ export const vote = async (
     [stakingPool.toBuffer(), user.toBuffer()],
     STAKING_PID
   );
-  try{
-    const tx = await votingProgram.rpc.vote({
-      accounts: {
+  try {
+    const tx = await votingProgram.methods.vote()
+      .accounts({
         user,
         globalState,
         voting,
@@ -227,13 +217,13 @@ export const vote = async (
         votingUser,
         stakingUser,
         ...defaults,
-      },
-      signers,
-    });
-  
+      })
+      .signers(signers)
+      .rpc()
+
     // eslint-disable-next-line no-console
     console.log("vote tx = ", tx);
-  } catch(e) {
+  } catch (e) {
     console.log(e);
   }
 };
