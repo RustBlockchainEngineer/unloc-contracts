@@ -10,7 +10,7 @@ const utf8 = anchor.utils.bytes.utf8;
 import { ENV_CONFIG, utils, STAKING_CONFIG } from './CONFIG';
 const { program, provider } = ENV_CONFIG
 
-async function main () {
+async function main() {
   const stateAccount = await utils.getStateAccount()
   const [poolSigner, poolBump] = await anchor.web3.PublicKey.findProgramAddress(
     [STAKING_CONFIG.REWARD_TOKEN_ID.toBuffer()],
@@ -18,8 +18,8 @@ async function main () {
   );
   const poolVault = await ENV_CONFIG.rewardToken.createAccount(poolSigner)
   let pools = await program.account.farmPoolAccount.all()
-  await program.rpc.createPool(poolBump, STAKING_CONFIG.POOL_POINT, STAKING_CONFIG.POOL_AMOUNT_MULTIPLIER, {
-    accounts: {
+  await program.methods.createPool(poolBump, STAKING_CONFIG.POOL_POINT, STAKING_CONFIG.POOL_AMOUNT_MULTIPLIER)
+    .accounts({
       pool: poolSigner,
       state: stateAccount.publicKey,
       mint: STAKING_CONFIG.REWARD_TOKEN_ID,
@@ -28,13 +28,14 @@ async function main () {
       tokenProgram: TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
       systemProgram: SystemProgram.programId,
-    },
-    remainingAccounts: pools.map(p => ({
+    })
+    .remainingAccounts(pools.map(p => ({
       pubkey: p.publicKey,
       isWritable: true,
       isSigner: false
-    }))
-  })
+    })))
+    .rpc()
+
 }
 
 console.log('Running client.');

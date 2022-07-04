@@ -74,27 +74,24 @@ export const setBuybackGlobalState = async (
   const wsolVault = await pda([WSOL_VAULT_SEED], buybackProgramId);
   const superOwner = signer;
 
-  const tx = await buybackProgram.rpc.setGlobalState(
-    newAuthority,
-    {
-      accounts: {
-        authority: superOwner,
-        globalState,
-        unlocMint: UNLOC_MINT,
-        unlocVault,
-        usdcMint: USDC_MINT,
-        usdcVault,
-        wsolMint: WSOL_MINT,
-        wsolVault,
-        ammProgram,
-        amm,
-        serumProgram,
-        serumMarket,
-        ...defaults,
-      },
-      signers,
-    }
-  );
+  const tx = await buybackProgram.methods.setGlobalState(newAuthority)
+    .accounts({
+      authority: superOwner,
+      globalState,
+      unlocMint: UNLOC_MINT,
+      unlocVault,
+      usdcMint: USDC_MINT,
+      usdcVault,
+      wsolMint: WSOL_MINT,
+      wsolVault,
+      ammProgram,
+      amm,
+      serumProgram,
+      serumMarket,
+      ...defaults,
+    })
+    .signers(signers)
+    .rpc()
 
   // eslint-disable-next-line no-console
   console.log("setGlobalState tx = ", tx);
@@ -105,16 +102,14 @@ export const burn = async () => {
   const globalState = await pda([BUYBACK_GLOBAL_STATE_SEED], buybackProgramId);
   const unlocVault = await pda([UNLOC_VAULT_SEED], buybackProgramId);
 
-  const tx = await buybackProgram.rpc.burn(
-    {
-      accounts: {
-        globalState,
-        unlocMint: UNLOC_MINT,
-        unlocVault,
-        ...defaults,
-      },
-    }
-  );
+  const tx = await buybackProgram.methods.burn()
+    .accounts({
+      globalState,
+      unlocMint: UNLOC_MINT,
+      unlocVault,
+      ...defaults,
+    })
+    .rpc()
 
   // eslint-disable-next-line no-console
   console.log("setGlobalState tx = ", tx);
@@ -152,35 +147,33 @@ export const buyback = async (
   const serumPcVaultAccount: PublicKey = market.decoded.quoteVault as any;
   const vaultOwnerData = await getVaultOwnerAndNonce(market.address, serumProgram);
   const serumVaultSigner = vaultOwnerData.vaultOwner
-  
+
   const unlocVault = await pda([UNLOC_VAULT_SEED], buybackProgramId);
   const usdcVault = await pda([USDC_VAULT_SEED], buybackProgramId);
 
-  const tx = await buybackProgram.rpc.buyback(
-    {
-      accounts: {
-        globalState,
-        ammProgram,
-        amm,
-        ammAuthority,
-        ammOpenOrders,
-        ammTargetOrders,
-        poolCoinTokenAccount,
-        poolPcTokenAccount,
-        serumProgram,
-        serumMarket,
-        serumBids,
-        serumAsks,
-        serumEventQueue,
-        serumCoinVaultAccount,
-        serumPcVaultAccount,
-        serumVaultSigner,
-        userSourceTokenAccount: usdcVault,
-        userDestinationTokenAccount: unlocVault,
-        splTokenProgram: defaults.tokenProgram,
-      },
-    }
-  );
+  const tx = await buybackProgram.methods.buyback()
+    .accounts({
+      globalState,
+      ammProgram,
+      amm,
+      ammAuthority,
+      ammOpenOrders,
+      ammTargetOrders,
+      poolCoinTokenAccount,
+      poolPcTokenAccount,
+      serumProgram,
+      serumMarket,
+      serumBids,
+      serumAsks,
+      serumEventQueue,
+      serumCoinVaultAccount,
+      serumPcVaultAccount,
+      serumVaultSigner,
+      userSourceTokenAccount: usdcVault,
+      userDestinationTokenAccount: unlocVault,
+      splTokenProgram: defaults.tokenProgram,
+    })
+    .rpc()
 
   // eslint-disable-next-line no-console
   console.log("setGlobalState tx = ", tx);

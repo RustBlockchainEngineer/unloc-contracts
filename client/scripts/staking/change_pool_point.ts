@@ -10,10 +10,10 @@ const utf8 = anchor.utils.bytes.utf8;
 import { ENV_CONFIG, utils, STAKING_CONFIG } from './CONFIG';
 const { program, provider } = ENV_CONFIG
 
-async function main () {
+async function main() {
   let pools = await program.account.farmPoolAccount.all()
   const stateAccount = await utils.getStateAccount()
-  await program.rpc.changePoolPoint(STAKING_CONFIG.POOL_POINT, {
+  await program.methods.changePoolPoint(STAKING_CONFIG.POOL_POINT, {
     accounts: {
       pool: await utils.getPoolSigner(),
       state: stateAccount.publicKey,
@@ -25,7 +25,7 @@ async function main () {
       isWritable: true,
       isSigner: false
     }))
-  })
+  }).rpc()
   let poolInfo = await program.account.farmPoolAccount.fetch(await utils.getPoolSigner())
   console.log(poolInfo)
 }

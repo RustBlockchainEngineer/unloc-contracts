@@ -10,20 +10,15 @@ const utf8 = anchor.utils.bytes.utf8;
 import { ENV_CONFIG, utils, STAKING_CONFIG } from './CONFIG';
 const { program, provider } = ENV_CONFIG
 
-async function main () {
-  const {rewardToken} = ENV_CONFIG
+async function main() {
+  const { rewardToken } = ENV_CONFIG
   const [stateSigner, stateBump] = await anchor.web3.PublicKey.findProgramAddress(
     [utf8.encode('state')],
     program.programId
   );
   const stateRewardVault = await rewardToken.createAccount(stateSigner)
-  await program.rpc.createState(
-    stateBump, 
-    STAKING_CONFIG.STAKING_RATE, 
-    new BN(0),
-    [new BN(0)],
-    {
-    accounts: {
+  await program.methods.createState(stateBump, STAKING_CONFIG.STAKING_RATE, new BN(0), [new BN(0)])
+    .accounts({
       state: stateSigner,
       rewardMint: rewardToken.publicKey,
       rewardVault: stateRewardVault,
@@ -32,8 +27,8 @@ async function main () {
       tokenProgram: TOKEN_PROGRAM_ID,
       clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
       systemProgram: SystemProgram.programId,
-    }
-  })
+    })
+    .rpc()
   const stateInfo = await program.account.stateAccount.fetch(stateSigner)
   console.log(stateInfo)
 }

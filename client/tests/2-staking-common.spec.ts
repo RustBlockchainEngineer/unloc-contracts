@@ -1,11 +1,11 @@
 import * as anchor from '@project-serum/anchor';
-const {BN, web3} = anchor
+const { BN, web3 } = anchor
 import { TOKEN_PROGRAM_ID, Token, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import _ from 'lodash';
 import assert from 'assert';
 import { assertError, wrapError } from './staking-utils';
 
-import {IDL as stakingIDL, UnlocStaking} from '../src/types/unloc_staking'
+import { IDL as stakingIDL, UnlocStaking } from '../src/types/unloc_staking'
 import { Connection, Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 import { changeStakingTokenPerSecond, createStakingState, createStakingUser, harvest, initStakingProgram, stake as unlocStake, unstake as unlocUnstake } from '../src';
 
@@ -49,14 +49,14 @@ initStakingProgram(cccc, new anchor.Wallet(superOwnerKeypair), program.programId
 
 
 const borrower1 = {
-  lastHarvestTime1: 0, 
-  user: borrower1Keypair, 
-  publicKey: borrower1Keypair.publicKey, 
-  wallet: new anchor.Wallet(borrower1Keypair), 
-  provider: new anchor.AnchorProvider(connection, new anchor.Wallet(borrower1Keypair), {commitment: 'confirmed'}), 
-  userAccount1: borrower1Keypair.publicKey, 
-  bump1: 255, 
-  rewardUserVault: borrower1Keypair.publicKey, 
+  lastHarvestTime1: 0,
+  user: borrower1Keypair,
+  publicKey: borrower1Keypair.publicKey,
+  wallet: new anchor.Wallet(borrower1Keypair),
+  provider: new anchor.AnchorProvider(connection, new anchor.Wallet(borrower1Keypair), { commitment: 'confirmed' }),
+  userAccount1: borrower1Keypair.publicKey,
+  bump1: 255,
+  rewardUserVault: borrower1Keypair.publicKey,
   rewardAmount: new anchor.BN(0)
 }
 let users = _.map(new Array(10), () => {
@@ -65,11 +65,11 @@ let users = _.map(new Array(10), () => {
   const rewardUserVault = user.publicKey
   const rewardAmount = new anchor.BN(0)
   const wallet = new anchor.Wallet(user)
-  const provider = new anchor.AnchorProvider(connection, wallet, {commitment: 'confirmed'})
+  const provider = new anchor.AnchorProvider(connection, wallet, { commitment: 'confirmed' })
   const userAccount1 = user.publicKey
   const bump1 = 255;
 
-  return { lastHarvestTime1: 0, user, publicKey, wallet, provider, userAccount1, bump1, rewardUserVault, rewardAmount}
+  return { lastHarvestTime1: 0, user, publicKey, wallet, provider, userAccount1, bump1, rewardUserVault, rewardAmount }
 })
 users[1] = borrower1;
 const [master, user1, user2, user3, user4] = users
@@ -125,86 +125,91 @@ describe('staking-common', () => {
     try {
       await createStakingState(connection, superOwnerKeypair, tokenPerSecond, 1000, [new BN(100), new BN(1000)], rewardMint.publicKey.toBase58())
     }
-    catch(e) {
+    catch (e) {
       console.log(e);
     }
     const stateInfo = await program.account.stateAccount.fetch(stateSigner)
     assert.ok(stateInfo.tokenPerSecond.eq(new BN(tokenPerSecond)))
   })
   it('Create ExtraReward', async function () {
-    await program.rpc.createExtraRewardConfigs(extraRewardBump, [
+    await program.methods.createExtraRewardConfigs(extraRewardBump, [
       { duration: new BN(0), extraPercentage: getNumber(0) },
-    ], {
-      accounts: {
+    ])
+      .accounts({
         extraRewardAccount: extraRewardSigner,
         authority: creatorKey,
         ...defaultAccounts
-      },
-    })
-    await program.rpc.setExtraRewardConfigs([
+      })
+      .rpc()
+
+    await program.methods.setExtraRewardConfigs([
       { duration: new BN(0), extraPercentage: getNumber(0) },
       { duration: new BN(1), extraPercentage: getNumber(50) },
       { duration: new BN(2), extraPercentage: getNumber(100) },
-    ], {
-      accounts: {
+    ])
+      .accounts({
         extraRewardAccount: extraRewardSigner,
         authority: creatorKey,
         ...defaultAccounts
-      },
-    })
+      })
+      .rpc()
+
     const extraRewardConfigs = await program.account.extraRewardsAccount.fetch(extraRewardSigner)
     assert.ok((extraRewardConfigs.configs as any).length === 3)
     assert.ok(new BN(1).eq((extraRewardConfigs.configs as any)[1].duration))
     assert.ok(getNumber(50).eq((extraRewardConfigs.configs as any)[1].extraPercentage))
   })
-  
+
   it('Create Pool', async function () {
     let pools = await program.account.farmPoolAccount.all()
-    await program.rpc.createPool(poolBump, new BN('0'), new BN('0'), {
-      accounts: {
+    await program.methods.createPool(poolBump, new BN('0'), new BN('0'))
+      .accounts({
         pool: poolSigner,
         state: stateSigner,
         mint: rewardMint.publicKey,
         vault: poolVault,
         authority: creatorKey,
         ...defaultAccounts
-      },
-      remainingAccounts: pools.map(p => ({
+      })
+      .remainingAccounts(pools.map(p => ({
         pubkey: p.publicKey,
         isWritable: true,
         isSigner: false
-      }))
-    })
+      })))
+      .rpc()
+
     pools = await program.account.farmPoolAccount.all()
-    await program.rpc.closePool({
-      accounts: {
+    await program.methods.closePool()
+      .accounts({
         pool: poolSigner,
         state: stateSigner,
         authority: creatorKey,
         ...defaultAccounts
-      },
-      remainingAccounts: pools.map(p => ({
+      })
+      .remainingAccounts(pools.map(p => ({
         pubkey: p.publicKey,
         isWritable: true,
         isSigner: false
-      }))
-    })
+      })))
+      .rpc()
+
     pools = await program.account.farmPoolAccount.all()
-    await program.rpc.createPool(poolBump, new BN('0'), new BN('0'), {
-      accounts: {
+    await program.methods.createPool(poolBump, new BN('0'), new BN('0'))
+      .accounts({
         pool: poolSigner,
         state: stateSigner,
         mint: rewardMint.publicKey,
         vault: poolVault,
         authority: creatorKey,
         ...defaultAccounts
-      },
-      remainingAccounts: pools.map(p => ({
+      })
+      .remainingAccounts(pools.map(p => ({
         pubkey: p.publicKey,
         isWritable: true,
         isSigner: false
-      }))
-    })
+      })))
+      .rpc()
+
     let stateInfo = await program.account.stateAccount.fetch(stateSigner)
     let poolInfo = await program.account.farmPoolAccount.fetch(poolSigner)
     assert.ok(poolInfo.point.eq(stateInfo.totalPoint))
@@ -225,44 +230,46 @@ describe('staking-common', () => {
     await master.provider.sendAndConfirm(tx, [], {})
   })
   it('changePoolAmountMultipler', async function () {
-    await program.rpc.changePoolAmountMultipler(new BN(1), {
-      accounts: {
+    await program.methods.changePoolAmountMultipler(new BN(1))
+      .accounts({
         pool: poolSigner,
         state: stateSigner,
         authority: creatorKey,
         ...defaultAccounts
-      }
-    })
+      })
+      .rpc()
+
     let poolInfo = await program.account.farmPoolAccount.fetch(poolSigner)
     assert.ok(poolInfo.amountMultipler.eq(new BN(1)))
   })
   it('changePoolPoint', async function () {
     let pools = await program.account.farmPoolAccount.all()
-    await program.rpc.changePoolPoint(new BN(1000), {
-      accounts: {
+    await program.methods.changePoolPoint(new BN(1000))
+      .accounts({
         pool: poolSigner,
         state: stateSigner,
         authority: creatorKey,
         ...defaultAccounts
-      },
-      remainingAccounts: pools.map(p => ({
+      })
+      .remainingAccounts(pools.map(p => ({
         pubkey: p.publicKey,
         isWritable: true,
         isSigner: false
-      }))
-    })
+      })))
+      .rpc()
+
     let stateInfo = await program.account.stateAccount.fetch(stateSigner)
     let poolInfo = await program.account.farmPoolAccount.fetch(poolSigner)
     assert.ok(poolInfo.point.eq(stateInfo.totalPoint))
     assert.ok(poolInfo.point.eq(new BN(1000)))
   })
   it('Create User', async function () {
-    for(let i = 0; i < users.length; i++) {
+    for (let i = 0; i < users.length; i++) {
       const u = users[i];
       await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user]);
     }
   })
-  
+
   it('Stake invalid lock duration', async function () {
     await assertError(stake(user1, new BN(100), 4), undefined)
   })
@@ -284,7 +291,7 @@ describe('staking-common', () => {
       assert.ok(userInfo.lockDuration.toNumber() === 0);
     })
   })
-  
+
   it('Harvest', async function () {
     // 2s
     await guardTime(2000, async () => {
@@ -313,46 +320,46 @@ describe('staking-common', () => {
   it('ChangeTokenPerSecond', async function () {
     const pools = await program.account.farmPoolAccount.all()
     await Promise.all([
-      unlocHarvest(user1), 
-      unlocHarvest(user2), 
-      changeStakingTokenPerSecond(connection, provider.wallet,pools, 40)
+      unlocHarvest(user1),
+      unlocHarvest(user2),
+      changeStakingTokenPerSecond(connection, provider.wallet, pools, 40)
     ])
     const state = await program.account.stateAccount.fetch(stateSigner)
     const tokenPerSecond = state.tokenPerSecond.toNumber();
     assert.ok(tokenPerSecond === 40);
   })
-  
+
 })
 
-async function guardTime (time, fn) {
+async function guardTime(time, fn) {
   let completed = false
   let tooShort = false
   await Promise.all([fn().then(() => completed = true), sleep(time).then(() => tooShort = !completed)])
   if (tooShort) console.error('SHORT')
 }
 
-async function assertUserReward (user, amount, showthrow = true) {
+async function assertUserReward(user, amount, showthrow = true) {
   const realAmount = await getRewardTokenAmount(user.rewardUserVault)
   user.rewardAmount = realAmount
   if (showthrow)
     assert.ok(new BN(amount.toString()).eq(realAmount), `Expected ${amount.toString()} but got ${realAmount.toString()}`)
 }
 
-async function unstake (u, amount) {
+async function unstake(u, amount) {
   const hash = await unlocUnstake(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), poolVault.toBase58(), u.rewardUserVault.toBase58(), amount, [u.user])
   return hash
 }
 
-async function unlocHarvest (u) {
-  const hash = await harvest(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), rewardMint.publicKey.toBase58(),u.rewardUserVault.toBase58(), stateRewardVault.toBase58(), [u.user] );
+async function unlocHarvest(u) {
+  const hash = await harvest(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), u.rewardUserVault.toBase58(), stateRewardVault.toBase58(), [u.user]);
   return hash
 }
 
-async function stake (u, amount, lock = 0) {
-    const hash = await unlocStake(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), poolVault.toBase58(), u.rewardUserVault.toBase58(), amount, lock, [u.user])
-    return hash
+async function stake(u, amount, lock = 0) {
+  const hash = await unlocStake(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), poolVault.toBase58(), u.rewardUserVault.toBase58(), amount, lock, [u.user])
+  return hash
 }
-async function createMint (provider, authority, decimals = 9) {
+async function createMint(provider, authority, decimals = 9) {
   if (authority === undefined) {
     authority = superOwnerKeypair.publicKey;
   }
@@ -367,19 +374,19 @@ async function createMint (provider, authority, decimals = 9) {
   return mint;
 }
 
-function getNumber (num) {
+function getNumber(num) {
   return new BN(num * 10 ** 9)
 }
-function sleep (ms) {
+function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function getOrCreateAssociatedSPL (provider, mint) {
+async function getOrCreateAssociatedSPL(provider, mint) {
   const owner = provider.wallet.publicKey
   const ata = await Token.getAssociatedTokenAddress(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint.publicKey, owner, true)
   try {
     const res = await (provider.connection as Connection).getAccountInfo(ata)
-    if(!res){
+    if (!res) {
       const tx = new Transaction()
       tx.add(Token.createAssociatedTokenAccountInstruction(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, mint.publicKey, ata, owner, owner))
       await provider.sendAndConfirm(tx, [], {})
@@ -392,7 +399,7 @@ async function getOrCreateAssociatedSPL (provider, mint) {
   return ata
 }
 
-async function getRewardTokenAmount (account) {
+async function getRewardTokenAmount(account) {
   const tokenAcc = await rewardMint.getAccountInfo(account)
   const amount = tokenAcc.amount;
   return amount;
