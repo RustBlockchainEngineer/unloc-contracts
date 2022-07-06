@@ -6,3 +6,5 @@ target
 node_modules
 Cargo.lock
 **/.coderrect/*
+.crates
+dist
