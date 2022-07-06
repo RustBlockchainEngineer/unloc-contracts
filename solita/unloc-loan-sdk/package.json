@@ -1,0 +1,34 @@
+{
+  "name": "@unloc-dev/unloc-loan-solita",
+  "version": "1.0.0",
+  "description": "UNLOC-loan auto-generated SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "check:publish-ready": "yarn build",
+    "build": "rm -rf ./dist && tsc -p tsconfig.json",
+    "preversion": "yarn check:publish-ready",
+    "postversion": "git add package.json && git commit -m \"chore: update $npm_package_name to v$npm_package_version\" && git tag $npm_package_name@$npm_package_version",
+    "prepublish": "yarn check:publish-ready",
+    "api:gen": "DEBUG='(solita|rustbin):(info|error)' solita && mkdir -p ./src/idl && cp ../../target/idl/unloc_loan.json ./src/idl/.",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "files": [
+    "/dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "devDependencies": {
+    "@metaplex-foundation/solita": "^0.11.0",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.2.0",
+    "@solana/web3.js": "^1.47.3"
+  }
+}
