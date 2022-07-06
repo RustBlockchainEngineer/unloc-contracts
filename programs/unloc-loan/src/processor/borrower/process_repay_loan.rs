@@ -6,6 +6,10 @@ use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account}
 use std::str::FromStr;
 
 pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
+
+    require!(ctx.accounts.offer.state == OfferState::get_state(OfferState::Accepted), LoanError::NotAllowed);
+    require!(ctx.accounts.sub_offer.state == SubOfferState::get_state(SubOfferState::Accepted), LoanError::NotAllowed);
+
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let reward_vault_amount = ctx.accounts.reward_vault.amount;
     ctx.accounts.global_state.distribute(
@@ -19,8 +23,6 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     ctx.accounts
         .sub_offer
         .update_rps(&ctx.accounts.global_state, &offer_mint)?;
-
-    require(ctx.accounts.lender.key() == ctx.accounts.sub_offer.lender)?;
 
     let borrower_key = ctx.accounts.borrower.key();
     let origin = ctx.accounts.sub_offer.offer_amount;
@@ -172,7 +174,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
 
     // Revoke with offer PDA
     token::revoke(ctx.accounts.into_revoke_context())?;
-
+    
     ctx.accounts.offer.state = OfferState::get_state(OfferState::NFTClaimed);
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::NFTClaimed);
     Ok(())
@@ -207,6 +209,7 @@ pub struct RepayLoan<'info> {
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
     bump,
+    has_one = lender
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
 

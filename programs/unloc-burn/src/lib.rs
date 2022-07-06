@@ -33,6 +33,7 @@ pub mod unloc_burn {
     use super::*;
     pub fn set_global_state(ctx: Context<SetGlobalState>, 
         new_authority: Pubkey,
+        new_burner: Pubkey,
     ) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
         let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
@@ -52,6 +53,10 @@ pub mod unloc_burn {
         ctx.accounts.global_state.amm = ctx.accounts.amm.key();
         ctx.accounts.global_state.serum_program = ctx.accounts.serum_program.key();
         ctx.accounts.global_state.serum_market = ctx.accounts.serum_market.key();
+        ctx.accounts.global_state.unloc_vault = ctx.accounts.unloc_vault.key();
+        ctx.accounts.global_state.usdc_vault = ctx.accounts.usdc_vault.key();
+        ctx.accounts.global_state.wsol_vault = ctx.accounts.wsol_vault.key();
+        ctx.accounts.global_state.burner = new_burner;
 
         Ok(())
     }
@@ -171,8 +176,11 @@ pub struct Buyback<'info> {
         mut,
         seeds = [GLOBAL_STATE_SEED],
         bump,
+        has_one = burner
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
+    #[account(mut)]
+    pub burner:  Signer<'info>,
 
     /// CHECK: Safe
     pub amm_program: AccountInfo<'info>,
@@ -232,6 +240,11 @@ impl<'a, 'b, 'c, 'info> Buyback<'info> {
         require(self.global_state.amm == self.amm.key(), "wrong amm")?;
         require(self.global_state.serum_program == self.serum_program.key(), "wrong serum_program")?;
         require(self.global_state.serum_market == self.serum_market.key(), "wrong serum_market")?;
+        require(
+            || self.global_state.usdc_vault == self.user_source_token_account.key()
+            || self.global_state.wsol_vault == self.user_source_token_account.key()
+            , "wrong token account")?;
+        require(self.global_state.unloc_vault == self.user_source_token_account.key() , "wrong token account")?;
 
         Ok(())
     }
@@ -267,8 +280,11 @@ pub struct BurnUnloc <'info> {
         mut,
         seeds = [GLOBAL_STATE_SEED],
         bump,
+        has_one = burner
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
+    #[account(mut)]
+    pub burner:  Signer<'info>,
     #[account(mut)]
     pub unloc_mint: Box<Account<'info, Mint>>,
     #[account(
@@ -283,11 +299,15 @@ pub struct BurnUnloc <'info> {
 #[derive(Default)]
 pub struct GlobalState {
     pub authority: Pubkey,
+    pub burner: Pubkey,
 
     pub amm_program: Pubkey,
     pub amm: Pubkey,
     pub serum_program: Pubkey,
     pub serum_market: Pubkey,
+    pub usdc_vault: Pubkey,
+    pub unloc_vault: Pubkey,
+    pub wsol_vault: Pubkey,
 }
 
 

@@ -79,6 +79,7 @@ pub struct SetSubOffer<'info> {
     )]
     pub offer:Box<Account<'info, Offer>>,
 
+    // init_if_needed is safe above solana-program v1.10.29
     #[account(
     init_if_needed,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer_number.to_be_bytes()],

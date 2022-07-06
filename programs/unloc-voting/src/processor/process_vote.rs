@@ -13,7 +13,9 @@ pub fn process_vote(ctx: Context<Vote>) -> Result<()> {
     ctx.accounts.voting_user.voting = ctx.accounts.voting.key();
     ctx.accounts.voting_user.voting_item = ctx.accounts.voting_item.key();
     ctx.accounts.voting_user.voting_score = ctx.accounts.staking_user.unloc_score;
+
     ctx.accounts.voting.total_score += ctx.accounts.voting_user.voting_score;
+    
     ctx.accounts.voting_item.voting_score += ctx.accounts.voting_user.voting_score;
 
     Ok(())

@@ -23,6 +23,7 @@ pub struct DelVotingItem<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump,
+        has_one = super_owner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 
