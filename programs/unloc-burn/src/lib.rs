@@ -244,7 +244,7 @@ impl<'a, 'b, 'c, 'info> Buyback<'info> {
             || self.global_state.usdc_vault == self.user_source_token_account.key()
             || self.global_state.wsol_vault == self.user_source_token_account.key()
             , "wrong token account")?;
-        require(self.global_state.unloc_vault == self.user_source_token_account.key() , "wrong token account")?;
+        require(self.global_state.unloc_vault == self.user_destination_token_account.key() , "wrong token account")?;
 
         Ok(())
     }
