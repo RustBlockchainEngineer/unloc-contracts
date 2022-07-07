@@ -57,6 +57,7 @@ pub fn accept_offer(ctx: Context<AcceptOffer>, total_point: u128, collection_poi
 
     require(ctx.accounts.sub_offer.sub_offer_number >= ctx.accounts.offer.start_sub_offer_num)?;
     require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed))?;
+    require(ctx.accounts.sub_offer.state != SubOfferState::get_state(SubOfferState::Canceled))?;
 
     if ctx.accounts.offer_mint.key() == wsol_mint {
         require(ctx.accounts.lender.lamports() >= ctx.accounts.sub_offer.offer_amount)?;
