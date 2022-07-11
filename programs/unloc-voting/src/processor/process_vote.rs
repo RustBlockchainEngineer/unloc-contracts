@@ -62,7 +62,7 @@ pub struct Vote<'info> {
 
     #[account(
         mut,
-        seeds = [staking_user.pool.as_ref(), staking_user.authority.as_ref()], 
+        seeds = [staking_user.pool.as_ref(), user.key().as_ref()], 
         seeds::program = global_state.staking_pid,
         bump
     )]
