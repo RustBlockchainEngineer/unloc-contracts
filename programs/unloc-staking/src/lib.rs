@@ -14,6 +14,7 @@ declare_id!("EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU");
 
 const DEVNET_MODE:bool = true;
 
+pub const INITIAL_OWNER:&str = "atPFsAVbFFpgtdDoXMyVnp3696PZVfJ3MGQp6CiuZfW";
 const FULL_100: u64 = 100_000_000_000;
 const ACC_PRECISION: u128 = 100_000_000_000;
 const MAX_LEVEL: usize = 10;
@@ -30,6 +31,9 @@ pub mod unloc_staking {
         early_unlock_fee: u64,
         profile_levels: Vec<u128>,
     ) -> Result<()> {
+        let initial_owner = Pubkey::from_str(INITIAL_OWNER).unwrap();
+        require!(initial_owner == _ctx.accounts.authority.key(), StakingError::InvalidOwner);
+
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
 
         require!(_ctx.accounts.reward_mint.key() == unloc_mint, StakingError::InvalidMint);
@@ -543,6 +547,12 @@ pub struct ChangePoolSetting<'info> {
 #[derive(Accounts)]
 #[instruction(bump: u8)]
 pub struct CreateExtraRewardsConfigs<'info> {
+    #[account(mut, 
+        seeds = [b"state".as_ref()], 
+        bump = state.bump,
+        has_one = authority
+    )]
+    pub state: Account<'info, StateAccount>,
     #[account(init, 
         seeds = [b"extra".as_ref()], bump, payer = authority, space = 8 + 37 + MAX_LEVEL * 16)]
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
@@ -567,6 +577,7 @@ pub struct SetExtraRewardsConfigs<'info> {
 #[derive(Accounts)]
 #[instruction(bump: u8)]
 pub struct CreatePoolUser<'info> {
+    // this user account will be remained forever. we don't delete these accounts for permanent history
     #[account(
         init,
         seeds = [pool.key().as_ref(), authority.key().as_ref()],

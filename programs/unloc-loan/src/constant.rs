@@ -51,3 +51,4 @@ pub const DIFF_SOL_USDC_DECIMALS: u128 = 1000;
 
 pub const CHAINLINK_SOL_FEED:&str = "CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq";
 pub const CHAINLINK_USDC_FEED:&str = "7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G";
+pub const INITIAL_OWNER:&str = "atPFsAVbFFpgtdDoXMyVnp3696PZVfJ3MGQp6CiuZfW";
