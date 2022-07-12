@@ -1,6 +1,7 @@
 use crate::error::*;
 use anchor_lang::prelude::*;
 
+
 pub trait SafeCalc<T> {
     fn safe_add(&self, num: T) -> Result<T>;
     fn safe_sub(&self, num: T) -> Result<T>;

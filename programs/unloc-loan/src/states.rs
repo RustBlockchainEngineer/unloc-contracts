@@ -66,10 +66,7 @@ impl GlobalState {
         let delta_duration = current_time.safe_sub(self.last_distributed_time)?;
         let remained_rewards = self.funded_amount.safe_sub(self.distributed_amount)?;
 
-        require!(
-            remained_rewards <= reward_vault_amount,
-            LoanError::NotAllowed
-        );
+        require_eq!(remained_rewards, reward_vault_amount);
 
         let reward_rate = self.reward_rate;
         let mut delta_rewards = reward_rate.safe_mul(delta_duration)?;

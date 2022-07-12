@@ -51,6 +51,7 @@ pub struct Vote<'info> {
     )]
     pub voting_item:Box<Account<'info, VotingItem>>,
 
+    // this voting_user account will be remained forever. we don't delete these accounts for permanent history
     #[account(
         init,
         seeds = [VOTING_USER_TAG, voting.key().as_ref(), user.key().as_ref()],

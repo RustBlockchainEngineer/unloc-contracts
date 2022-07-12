@@ -14,6 +14,7 @@ declare_id!("EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU");
 
 const DEVNET_MODE:bool = true;
 
+pub const INITIAL_OWNER:&str = "atPFsAVbFFpgtdDoXMyVnp3696PZVfJ3MGQp6CiuZfW";
 const FULL_100: u64 = 100_000_000_000;
 const ACC_PRECISION: u128 = 100_000_000_000;
 const MAX_LEVEL: usize = 10;
@@ -30,10 +31,13 @@ pub mod unloc_staking {
         early_unlock_fee: u64,
         profile_levels: Vec<u128>,
     ) -> Result<()> {
+        let initial_owner = Pubkey::from_str(INITIAL_OWNER).unwrap();
+        require_keys_eq!(initial_owner, _ctx.accounts.authority.key());
+
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
 
-        require!(_ctx.accounts.reward_mint.key() == unloc_mint, StakingError::InvalidMint);
-        require!(_ctx.accounts.reward_vault.mint == unloc_mint, StakingError::InvalidMint);
+        require_keys_eq!(_ctx.accounts.reward_mint.key(),  unloc_mint);
+        require_keys_eq!(_ctx.accounts.reward_vault.mint, unloc_mint);
         require!(profile_levels.len() <= MAX_PROFILE_LEVEL, StakingError::OverflowMaxProfileLevel);
         let state = &mut _ctx.accounts.state;
         state.authority = _ctx.accounts.authority.key();
@@ -130,8 +134,8 @@ pub mod unloc_staking {
     ) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
 
-        require!(_ctx.accounts.mint.key() == unloc_mint, StakingError::InvalidMint);
-        require!(_ctx.accounts.vault.mint == unloc_mint, StakingError::InvalidMint);
+        require_keys_eq!(_ctx.accounts.mint.key(), unloc_mint);
+        require_keys_eq!(_ctx.accounts.vault.mint, unloc_mint);
 
         let state = &mut _ctx.accounts.state;
         for pool_acc in _ctx.remaining_accounts.iter() {
@@ -163,7 +167,7 @@ pub mod unloc_staking {
             loader.update(state, &_ctx.accounts.clock)?;
         }
         let pool = &_ctx.accounts.pool;
-        require!(pool.amount == 0, StakingError::WorkingPool);
+        require_eq!(pool.amount, 0);
         state.total_point = state.total_point.safe_sub(pool.point)?;
         Ok(())
     }
@@ -218,10 +222,7 @@ pub mod unloc_staking {
 
     
     pub fn stake(_ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()> {
-        require!(
-            _ctx.accounts.user_vault.owner == _ctx.accounts.authority.key(),
-            StakingError::InvalidOwner
-        );
+        require_keys_eq!(_ctx.accounts.user_vault.owner, _ctx.accounts.authority.key());
 
         let state = &_ctx.accounts.state;
         let extra_account = &mut _ctx.accounts.extra_reward_account;
@@ -543,6 +544,12 @@ pub struct ChangePoolSetting<'info> {
 #[derive(Accounts)]
 #[instruction(bump: u8)]
 pub struct CreateExtraRewardsConfigs<'info> {
+    #[account(mut, 
+        seeds = [b"state".as_ref()], 
+        bump = state.bump,
+        has_one = authority
+    )]
+    pub state: Account<'info, StateAccount>,
     #[account(init, 
         seeds = [b"extra".as_ref()], bump, payer = authority, space = 8 + 37 + MAX_LEVEL * 16)]
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
@@ -567,6 +574,7 @@ pub struct SetExtraRewardsConfigs<'info> {
 #[derive(Accounts)]
 #[instruction(bump: u8)]
 pub struct CreatePoolUser<'info> {
+    // this user account will be remained forever. we don't delete these accounts for permanent history
     #[account(
         init,
         seeds = [pool.key().as_ref(), authority.key().as_ref()],

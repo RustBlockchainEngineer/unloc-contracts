@@ -23,10 +23,12 @@ pub const WSOL_VAULT_SEED:&[u8] = b"WSOL_VAULT_SEED";
 pub const USDC_VAULT_SEED:&[u8] = b"USDC_VAULT_SEED";
 
 
+
 const DEVNET_MODE:bool = true;
 pub const WSOL_MINT:&str = "So11111111111111111111111111111111111111112";
 pub const USDC_MINT:&str = if DEVNET_MODE {"GH1gUyAw7ems5MD46WGC9JPMHncLVBkHagpXgtYVUyPr"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
 pub const UNLOC_MINT:&str = if DEVNET_MODE {"Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67D4s3kRmut"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
+pub const INITIAL_OWNER:&str = "atPFsAVbFFpgtdDoXMyVnp3696PZVfJ3MGQp6CiuZfW";
 
 #[program]
 pub mod unloc_burn {
@@ -38,11 +40,14 @@ pub mod unloc_burn {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
         let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
         let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
+        
         require(ctx.accounts.unloc_mint.key() == unloc_mint, "wrong unloc_mint")?;
         require(ctx.accounts.usdc_mint.key() == usdc_mint, "wrong usdc_mint")?;
         require(ctx.accounts.wsol_mint.key() == wsol_mint, "wrong wsol_mint")?;
 
         if is_zero_account(&ctx.accounts.global_state.to_account_info()) {
+            let initial_owner = Pubkey::from_str(INITIAL_OWNER).unwrap();
+            require_keys_eq!(initial_owner, ctx.accounts.authority.key());
             ctx.accounts.global_state.authority = ctx.accounts.authority.key();
         }
         require(ctx.accounts.global_state.authority == ctx.accounts.authority.key(), "wrong authority of global state")?;
@@ -241,7 +246,7 @@ impl<'a, 'b, 'c, 'info> Buyback<'info> {
         require(self.global_state.serum_program == self.serum_program.key(), "wrong serum_program")?;
         require(self.global_state.serum_market == self.serum_market.key(), "wrong serum_market")?;
         require(
-            || self.global_state.usdc_vault == self.user_source_token_account.key()
+            self.global_state.usdc_vault == self.user_source_token_account.key()
             || self.global_state.wsol_vault == self.user_source_token_account.key()
             , "wrong token account")?;
         require(self.global_state.unloc_vault == self.user_destination_token_account.key() , "wrong token account")?;
