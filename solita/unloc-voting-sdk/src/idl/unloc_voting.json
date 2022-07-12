@@ -1,0 +1,446 @@
+{
+  "version": "0.1.0",
+  "name": "unloc_voting",
+  "constants": [
+    {
+      "name": "GLOBAL_STATE_TAG",
+      "type": {
+        "defined": "&[u8]"
+      },
+      "value": "b\"GLOBAL_STATE_TAG\""
+    },
+    {
+      "name": "VOTING_TAG",
+      "type": {
+        "defined": "&[u8]"
+      },
+      "value": "b\"VOTING_TAG\""
+    },
+    {
+      "name": "VOTING_ITEM_TAG",
+      "type": {
+        "defined": "&[u8]"
+      },
+      "value": "b\"VOTING_ITEM_TAG\""
+    },
+    {
+      "name": "VOTING_USER_TAG",
+      "type": {
+        "defined": "&[u8]"
+      },
+      "value": "b\"VOTING_USER_TAG\""
+    }
+  ],
+  "instructions": [
+    {
+      "name": "setGlobalState",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "newSuperOwner",
+          "type": "publicKey"
+        },
+        {
+          "name": "stakingPid",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "setVoting",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "voting",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "votingNumber",
+          "type": "u64"
+        },
+        {
+          "name": "votingStartTimestamp",
+          "type": "u64"
+        },
+        {
+          "name": "votingEndTimestamp",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "setVotingItem",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "voting",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "votingItem",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "key",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "vote",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "voting",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "votingItem",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "votingUser",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stakingUser",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "delVotingItem",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "voting",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "votingItem",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "GlobalState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "superOwner",
+            "type": "publicKey"
+          },
+          {
+            "name": "stakingPid",
+            "type": "publicKey"
+          },
+          {
+            "name": "votingCount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Voting",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "votingNumber",
+            "type": "u64"
+          },
+          {
+            "name": "votingStartTimestamp",
+            "type": "u64"
+          },
+          {
+            "name": "votingEndTimestamp",
+            "type": "u64"
+          },
+          {
+            "name": "totalScore",
+            "type": "u128"
+          },
+          {
+            "name": "totalItems",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VotingItem",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "key",
+            "type": "publicKey"
+          },
+          {
+            "name": "voting",
+            "type": "publicKey"
+          },
+          {
+            "name": "votingScore",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VotingUser",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "publicKey"
+          },
+          {
+            "name": "voting",
+            "type": "publicKey"
+          },
+          {
+            "name": "votingItem",
+            "type": "publicKey"
+          },
+          {
+            "name": "votingScore",
+            "type": "u128"
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "VotingCreated",
+      "fields": []
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "You are not authorized to perform this action."
+    },
+    {
+      "code": 6001,
+      "name": "AlreadyInUse",
+      "msg": "AlreadyInUse"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidProgramAddress",
+      "msg": "InvalidProgramAddress"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidState",
+      "msg": "InvalidState"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidOwner",
+      "msg": "InvalidOwner"
+    },
+    {
+      "code": 6005,
+      "name": "NotAllowed",
+      "msg": "NotAllowed"
+    },
+    {
+      "code": 6006,
+      "name": "MathOverflow",
+      "msg": "Math operation overflow"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidAccountInput",
+      "msg": "InvalidAccountInput"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidPubkey",
+      "msg": "InvalidPubkey"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidAmount",
+      "msg": "InvalidAmount"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidDenominator",
+      "msg": "InvalidDenominator"
+    }
+  ],
+  "metadata": {
+    "address": "6z6RuFauTG511XRakJnPhxUTCVPohv6oC69xieMdm4Z9",
+    "origin": "anchor",
+    "binaryVersion": "0.24.2",
+    "libVersion": "0.24.2"
+  }
+}
