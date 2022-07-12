@@ -32,12 +32,12 @@ pub mod unloc_staking {
         profile_levels: Vec<u128>,
     ) -> Result<()> {
         let initial_owner = Pubkey::from_str(INITIAL_OWNER).unwrap();
-        require!(initial_owner == _ctx.accounts.authority.key(), StakingError::InvalidOwner);
+        require_keys_eq!(initial_owner, _ctx.accounts.authority.key());
 
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
 
-        require!(_ctx.accounts.reward_mint.key() == unloc_mint, StakingError::InvalidMint);
-        require!(_ctx.accounts.reward_vault.mint == unloc_mint, StakingError::InvalidMint);
+        require_keys_eq!(_ctx.accounts.reward_mint.key(),  unloc_mint);
+        require_keys_eq!(_ctx.accounts.reward_vault.mint, unloc_mint);
         require!(profile_levels.len() <= MAX_PROFILE_LEVEL, StakingError::OverflowMaxProfileLevel);
         let state = &mut _ctx.accounts.state;
         state.authority = _ctx.accounts.authority.key();
@@ -134,8 +134,8 @@ pub mod unloc_staking {
     ) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
 
-        require!(_ctx.accounts.mint.key() == unloc_mint, StakingError::InvalidMint);
-        require!(_ctx.accounts.vault.mint == unloc_mint, StakingError::InvalidMint);
+        require_keys_eq!(_ctx.accounts.mint.key(), unloc_mint);
+        require_keys_eq!(_ctx.accounts.vault.mint, unloc_mint);
 
         let state = &mut _ctx.accounts.state;
         for pool_acc in _ctx.remaining_accounts.iter() {
@@ -167,7 +167,7 @@ pub mod unloc_staking {
             loader.update(state, &_ctx.accounts.clock)?;
         }
         let pool = &_ctx.accounts.pool;
-        require!(pool.amount == 0, StakingError::WorkingPool);
+        require_eq!(pool.amount, 0);
         state.total_point = state.total_point.safe_sub(pool.point)?;
         Ok(())
     }
@@ -222,10 +222,7 @@ pub mod unloc_staking {
 
     
     pub fn stake(_ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()> {
-        require!(
-            _ctx.accounts.user_vault.owner == _ctx.accounts.authority.key(),
-            StakingError::InvalidOwner
-        );
+        require_keys_eq!(_ctx.accounts.user_vault.owner, _ctx.accounts.authority.key());
 
         let state = &_ctx.accounts.state;
         let extra_account = &mut _ctx.accounts.extra_reward_account;

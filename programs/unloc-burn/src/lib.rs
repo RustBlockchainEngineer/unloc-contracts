@@ -47,7 +47,7 @@ pub mod unloc_burn {
 
         if is_zero_account(&ctx.accounts.global_state.to_account_info()) {
             let initial_owner = Pubkey::from_str(INITIAL_OWNER).unwrap();
-            require!(initial_owner == ctx.accounts.authority.key(), ErrorCode::Unauthorized);
+            require_keys_eq!(initial_owner, ctx.accounts.authority.key());
             ctx.accounts.global_state.authority = ctx.accounts.authority.key();
         }
         require(ctx.accounts.global_state.authority == ctx.accounts.authority.key(), "wrong authority of global state")?;

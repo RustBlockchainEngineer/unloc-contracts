@@ -4,7 +4,6 @@ use crate::{
     constant::*,
     states::*,
     utils::*,
-    error::*
 };
 use std::str::FromStr;
 pub fn process_set_global_state(
@@ -14,7 +13,7 @@ pub fn process_set_global_state(
 ) -> Result<()> {
     if is_zero_account(&ctx.accounts.global_state.to_account_info()) {
         let initial_owner = Pubkey::from_str(INITIAL_OWNER).unwrap();
-        require!(initial_owner == ctx.accounts.super_owner.key(), VotingError::Unauthorized);
+        require_keys_eq!(initial_owner, ctx.accounts.super_owner.key());
         ctx.accounts.global_state.super_owner = ctx.accounts.super_owner.key();
         ctx.accounts.global_state.voting_count = 0;
     }

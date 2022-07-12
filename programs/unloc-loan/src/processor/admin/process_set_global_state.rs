@@ -4,7 +4,6 @@ use crate::{
     constant::*,
     states::*,
     utils::*,
-    error::*
 };
 use std::str::FromStr;
 
@@ -25,7 +24,7 @@ pub fn handle(
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     if is_zero_account(&ctx.accounts.global_state.to_account_info()) {
         let initial_owner = Pubkey::from_str(INITIAL_OWNER).unwrap();
-        require!(initial_owner == ctx.accounts.super_owner.key(), LoanError::Unauthorized);
+        require_keys_eq!(initial_owner, ctx.accounts.super_owner.key());
 
         ctx.accounts.global_state.super_owner = ctx.accounts.super_owner.key();
         ctx.accounts.global_state.reward_vault = ctx.accounts.reward_vault.key();

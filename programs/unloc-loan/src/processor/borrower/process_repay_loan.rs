@@ -7,8 +7,8 @@ use std::str::FromStr;
 
 pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
 
-    require!(ctx.accounts.offer.state == OfferState::get_state(OfferState::Accepted), LoanError::NotAllowed);
-    require!(ctx.accounts.sub_offer.state == SubOfferState::get_state(SubOfferState::Accepted), LoanError::NotAllowed);
+    require_eq!(ctx.accounts.offer.state, OfferState::get_state(OfferState::Accepted));
+    require_eq!(ctx.accounts.sub_offer.state, SubOfferState::get_state(SubOfferState::Accepted));
 
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let reward_vault_amount = ctx.accounts.reward_vault.amount;
