@@ -429,7 +429,10 @@ pub struct CreateState<'info> {
 #[derive(Accounts)]
 pub struct Fund<'info> {
     #[account(
-        seeds = [b"state".as_ref()], bump = state.bump)]
+        seeds = [b"state".as_ref()], 
+        bump = state.bump,
+        has_one = reward_vault
+    )]
     pub state: Account<'info, StateAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
