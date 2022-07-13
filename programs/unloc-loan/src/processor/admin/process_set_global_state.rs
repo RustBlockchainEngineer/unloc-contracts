@@ -35,6 +35,8 @@ pub fn handle(
         ctx.accounts.global_state.rps_sol = 0;
         ctx.accounts.global_state.rps_usdc = 0;
         ctx.accounts.global_state.last_distributed_time = current_time;
+        ctx.accounts.global_state.bump = *ctx.bumps.get("global_state").unwrap();
+        ctx.accounts.global_state.reward_vault_bump = *ctx.bumps.get("reward_vault").unwrap();
     }
     assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?;
     

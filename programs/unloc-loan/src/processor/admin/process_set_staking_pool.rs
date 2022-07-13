@@ -27,7 +27,7 @@ pub struct SetStakingPool <'info>{
     #[account(
         mut,
         seeds = [GLOBAL_STATE_TAG],
-        bump,
+        bump = global_state.bump,
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
 }

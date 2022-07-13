@@ -35,6 +35,7 @@ pub fn set_sub_offer(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_num
         ctx.accounts.sub_offer.nft_mint = ctx.accounts.offer.nft_mint;
         ctx.accounts.sub_offer.borrower = ctx.accounts.offer.borrower;
         ctx.accounts.sub_offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
+        ctx.accounts.sub_offer.bump = *ctx.bumps.get("sub_offer").unwrap();
     }
     
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
@@ -69,13 +70,13 @@ pub struct SetSubOffer<'info> {
 
     #[account(
     seeds = [GLOBAL_STATE_TAG],
-    bump,
+    bump = global_state.bump,
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
     
     #[account(mut,
         seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
-        bump,
+        bump = offer.bump,
     )]
     pub offer:Box<Account<'info, Offer>>,
 

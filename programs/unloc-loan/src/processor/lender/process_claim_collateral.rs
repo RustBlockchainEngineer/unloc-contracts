@@ -155,7 +155,7 @@ pub struct ClaimCollateral<'info> {
     pub lender: Signer<'info>,
     #[account(
         seeds = [GLOBAL_STATE_TAG],
-        bump,
+        bump = global_state.bump,
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
     /// CHECK: key only
@@ -166,13 +166,13 @@ pub struct ClaimCollateral<'info> {
 
     #[account(mut,
     seeds = [OFFER_TAG, offer.borrower.key().as_ref(), offer.nft_mint.as_ref()],
-    bump,
+    bump = offer.bump,
     )]
     pub offer: Box<Account<'info, Offer>>,
 
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
-    bump,
+    bump = sub_offer.bump,
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
     #[account(
@@ -206,7 +206,7 @@ pub struct ClaimCollateral<'info> {
 
     #[account(
         seeds = [REWARD_VAULT_TAG],
-        bump,
+        bump = global_state.reward_vault_bump,
     )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
     /// CHECK: Safe

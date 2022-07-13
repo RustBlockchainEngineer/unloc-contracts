@@ -7,6 +7,8 @@ use std::str::FromStr;
 #[account]
 #[derive(Default)]
 pub struct GlobalState {
+    pub bump: u8,
+    pub reward_vault_bump: u8,
     pub super_owner: Pubkey,
 
     pub treasury_wallet: Pubkey,
@@ -114,6 +116,7 @@ impl GlobalState {
 #[account]
 #[derive(Default)]
 pub struct Offer {
+    pub bump: u8,
     pub borrower: Pubkey,
 
     pub nft_mint: Pubkey,
@@ -129,6 +132,7 @@ pub struct Offer {
 #[account]
 #[derive(Default)]
 pub struct SubOffer {
+    pub bump: u8,
     pub borrower: Pubkey,
     pub nft_mint: Pubkey,
     pub offer_mint: Pubkey,
