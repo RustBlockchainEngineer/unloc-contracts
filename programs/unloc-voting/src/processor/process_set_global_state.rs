@@ -16,6 +16,7 @@ pub fn process_set_global_state(
         require_keys_eq!(initial_owner, ctx.accounts.super_owner.key());
         ctx.accounts.global_state.super_owner = ctx.accounts.super_owner.key();
         ctx.accounts.global_state.voting_count = 0;
+        ctx.accounts.global_state.bump = *ctx.bumps.get("global_state").unwrap();
     }
     assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?;
 

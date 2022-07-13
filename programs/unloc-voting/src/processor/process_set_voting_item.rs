@@ -15,6 +15,7 @@ pub fn process_set_voting_item(ctx: Context<SetVotingItem>, key: Pubkey) -> Resu
         ctx.accounts.voting_item.key = key;
         ctx.accounts.voting_item.voting = ctx.accounts.voting.key();
         ctx.accounts.voting_item.voting_score = 0;
+        ctx.accounts.voting_item.bump = *ctx.bumps.get("voting_item").unwrap();
     }
     Ok(())
 }
@@ -30,14 +31,14 @@ pub struct SetVotingItem<'info> {
     #[account(
         mut,
         seeds = [GLOBAL_STATE_TAG],
-        bump,
+        bump = global_state.bump,
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
 
     #[account(
         mut,
         seeds = [VOTING_TAG, &voting.voting_number.to_be_bytes()],
-        bump,
+        bump = voting.bump,
     )]
     pub voting:Box<Account<'info, Voting>>,
 

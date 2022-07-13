@@ -23,6 +23,7 @@ pub fn process_set_voting(
         ctx.accounts.voting.voting_number = voting_number;
         ctx.accounts.voting.total_score = 0;
         ctx.accounts.voting.total_items = 0;
+        ctx.accounts.voting.bump = *ctx.bumps.get("voting").unwrap();
     }
     ctx.accounts.voting.voting_start_timestamp = voting_start_timestamp;
     ctx.accounts.voting.voting_end_timestamp = voting_end_timestamp;
@@ -38,7 +39,7 @@ pub struct SetVoting<'info> {
     #[account(
         mut,
         seeds = [GLOBAL_STATE_TAG],
-        bump,
+        bump = global_state.bump,
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 

@@ -22,7 +22,7 @@ pub struct DelVotingItem<'info> {
     #[account(
         mut,
         seeds = [GLOBAL_STATE_TAG],
-        bump,
+        bump = global_state.bump,
         has_one = super_owner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
@@ -30,7 +30,7 @@ pub struct DelVotingItem<'info> {
     #[account(
         mut,
         seeds = [VOTING_TAG, &voting.voting_number.to_be_bytes()],
-        bump,
+        bump = voting.bump,
     )]
     pub voting: Box<Account<'info, Voting>>,
 
@@ -38,7 +38,7 @@ pub struct DelVotingItem<'info> {
         mut,
         close = super_owner,
         seeds = [VOTING_ITEM_TAG, voting.key().as_ref(), voting_item.key.as_ref()],
-        bump,
+        bump = voting_item.bump,
     )]
     pub voting_item: Box<Account<'info, VotingItem>>,
 
