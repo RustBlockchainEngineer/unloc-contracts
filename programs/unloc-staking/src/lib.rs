@@ -135,7 +135,7 @@ pub mod unloc_staking {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
 
         require_keys_eq!(_ctx.accounts.mint.key(), unloc_mint);
-        
+
         require_keys_eq!(_ctx.accounts.vault.mint, unloc_mint);
 
         let state = &mut _ctx.accounts.state;
@@ -224,6 +224,8 @@ pub mod unloc_staking {
     
     pub fn stake(_ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()> {
         require_keys_eq!(_ctx.accounts.user_vault.owner, _ctx.accounts.authority.key());
+        let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
+        require_keys_eq!(_ctx.accounts.mint.key(), unloc_mint);
 
         let state = &_ctx.accounts.state;
         let extra_account = &mut _ctx.accounts.extra_reward_account;
@@ -267,6 +269,9 @@ pub mod unloc_staking {
     }
 
     pub fn unstake(_ctx: Context<Stake>, amount: u64) -> Result<()> {
+        let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
+        require_keys_eq!(_ctx.accounts.mint.key(), unloc_mint);
+        
         let extra_account = &mut _ctx.accounts.extra_reward_account;
         let state = &_ctx.accounts.state;
         let user = &mut _ctx.accounts.user;
