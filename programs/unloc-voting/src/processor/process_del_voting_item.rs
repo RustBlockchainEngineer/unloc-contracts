@@ -11,6 +11,7 @@ use crate::{
 pub fn process_del_voting_item(ctx: Context<DelVotingItem>) -> Result<()> {
     let score = ctx.accounts.voting_item.voting_score;
     ctx.accounts.voting.total_score = ctx.accounts.voting.total_score.safe_sub(score)?;
+    ctx.accounts.voting.total_items = ctx.accounts.voting.total_items.safe_sub(1)?;
     Ok(())
 }
 
