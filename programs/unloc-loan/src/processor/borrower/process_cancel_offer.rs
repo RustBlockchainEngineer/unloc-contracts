@@ -61,7 +61,7 @@ pub struct CancelOffer<'info> {
 
     #[account(mut,
     seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
-    bump,
+    bump = offer.bump,
     )]
     pub offer: Box<Account<'info, Offer>>,
 

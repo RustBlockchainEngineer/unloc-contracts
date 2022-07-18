@@ -22,6 +22,7 @@ pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
         ctx.accounts.offer.nft_mint = nft_mint_key.clone();
         ctx.accounts.offer.collection = collection_key;
         ctx.accounts.offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
+        ctx.accounts.offer.bump = *ctx.bumps.get("offer").unwrap();
     }
     if ctx.accounts.user_vault.amount > 0 {
         let offer_bump = *ctx.bumps.get("offer").unwrap();

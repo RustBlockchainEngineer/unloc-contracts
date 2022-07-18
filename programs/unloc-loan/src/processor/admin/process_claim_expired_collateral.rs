@@ -76,7 +76,7 @@ pub struct ClaimExpiredCollateral<'info> {
     pub super_owner: Signer<'info>,
     #[account(
         seeds = [GLOBAL_STATE_TAG],
-        bump,
+        bump = global_state.bump,
         has_one = super_owner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
@@ -88,13 +88,13 @@ pub struct ClaimExpiredCollateral<'info> {
 
     #[account(mut,
     seeds = [OFFER_TAG, offer.borrower.key().as_ref(), offer.nft_mint.as_ref()],
-    bump,
+    bump = offer.bump,
     )]
     pub offer: Box<Account<'info, Offer>>,
 
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
-    bump,
+    bump = sub_offer.bump,
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
 

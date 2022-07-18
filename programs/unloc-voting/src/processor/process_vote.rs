@@ -9,6 +9,7 @@ use crate::{
 };
 use unloc_staking::FarmPoolUserAccount;
 pub fn process_vote(ctx: Context<Vote>) -> Result<()> { 
+    ctx.accounts.voting_user.bump = *ctx.bumps.get("voting_user").unwrap();
     ctx.accounts.voting_user.owner = ctx.accounts.user.key();
     ctx.accounts.voting_user.voting = ctx.accounts.voting.key();
     ctx.accounts.voting_user.voting_item = ctx.accounts.voting_item.key();
@@ -33,21 +34,21 @@ pub struct Vote<'info> {
     #[account(
         mut,
         seeds = [GLOBAL_STATE_TAG],
-        bump,
+        bump = global_state.bump,
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
 
     #[account(
         mut,
         seeds = [VOTING_TAG, &voting.voting_number.to_be_bytes()],
-        bump,
+        bump = voting.bump,
     )]
     pub voting:Box<Account<'info, Voting>>,
 
     #[account(
         mut,
         seeds = [VOTING_ITEM_TAG, voting.key().as_ref(), voting_item.key.as_ref()],
-        bump,
+        bump = voting_item.bump,
     )]
     pub voting_item:Box<Account<'info, VotingItem>>,
 
@@ -65,7 +66,7 @@ pub struct Vote<'info> {
         mut,
         seeds = [staking_user.pool.as_ref(), user.key().as_ref()], 
         seeds::program = global_state.staking_pid,
-        bump
+        bump = staking_user.bump
     )]
     pub staking_user:Box<Account<'info, FarmPoolUserAccount>>,
 

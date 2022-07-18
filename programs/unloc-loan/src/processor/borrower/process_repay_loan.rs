@@ -191,7 +191,7 @@ pub struct RepayLoan<'info> {
     pub lender: AccountInfo<'info>,
     #[account(
         seeds = [GLOBAL_STATE_TAG],
-        bump,
+        bump = global_state.bump,
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
     /// CHECK: key only is used
@@ -202,13 +202,13 @@ pub struct RepayLoan<'info> {
 
     #[account(mut,
     seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
-    bump,
+    bump = offer.bump,
     )]
     pub offer: Box<Account<'info, Offer>>,
 
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
-    bump,
+    bump = sub_offer.bump,
     has_one = lender
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
@@ -245,7 +245,7 @@ pub struct RepayLoan<'info> {
 
     #[account(
         seeds = [REWARD_VAULT_TAG],
-        bump,
+        bump = global_state.reward_vault_bump,
     )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
 

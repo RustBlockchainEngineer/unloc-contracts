@@ -35,14 +35,14 @@ pub struct SetVoting <'info>{
     #[account(
         mut,
         seeds = [GLOBAL_STATE_TAG],
-        bump,
+        bump = global_state.bump,
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
 
     #[account(
         mut,
         seeds = [REWARD_VAULT_TAG],
-        bump,
+        bump = global_state.reward_vault_bump,
     )]
     pub reward_vault:Box<Account<'info, TokenAccount>>,
     /// CHECK: safe

@@ -49,6 +49,10 @@ pub mod unloc_burn {
             let initial_owner = Pubkey::from_str(INITIAL_OWNER).unwrap();
             require_keys_eq!(initial_owner, ctx.accounts.authority.key());
             ctx.accounts.global_state.authority = ctx.accounts.authority.key();
+            ctx.accounts.global_state.bump = *ctx.bumps.get("global_state").unwrap();
+            ctx.accounts.global_state.unloc_vault_bump = *ctx.bumps.get("unloc_vault").unwrap();
+            ctx.accounts.global_state.usdc_vault_bump = *ctx.bumps.get("usdc_vault").unwrap();
+            ctx.accounts.global_state.wsol_vault_bump = *ctx.bumps.get("wsol_vault").unwrap();
         }
         require(ctx.accounts.global_state.authority == ctx.accounts.authority.key(), "wrong authority of global state")?;
 
@@ -180,7 +184,7 @@ pub struct Buyback<'info> {
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED],
-        bump,
+        bump = global_state.bump,
         has_one = burner
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
@@ -284,7 +288,7 @@ pub struct BurnUnloc <'info> {
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED],
-        bump,
+        bump = global_state.bump,
         has_one = burner
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
@@ -295,7 +299,7 @@ pub struct BurnUnloc <'info> {
     #[account(
         mut,
         seeds = [UNLOC_VAULT_SEED],
-        bump,
+        bump = global_state.unloc_vault_bump,
     )]
     pub unloc_vault:Box<Account<'info, TokenAccount>>,
     pub token_program: Program<'info, Token>,
@@ -303,6 +307,10 @@ pub struct BurnUnloc <'info> {
 #[account]
 #[derive(Default)]
 pub struct GlobalState {
+    pub bump: u8,
+    pub unloc_vault_bump: u8,
+    pub usdc_vault_bump: u8,
+    pub wsol_vault_bump: u8,
     pub authority: Pubkey,
     pub burner: Pubkey,
 

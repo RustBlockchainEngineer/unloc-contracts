@@ -83,19 +83,19 @@ pub struct ClaimRewards<'info> {
     pub authority:  Signer<'info>,
     #[account(
         seeds = [GLOBAL_STATE_TAG],
-        bump,
+        bump = global_state.bump,
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
     #[account(mut,
         seeds = [SUB_OFFER_TAG, sub_offer.offer.as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
-        bump,
+        bump = sub_offer.bump,
         )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
 
     #[account(
         mut,
         seeds = [REWARD_VAULT_TAG],
-        bump,
+        bump = global_state.reward_vault_bump,
     )]
     pub reward_vault:Box<Account<'info, TokenAccount>>,
     
