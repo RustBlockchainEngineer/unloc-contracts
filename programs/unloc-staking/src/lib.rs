@@ -135,6 +135,7 @@ pub mod unloc_staking {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
 
         require_keys_eq!(_ctx.accounts.mint.key(), unloc_mint);
+        
         require_keys_eq!(_ctx.accounts.vault.mint, unloc_mint);
 
         let state = &mut _ctx.accounts.state;
