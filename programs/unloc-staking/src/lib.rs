@@ -26,7 +26,7 @@ pub mod unloc_staking {
 
     pub fn create_state(
         _ctx: Context<CreateState>,
-        bump: u8,
+        _bump: u8,
         token_per_second: u64,
         early_unlock_fee: u64,
         profile_levels: Vec<u128>,
@@ -41,7 +41,7 @@ pub mod unloc_staking {
         require!(profile_levels.len() <= MAX_PROFILE_LEVEL, StakingError::OverflowMaxProfileLevel);
         let state = &mut _ctx.accounts.state;
         state.authority = _ctx.accounts.authority.key();
-        state.bump = bump;
+        state.bump = *ctx.bumps.get("state").unwrap();
         state.start_time = _ctx.accounts.clock.unix_timestamp;
         state.token_per_second = token_per_second;
         state.early_unlock_fee = early_unlock_fee;
@@ -54,12 +54,12 @@ pub mod unloc_staking {
 
     pub fn create_extra_reward_configs(
         _ctx: Context<CreateExtraRewardsConfigs>,
-        bump: u8,
+        _bump: u8,
         configs: Vec<DurationExtraRewardConfig>,
     ) -> Result<()> {
         let extra_account = &mut _ctx.accounts.extra_reward_account;
         extra_account.authority = _ctx.accounts.authority.key();
-        extra_account.bump = bump;
+        extra_account.bump = *ctx.bumps.get("extra_reward_account").unwrap();
         extra_account.configs = configs;
         extra_account.validate()?;
         Ok(())
@@ -128,7 +128,7 @@ pub mod unloc_staking {
 
     pub fn create_pool(
         _ctx: Context<CreateFarmPool>,
-        bump: u8,
+        _bump: u8,
         point: u64,
         amount_multipler: u64,
     ) -> Result<()> {
@@ -144,7 +144,7 @@ pub mod unloc_staking {
         }
 
         let pool = &mut _ctx.accounts.pool;
-        pool.bump = bump;
+        pool.bump = *ctx.bumps.get("pool").unwrap();
         pool.mint = _ctx.accounts.mint.key();
         pool.vault = _ctx.accounts.vault.key();
         pool.point = point;
@@ -204,10 +204,10 @@ pub mod unloc_staking {
         Ok(())
     }
 
-    pub fn create_user(_ctx: Context<CreatePoolUser>, bump: u8) -> Result<()> {
+    pub fn create_user(_ctx: Context<CreatePoolUser>, _bump: u8) -> Result<()> {
         let user = &mut _ctx.accounts.user;
         user.authority = _ctx.accounts.authority.key();
-        user.bump = bump;
+        user.bump = *ctx.bumps.get("user").unwrap();
         user.pool = _ctx.accounts.pool.key();
 
         let pool = &mut _ctx.accounts.pool;
