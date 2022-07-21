@@ -31,6 +31,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     let seconds_for_year = 3600 * 24 * 365;
     let offer_apr = ctx.accounts.sub_offer.apr_numerator;
     let min_repaid_numerator = ctx.accounts.global_state.min_repaid_numerator;
+    
     let unloc_apr = ctx.accounts.global_state.apr_numerator;
     let denominator = ctx.accounts.global_state.denominator;
     let accrued_apr = ctx.accounts.global_state.accrued_interest_numerator;
