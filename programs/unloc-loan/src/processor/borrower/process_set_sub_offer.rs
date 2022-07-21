@@ -16,7 +16,7 @@ pub fn handle(ctx: Context<SetSubOffer>, offer_amount: u64, sub_offer_number: u6
         let mut data: &[u8] = &staking_user_info.try_borrow_data()?;
         let staking_user = FarmPoolUserAccount::try_deserialize(&mut data)?;
 
-        assert_pda(&[staking_user.pool.as_ref(), ctx.accounts.borrower.key().as_ref()], &ctx.accounts.global_state.unloc_staking_pid, &staking_user_info.key())?;
+        assert_pda(&[staking_user.pool.as_ref(), ctx.accounts.borrower.key().as_ref()], &unloc_staking::id(), &staking_user_info.key())?;
 
         profile_level = staking_user.profile_level;
     }

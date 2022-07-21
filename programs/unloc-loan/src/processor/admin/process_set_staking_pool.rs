@@ -7,12 +7,10 @@ use crate::{
 
 pub fn handle(
     ctx: Context<SetStakingPool>, 
-    unloc_staking_pid: Pubkey,
     unloc_staking_pool_id: Pubkey,
 ) -> Result<()> {
     assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?;
 
-    ctx.accounts.global_state.unloc_staking_pid = unloc_staking_pid;
     ctx.accounts.global_state.unloc_staking_pool_id = unloc_staking_pool_id;
 
     Ok(())

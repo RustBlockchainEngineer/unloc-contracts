@@ -5,7 +5,6 @@ use anchor_lang::prelude::*;
 pub struct GlobalState {
     pub bump: u8,
     pub super_owner: Pubkey,
-    pub staking_pid: Pubkey,
     pub voting_count: u64
 }
 

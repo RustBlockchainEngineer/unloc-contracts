@@ -1,4 +1,4 @@
-use amm_anchor::SwapBaseIn;
+use amm_anchor::{SwapBaseIn, Amm as RaydiumSwap};
 use anchor_lang::prelude::*;
 use anchor_spl::{
     token::{
@@ -58,7 +58,6 @@ pub mod unloc_burn {
 
         ctx.accounts.global_state.authority = new_authority;
 
-        ctx.accounts.global_state.amm_program = ctx.accounts.amm_program.key();
         ctx.accounts.global_state.amm = ctx.accounts.amm.key();
         ctx.accounts.global_state.serum_program = ctx.accounts.serum_program.key();
         ctx.accounts.global_state.serum_market = ctx.accounts.serum_market.key();
@@ -161,8 +160,7 @@ pub struct SetGlobalState <'info>{
     )]
     pub wsol_vault:Box<Account<'info, TokenAccount>>,
 
-    /// CHECK: Safe
-    pub amm_program: AccountInfo<'info>,
+    pub amm_program: Program<'info, RaydiumSwap>,
     /// CHECK: Safe
     #[account(mut)]
     pub amm: AccountInfo<'info>,
@@ -191,8 +189,7 @@ pub struct Buyback<'info> {
     #[account(mut)]
     pub burner:  Signer<'info>,
 
-    /// CHECK: Safe
-    pub amm_program: AccountInfo<'info>,
+    pub amm_program: Program<'info, RaydiumSwap>,
     /// CHECK: Safe
     #[account(mut)]
     pub amm: AccountInfo<'info>,
@@ -245,7 +242,6 @@ pub struct Buyback<'info> {
 impl<'a, 'b, 'c, 'info> Buyback<'info> {
     pub fn validate(&self) -> Result<()> {
         
-        require(self.global_state.amm_program == self.amm_program.key(), "wrong amm_program")?;
         require(self.global_state.amm == self.amm.key(), "wrong amm")?;
         require(self.global_state.serum_program == self.serum_program.key(), "wrong serum_program")?;
         require(self.global_state.serum_market == self.serum_market.key(), "wrong serum_market")?;
@@ -278,7 +274,7 @@ impl<'a, 'b, 'c, 'info> Buyback<'info> {
             user_source_owner: self.global_state.to_account_info().clone(),
             spl_token_program: self.spl_token_program.clone(),
         };
-        let cpi_program = self.amm_program.clone();
+        let cpi_program = self.amm_program.to_account_info();
         
         CpiContext::new(cpi_program, cpi_accounts)
     }
@@ -314,7 +310,6 @@ pub struct GlobalState {
     pub authority: Pubkey,
     pub burner: Pubkey,
 
-    pub amm_program: Pubkey,
     pub amm: Pubkey,
     pub serum_program: Pubkey,
     pub serum_market: Pubkey,

@@ -7,7 +7,6 @@ use crate::{
 use anchor_spl::token::{ Token, TokenAccount};
 pub fn handle(
     ctx: Context<SetVoting>, 
-    voting_pid: Pubkey,
     voting: Pubkey,
 ) -> Result<()> {
     assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?;
@@ -21,7 +20,6 @@ pub fn handle(
         &ctx.accounts.usdc_feed.to_account_info(), 
     )?;
 
-    ctx.accounts.global_state.voting_pid = voting_pid;
     ctx.accounts.global_state.voting = voting;
     Ok(())
 }

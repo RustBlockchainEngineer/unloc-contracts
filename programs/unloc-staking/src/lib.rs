@@ -41,7 +41,7 @@ pub mod unloc_staking {
         require!(profile_levels.len() <= MAX_PROFILE_LEVEL, StakingError::OverflowMaxProfileLevel);
         let state = &mut _ctx.accounts.state;
         state.authority = _ctx.accounts.authority.key();
-        state.bump = *ctx.bumps.get("state").unwrap();
+        state.bump = *_ctx.bumps.get("state").unwrap();
         state.start_time = _ctx.accounts.clock.unix_timestamp;
         state.token_per_second = token_per_second;
         state.early_unlock_fee = early_unlock_fee;
@@ -59,7 +59,7 @@ pub mod unloc_staking {
     ) -> Result<()> {
         let extra_account = &mut _ctx.accounts.extra_reward_account;
         extra_account.authority = _ctx.accounts.authority.key();
-        extra_account.bump = *ctx.bumps.get("extra_reward_account").unwrap();
+        extra_account.bump = *_ctx.bumps.get("extra_reward_account").unwrap();
         extra_account.configs = configs;
         extra_account.validate()?;
         Ok(())
@@ -145,7 +145,7 @@ pub mod unloc_staking {
         }
 
         let pool = &mut _ctx.accounts.pool;
-        pool.bump = *ctx.bumps.get("pool").unwrap();
+        pool.bump = *_ctx.bumps.get("pool").unwrap();
         pool.mint = _ctx.accounts.mint.key();
         pool.vault = _ctx.accounts.vault.key();
         pool.point = point;
@@ -208,7 +208,7 @@ pub mod unloc_staking {
     pub fn create_user(_ctx: Context<CreatePoolUser>, _bump: u8) -> Result<()> {
         let user = &mut _ctx.accounts.user;
         user.authority = _ctx.accounts.authority.key();
-        user.bump = *ctx.bumps.get("user").unwrap();
+        user.bump = *_ctx.bumps.get("user").unwrap();
         user.pool = _ctx.accounts.pool.key();
 
         let pool = &mut _ctx.accounts.pool;

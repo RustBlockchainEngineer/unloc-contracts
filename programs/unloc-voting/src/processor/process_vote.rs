@@ -65,7 +65,7 @@ pub struct Vote<'info> {
     #[account(
         mut,
         seeds = [staking_user.pool.as_ref(), user.key().as_ref()], 
-        seeds::program = global_state.staking_pid,
+        seeds::program = unloc_staking::id(),
         bump = staking_user.bump
     )]
     pub staking_user:Box<Account<'info, FarmPoolUserAccount>>,

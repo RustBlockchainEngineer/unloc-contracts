@@ -27,11 +27,11 @@ pub mod unloc_loan {
     pub fn set_global_state(ctx: Context<SetGlobalState>, accrued_interest_numerator: u64, denominator: u64, min_repaid_numerator: u64, apr_numerator: u64, expire_loan_duration: u64, reward_rate: u64, lender_rewards_percentage: u64) -> Result<()> { 
         process_set_global_state::handle(ctx, accrued_interest_numerator, denominator, min_repaid_numerator, apr_numerator, expire_loan_duration, reward_rate,  lender_rewards_percentage)
     }
-    pub fn set_staking_pool(ctx: Context<SetStakingPool>, unloc_staking_pid: Pubkey, unloc_staking_pool_id: Pubkey) -> Result<()> { 
-        process_set_staking_pool::handle(ctx, unloc_staking_pid, unloc_staking_pool_id)
+    pub fn set_staking_pool(ctx: Context<SetStakingPool>, unloc_staking_pool_id: Pubkey) -> Result<()> { 
+        process_set_staking_pool::handle(ctx, unloc_staking_pool_id)
     }
-    pub fn set_voting(ctx: Context<SetVoting>, voting_pid: Pubkey,voting: Pubkey) -> Result<()> { 
-        process_set_voting::handle(ctx, voting_pid, voting)
+    pub fn set_voting(ctx: Context<SetVoting>, voting: Pubkey) -> Result<()> { 
+        process_set_voting::handle(ctx, voting)
     }
     pub fn deposit_rewards(ctx: Context<DepositRewards>, amount: u64) -> Result<()> { 
         process_deposit_rewards::handle(ctx, amount) 
