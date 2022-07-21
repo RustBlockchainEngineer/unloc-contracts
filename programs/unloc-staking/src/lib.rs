@@ -425,8 +425,7 @@ pub struct CreateState<'info> {
     pub authority: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
@@ -512,8 +511,7 @@ pub struct CreateFarmPool<'info> {
     pub authority: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
@@ -530,8 +528,7 @@ pub struct CloseFarmPool<'info> {
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     pub clock: Sysvar<'info, Clock>,
 }
 
@@ -564,8 +561,7 @@ pub struct CreateExtraRewardsConfigs<'info> {
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
     #[account(mut)]
     pub authority: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -576,8 +572,7 @@ pub struct SetExtraRewardsConfigs<'info> {
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
     #[account(mut)]
     pub authority: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -602,8 +597,7 @@ pub struct CreatePoolUser<'info> {
     pub authority: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
 }
@@ -634,8 +628,7 @@ pub struct Stake<'info> {
     #[account(mut, 
         constraint = fee_vault.key() == state.fee_vault)]
     pub fee_vault: Box<Account<'info, TokenAccount>>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
@@ -665,8 +658,7 @@ pub struct Harvest<'info> {
     #[account(mut, 
         constraint = user_vault.owner == authority.key())]
     pub user_vault: Box<Account<'info, TokenAccount>>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
