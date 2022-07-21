@@ -1,17 +1,16 @@
 import * as anchor from '@project-serum/anchor';
 import SUPER_OWNER_WALLET from '../test-users/super_owner.json'
-import PROPOSER1_WALLET from '../test-users/borrower1.json'
 import LOANER1_WALLET from '../test-users/lender1.json'
 import TREASURY from '../test-users/treasury.json'
 import UNLOC_TOKEN_KEYPAIR from '../keypairs/unloc-token.json'
 import USDC_TOKEN_KEYPAIR from '../keypairs/usdc-token.json'
 import { MintLayout, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { SystemProgram, Transaction, TransactionInstruction, SYSVAR_CLOCK_PUBKEY, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
+import { SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
 import { UnlocLoan } from '../../src/types/unloc_loan';
 import { STAKING_PID, TOKEN_META_PID, UNLOC_MINT, USDC_MINT, VOTING_PID, getVotingKeyFromNum, systemProgram } from '../../src';
-import { setLoanGlobalState } from '../../src';
 import { defaults } from '../../src/global-config'
 import { assert, expect } from 'chai';
+import { safeAirdrop, pda } from './utils'
 
 describe('global-init', async () => {
 
@@ -20,39 +19,14 @@ describe('global-init', async () => {
   const superOwner = superOwnerKeypair.publicKey;
   const unlocTokenKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(UNLOC_TOKEN_KEYPAIR))
   const usdcTokenKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(USDC_TOKEN_KEYPAIR))
-  const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))
-  const borrower = borrowerKeypair.publicKey;
   const lender1Keypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(LOANER1_WALLET))
   const lender1 = lender1Keypair.publicKey;
   const treasuryKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(TREASURY))
   const treasury = treasuryKeypair.publicKey;
 
-  // define constants
-  const rent = anchor.web3.SYSVAR_RENT_PUBKEY
-  const clock = anchor.web3.SYSVAR_CLOCK_PUBKEY
-
   //const GLOBAL_STATE_SEED = Buffer.from("GLOBAL_STATE_SEED");
   const GLOBAL_STATE_TAG = Buffer.from('GLOBAL_STATE_SEED')
-  const OFFER_SEED = Buffer.from("OFFER_SEED");
-  const SUB_OFFER_SEED = Buffer.from("SUB_OFFER_SEED");
-  const REWARD_VAULT_SEED = Buffer.from("REWARD_VAULT_SEED");
-  const OFFER_VAULT_SEED = Buffer.from("OFFER_VAULT_SEED");
-  const TREASURY_VAULT_SEED = Buffer.from("TREASURY_VAULT_SEED");
-  const USER_REWARD_TAG = Buffer.from('LENDER_REWARD_SEED')
   const REWARD_VAULT_TAG = Buffer.from('REWARD_VAULT_SEED')
-
-  
-
-  let nftMint: Token = null as any;
-  let nftMetadataKey: anchor.web3.PublicKey = null as any;
-  let nftEditionKey: anchor.web3.PublicKey = null as any;
-  let offerMint: Token = null as any;
-  const offerDecimal = 1000_000_000
-  let borrowerNftVault: anchor.web3.PublicKey = null as any;
-  let lenderNftVault: anchor.web3.PublicKey = null as any;
-  let borrowerOfferVault: anchor.web3.PublicKey = null as any;
-  let lenderOfferVault: anchor.web3.PublicKey = null as any;
-  let rewardVaultOfSuperOwner: anchor.web3.PublicKey = null as any;
 
   const denominator = new anchor.BN(10000);
   const lenderRewardsPercentage = new anchor.BN(6000);
@@ -134,16 +108,12 @@ describe('global-init', async () => {
     const rewardRate = new anchor.BN(300);
     const expireLoanDuration = new anchor.BN(90 * 24 * 3600);
     const unlocStakingPid = STAKING_PID
-    const votingPid = VOTING_PID
-    const tokenMetadataPid = TOKEN_META_PID
 
     const [unlocStakingPoolId] = await anchor.web3.PublicKey.findProgramAddress(
       [rewardMint.toBuffer()],
       unlocStakingPid
     );
 
-    const currentVotingNum = new anchor.BN(0);
-    //const currentVotingKey = await getVotingKeyFromNum(currentVotingNum)
     console.log("Global state: ", globalState.toBase58())
     console.log("Super owner: ", superOwner.toBase58())
     console.log("Reward mint: ", rewardMint.toBase58())
@@ -180,23 +150,3 @@ describe('global-init', async () => {
 
   })
 });
-
-async function safeAirdrop(connection: anchor.web3.Connection, key: anchor.web3.PublicKey, amount: number) {
-  while (await connection.getBalance(key) < amount * 1000000000){
-    try{
-      await connection.confirmTransaction(
-        await connection.requestAirdrop(key, 1000000000),
-        "confirmed"
-      );
-    }catch{}
-  };
-}
-
-async function pda(seeds: (Buffer | Uint8Array)[], programId: anchor.web3.PublicKey) {
-  const [pdaKey] =
-    await anchor.web3.PublicKey.findProgramAddress(
-      seeds,
-      programId,
-    );
-  return pdaKey
-}
