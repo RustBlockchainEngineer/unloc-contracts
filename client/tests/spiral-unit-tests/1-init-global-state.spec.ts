@@ -10,8 +10,8 @@ import { SystemProgram, Transaction, TransactionInstruction, SYSVAR_CLOCK_PUBKEY
 import { UnlocLoan } from '../../src/types/unloc_loan';
 import { STAKING_PID, TOKEN_META_PID, UNLOC_MINT, USDC_MINT, VOTING_PID, getVotingKeyFromNum, systemProgram } from '../../src';
 import { setLoanGlobalState } from '../../src';
-import { assert } from 'console';
 import { defaults } from '../../src/global-config'
+import { assert, expect } from 'chai';
 
 describe('global-init', async () => {
 
@@ -170,12 +170,13 @@ describe('global-init', async () => {
 
     // assertions
     let globalStateData = await program.account.globalState.fetch(globalState)
-    assert(globalStateData.superOwner == superOwner)
-    assert(globalStateData.treasuryWallet == treasury)
-    assert(globalStateData.rewardVault == rewardVault)
-    assert(globalStateData.accruedInterestNumerator.toNumber() == accruedInterestNumerator.toNumber(), "accruedInterestNumerator")
-    assert(globalStateData.denominator.toNumber() == denominator.toNumber(), "denominator")
-    assert(globalStateData.aprNumerator.toNumber() == aprNumerator.toNumber(), "aprNumerator")
+    //console.log("globalState: ", globalStateData)
+    assert.equal(globalStateData.superOwner.toBase58(), superOwner.toBase58())
+    assert.equal(globalStateData.treasuryWallet.toBase58(), treasury.toBase58())
+    assert.equal(globalStateData.rewardVault.toBase58(), rewardVault.toBase58())
+    assert.equal(globalStateData.accruedInterestNumerator.toNumber(), accruedInterestNumerator.toNumber())
+    assert.equal(globalStateData.denominator.toNumber(), denominator.toNumber())
+    assert.equal(globalStateData.aprNumerator.toNumber(), aprNumerator.toNumber())
 
   })
 });
