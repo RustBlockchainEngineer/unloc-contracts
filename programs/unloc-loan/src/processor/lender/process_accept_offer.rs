@@ -56,6 +56,7 @@ pub fn accept_offer(ctx: Context<AcceptOffer>, total_point: u128, collection_poi
     ctx.accounts.sub_offer.update_rps(&ctx.accounts.global_state, &offer_mint)?;
 
     require(ctx.accounts.sub_offer.sub_offer_number >= ctx.accounts.offer.start_sub_offer_num)?;
+    
     require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed))?;
     require(ctx.accounts.sub_offer.state != SubOfferState::get_state(SubOfferState::Canceled))?;
 
