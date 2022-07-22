@@ -49,6 +49,6 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn --cwd client/ run ts-mocha -p ./tsconfig.json -t 1000000 tests/spiral-unit-tests/*.spec.ts"
+test = "yarn --cwd client/ run ts-mocha -p ./tsconfig.json -t 1000000 tests/spiral-unit-tests/**/*.spec.ts"
 # test = "yarn --cwd client/ run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.spec.ts"
 idl = "cp -R target/types client/src"
