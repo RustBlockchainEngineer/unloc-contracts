@@ -72,7 +72,7 @@ pub struct SetOffer<'info> {
     pub borrower: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
-    // init_if_needed is safe above solana-program v1.10.29
+    // init_if_needed is used safely. not possible to reinitialization
     #[account(
     init_if_needed,
     seeds = [OFFER_TAG, borrower.key().as_ref(), nft_mint.key().as_ref()],
