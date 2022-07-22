@@ -101,7 +101,7 @@ pub mod unloc_staking {
         Ok(())
     }
     pub fn change_early_unlock_fee(
-        _ctx: Context<ChangeEarlyUnlockFee>,
+        _ctx: Context<ChangeState>,
         early_unlock_fee: u64,
     ) -> Result<()> {
         let state = &mut _ctx.accounts.state;
@@ -110,7 +110,7 @@ pub mod unloc_staking {
         Ok(())
     }
     pub fn change_profile_levels(
-        _ctx: Context<ChangeProfileLevels>,
+        _ctx: Context<ChangeState>,
         profile_levels: Vec<u128>,
     ) -> Result<()> {
         require!(profile_levels.len() <= MAX_PROFILE_LEVEL, StakingError::OverflowMaxProfileLevel);
@@ -462,17 +462,9 @@ pub struct ChangeTokensPerSecond<'info> {
     pub clock: Sysvar<'info, Clock>,
 }
 #[derive(Accounts)]
-pub struct ChangeEarlyUnlockFee<'info> {
+pub struct ChangeState<'info> {
     #[account(mut, 
         
-        seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
-    pub state: Account<'info, StateAccount>,
-    #[account(mut)]
-    pub authority: Signer<'info>,
-}
-#[derive(Accounts)]
-pub struct ChangeProfileLevels<'info> {
-    #[account(mut, 
         seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
     pub state: Account<'info, StateAccount>,
     #[account(mut)]
