@@ -43,7 +43,7 @@ pub struct SetVotingItem<'info> {
     pub voting:Box<Account<'info, Voting>>,
 
     #[account(
-        init_if_needed,
+        init,
         seeds = [VOTING_ITEM_TAG, voting.key().as_ref(), key.as_ref()],
         bump,
         payer = payer,
