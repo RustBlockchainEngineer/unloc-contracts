@@ -346,8 +346,8 @@ pub enum ErrorCode {
     InvalidDenominator,
 }
 pub fn require(flag: bool, msg: &str) -> Result<()> {
-    msg!("error in require function: {}", msg);
     if !flag {
+        msg!("error in require function: {}", msg);
         return Err(error!(ErrorCode::NotAllowed));
     }
     Ok(())
