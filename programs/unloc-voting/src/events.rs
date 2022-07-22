@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
 
 #[event]
-pub struct VotingCreated {
-}
+pub struct VotingCreated {}

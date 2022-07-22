@@ -34,11 +34,7 @@ pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
         ];
 
         // Approve with offer PDA
-        token::approve(
-            ctx.accounts
-                .into_approve_context(),
-            1,
-        )?;
+        token::approve(ctx.accounts.into_approve_context(), 1)?;
 
         // Freeze with offer PDA
         invoke_signed(

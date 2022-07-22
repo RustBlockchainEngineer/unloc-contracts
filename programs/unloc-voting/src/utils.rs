@@ -1,13 +1,11 @@
+use crate::error::*;
 use anchor_lang::prelude::*;
-use crate::{
-    error::*,
-};
 
-pub fn is_zero_account(account_info:&AccountInfo)->bool{
+pub fn is_zero_account(account_info: &AccountInfo) -> bool {
     let account_data: &[u8] = &account_info.data.borrow();
     let len = account_data.len();
     let mut is_zero = true;
-    for i in 0..len-1 {
+    for i in 0..len - 1 {
         if account_data[i] != 0 {
             is_zero = false;
         }
@@ -29,12 +27,10 @@ pub fn require(flag: bool) -> Result<()> {
     Ok(())
 }
 
-
-pub fn bump(seeds:&[&[u8]], program_id: &Pubkey) -> u8 {
+pub fn bump(seeds: &[&[u8]], program_id: &Pubkey) -> u8 {
     let (_found_key, bump) = Pubkey::find_program_address(seeds, program_id);
     bump
 }
-
 
 pub trait SafeCalc<T> {
     fn safe_add(&self, num: T) -> Result<T>;

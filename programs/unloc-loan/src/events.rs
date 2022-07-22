@@ -1,21 +1,14 @@
 use anchor_lang::prelude::*;
 
 #[event]
-pub struct OfferSet {
-}
+pub struct OfferSet {}
 #[event]
-pub struct OfferAccepted {
-}
+pub struct OfferAccepted {}
 #[event]
-pub struct OfferCanceled {
-}
+pub struct OfferCanceled {}
 #[event]
-pub struct NFTClaimed {
-}
+pub struct NFTClaimed {}
 #[event]
-pub struct LoanRepaid {
-}
+pub struct LoanRepaid {}
 #[event]
-pub struct LoanClaimed {
-}
-
+pub struct LoanClaimed {}

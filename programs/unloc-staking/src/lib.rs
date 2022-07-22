@@ -5,21 +5,25 @@ use std::convert::TryInto;
 use std::mem::size_of;
 use std::str::FromStr;
 
-pub mod utils;
 pub mod error;
+pub mod utils;
 
-use crate::{utils::*, error::*};
+use crate::{error::*, utils::*};
 
 declare_id!("EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU");
 
-const DEVNET_MODE:bool = true;
+const DEVNET_MODE: bool = true;
 
-pub const INITIAL_OWNER:&str = "atPFsAVbFFpgtdDoXMyVnp3696PZVfJ3MGQp6CiuZfW";
+pub const INITIAL_OWNER: &str = "atPFsAVbFFpgtdDoXMyVnp3696PZVfJ3MGQp6CiuZfW";
 const FULL_100: u64 = 100_000_000_000;
 const ACC_PRECISION: u128 = 100_000_000_000;
 const MAX_LEVEL: usize = 10;
 const MAX_PROFILE_LEVEL: usize = 5;
-pub const UNLOC_MINT:&str = if DEVNET_MODE {"Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67D4s3kRmut"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
+pub const UNLOC_MINT: &str = if DEVNET_MODE {
+    "Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67D4s3kRmut"
+} else {
+    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+};
 #[program]
 pub mod unloc_staking {
     use super::*;
@@ -36,9 +40,12 @@ pub mod unloc_staking {
 
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
 
-        require_keys_eq!(ctx.accounts.reward_mint.key(),  unloc_mint);
+        require_keys_eq!(ctx.accounts.reward_mint.key(), unloc_mint);
         require_keys_eq!(ctx.accounts.reward_vault.mint, unloc_mint);
-        require!(profile_levels.len() <= MAX_PROFILE_LEVEL, StakingError::OverflowMaxProfileLevel);
+        require!(
+            profile_levels.len() <= MAX_PROFILE_LEVEL,
+            StakingError::OverflowMaxProfileLevel
+        );
         let state = &mut ctx.accounts.state;
         state.authority = ctx.accounts.authority.key();
         state.bump = *ctx.bumps.get("state").unwrap();
@@ -100,10 +107,7 @@ pub mod unloc_staking {
         emit!(RateChanged { token_per_second });
         Ok(())
     }
-    pub fn change_early_unlock_fee(
-        ctx: Context<ChangeState>,
-        early_unlock_fee: u64,
-    ) -> Result<()> {
+    pub fn change_early_unlock_fee(ctx: Context<ChangeState>, early_unlock_fee: u64) -> Result<()> {
         let state = &mut ctx.accounts.state;
         state.early_unlock_fee = early_unlock_fee;
         emit!(EarlyUnlockFeeChanged { early_unlock_fee });
@@ -113,14 +117,15 @@ pub mod unloc_staking {
         ctx: Context<ChangeState>,
         profile_levels: Vec<u128>,
     ) -> Result<()> {
-        require!(profile_levels.len() <= MAX_PROFILE_LEVEL, StakingError::OverflowMaxProfileLevel);
+        require!(
+            profile_levels.len() <= MAX_PROFILE_LEVEL,
+            StakingError::OverflowMaxProfileLevel
+        );
         let state = &mut ctx.accounts.state;
         state.profile_levels = profile_levels;
         Ok(())
     }
-    pub fn change_fee_vault(
-        ctx: Context<ChangeFeeVault>
-    ) -> Result<()> {
+    pub fn change_fee_vault(ctx: Context<ChangeFeeVault>) -> Result<()> {
         let state = &mut ctx.accounts.state;
         state.fee_vault = ctx.accounts.fee_vault.key();
         Ok(())
@@ -193,10 +198,7 @@ pub mod unloc_staking {
             loader.update(state, &ctx.accounts.clock)?;
         }
         let pool = &mut ctx.accounts.pool;
-        state.total_point = state
-            .total_point
-            .safe_sub(pool.point)?
-            .safe_add(point)?;
+        state.total_point = state.total_point.safe_sub(pool.point)?.safe_add(point)?;
         pool.point = point;
         emit!(PoolPointChanged {
             pool: ctx.accounts.pool.key(),
@@ -221,7 +223,6 @@ pub mod unloc_staking {
         Ok(())
     }
 
-    
     pub fn stake(ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()> {
         require_keys_eq!(ctx.accounts.user_vault.owner, ctx.accounts.authority.key());
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
@@ -240,7 +241,10 @@ pub mod unloc_staking {
 
         pool.update(state, &ctx.accounts.clock)?;
         let user_lock_duration = user.lock_duration;
-        user.calculate_reward_amount(pool, &extra_account.get_extra_reward_percentage(&user_lock_duration))?;
+        user.calculate_reward_amount(
+            pool,
+            &extra_account.get_extra_reward_percentage(&user_lock_duration),
+        )?;
 
         user.amount = user.amount.safe_add(amount)?;
         pool.amount = pool.amount.safe_add(amount)?;
@@ -271,14 +275,15 @@ pub mod unloc_staking {
     pub fn unstake(ctx: Context<Stake>, amount: u64) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
         require_keys_eq!(ctx.accounts.mint.key(), unloc_mint);
-        
+
         let extra_account = &mut ctx.accounts.extra_reward_account;
         let state = &ctx.accounts.state;
         let user = &mut ctx.accounts.user;
         let pool = &mut ctx.accounts.pool;
 
         require!(user.amount >= amount, StakingError::UnstakeOverAmount);
-        let is_early_unlock = user.last_stake_time.safe_add(user.lock_duration)? > ctx.accounts.clock.unix_timestamp;
+        let is_early_unlock =
+            user.last_stake_time.safe_add(user.lock_duration)? > ctx.accounts.clock.unix_timestamp;
         if is_early_unlock {
             // flexible reward, pay early_unlock_fee percentage, unstake the rest only
             pool.update(state, &ctx.accounts.clock)?;
@@ -288,15 +293,15 @@ pub mod unloc_staking {
             user.amount = user.amount.safe_sub(amount)?;
             pool.amount = pool.amount.safe_sub(amount)?;
 
-            if user.amount == 0
-            {
+            if user.amount == 0 {
                 user.lock_duration = 0;
             }
 
             user.calculate_reward_debt(pool)?;
             drop(pool);
             let early_unlock_fee = ctx.accounts.state.early_unlock_fee;
-            let early_unlock_fee_amount = calc_fee(amount, early_unlock_fee, ACC_PRECISION.try_into().unwrap())?;
+            let early_unlock_fee_amount =
+                calc_fee(amount, early_unlock_fee, ACC_PRECISION.try_into().unwrap())?;
             let unstake_amount = amount.safe_sub(early_unlock_fee_amount)?;
             let new_pool = &ctx.accounts.pool;
             let cpi_accounts = Transfer {
@@ -324,20 +329,22 @@ pub mod unloc_staking {
                 authority: ctx.accounts.pool.to_account_info(),
             };
             let cpi_program_fee = ctx.accounts.token_program.to_account_info();
-            let cpi_ctx_fee = CpiContext::new_with_signer(cpi_program_fee, cpi_accounts_fee, signer);
+            let cpi_ctx_fee =
+                CpiContext::new_with_signer(cpi_program_fee, cpi_accounts_fee, signer);
             token::transfer(cpi_ctx_fee, early_unlock_fee_amount)?;
-        }
-        else {
+        } else {
             pool.update(state, &ctx.accounts.clock)?;
             let user_lock_duration = user.lock_duration;
-            user.calculate_reward_amount(pool, &extra_account.get_extra_reward_percentage(&user_lock_duration))?;
+            user.calculate_reward_amount(
+                pool,
+                &extra_account.get_extra_reward_percentage(&user_lock_duration),
+            )?;
 
             user.last_stake_time = ctx.accounts.clock.unix_timestamp;
             user.amount = user.amount.safe_sub(amount)?;
             pool.amount = pool.amount.safe_sub(amount)?;
 
-            if user.amount == 0
-            {
+            if user.amount == 0 {
                 user.lock_duration = 0;
             }
 
@@ -364,7 +371,7 @@ pub mod unloc_staking {
             });
         }
         user.update_score_and_level(extra_account, state)?;
-        
+
         Ok(())
     }
 
@@ -376,9 +383,16 @@ pub mod unloc_staking {
 
         pool.update(state, &ctx.accounts.clock)?;
         let user_lock_duration = user.lock_duration;
-        user.calculate_reward_amount(pool, &extra_account.get_extra_reward_percentage(&user_lock_duration))?;
+        user.calculate_reward_amount(
+            pool,
+            &extra_account.get_extra_reward_percentage(&user_lock_duration),
+        )?;
 
-        let total_reward = user.reward_amount.safe_add(user.extra_reward)?.try_into().unwrap();
+        let total_reward = user
+            .reward_amount
+            .safe_add(user.extra_reward)?
+            .try_into()
+            .unwrap();
 
         let cpi_accounts = Transfer {
             from: ctx.accounts.reward_vault.to_account_info(),
@@ -403,7 +417,6 @@ pub mod unloc_staking {
         });
         Ok(())
     }
-    
 }
 
 #[derive(Accounts)]
@@ -441,10 +454,10 @@ pub struct Fund<'info> {
     pub state: Account<'info, StateAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
-    #[account(mut, 
+    #[account(mut,
         constraint = reward_vault.owner == state.key())]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
-    #[account(mut, 
+    #[account(mut,
         constraint = user_vault.owner == authority.key())]
     pub user_vault: Box<Account<'info, TokenAccount>>,
     #[account(constraint = token_program.key == &token::ID)]
@@ -453,8 +466,7 @@ pub struct Fund<'info> {
 
 #[derive(Accounts)]
 pub struct ChangeTokensPerSecond<'info> {
-    #[account(mut, 
-        
+    #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
     pub state: Account<'info, StateAccount>,
     #[account(mut)]
@@ -463,8 +475,7 @@ pub struct ChangeTokensPerSecond<'info> {
 }
 #[derive(Accounts)]
 pub struct ChangeState<'info> {
-    #[account(mut, 
-        
+    #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
     pub state: Account<'info, StateAccount>,
     #[account(mut)]
@@ -473,7 +484,7 @@ pub struct ChangeState<'info> {
 
 #[derive(Accounts)]
 pub struct ChangeFeeVault<'info> {
-    #[account(mut, 
+    #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
     pub state: Account<'info, StateAccount>,
     pub fee_vault: Account<'info, TokenAccount>,
@@ -492,8 +503,7 @@ pub struct CreateFarmPool<'info> {
         space = 8 + size_of::<FarmPoolAccount>()
     )]
     pub pool: Account<'info, FarmPoolAccount>,
-    #[account(mut, 
-        
+    #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
     pub state: Account<'info, StateAccount>,
     pub mint: Box<Account<'info, Mint>>,
@@ -511,11 +521,10 @@ pub struct CreateFarmPool<'info> {
 
 #[derive(Accounts)]
 pub struct CloseFarmPool<'info> {
-    #[account(mut, 
-        
+    #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
     pub state: Account<'info, StateAccount>,
-    #[account(mut, 
+    #[account(mut,
         seeds = [pool.mint.key().as_ref()], bump = pool.bump, has_one = authority, close = authority)]
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
@@ -526,12 +535,10 @@ pub struct CloseFarmPool<'info> {
 
 #[derive(Accounts)]
 pub struct ChangePoolSetting<'info> {
-    #[account(mut, 
-        
+    #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump)]
     pub state: Account<'info, StateAccount>,
-    #[account(mut, 
-        
+    #[account(mut,
         seeds = [pool.mint.key().as_ref()], bump = pool.bump, has_one = authority)]
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
@@ -542,13 +549,13 @@ pub struct ChangePoolSetting<'info> {
 #[derive(Accounts)]
 #[instruction(bump: u8)]
 pub struct CreateExtraRewardsConfigs<'info> {
-    #[account(mut, 
-        seeds = [b"state".as_ref()], 
+    #[account(mut,
+        seeds = [b"state".as_ref()],
         bump = state.bump,
         has_one = authority
     )]
     pub state: Account<'info, StateAccount>,
-    #[account(init, 
+    #[account(init,
         seeds = [b"extra".as_ref()], bump, payer = authority, space = 8 + 37 + MAX_LEVEL * 16)]
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
     #[account(mut)]
@@ -558,8 +565,7 @@ pub struct CreateExtraRewardsConfigs<'info> {
 
 #[derive(Accounts)]
 pub struct SetExtraRewardsConfigs<'info> {
-    #[account(mut, 
-        
+    #[account(mut,
         seeds = [b"extra".as_ref()], bump = extra_reward_account.bump, has_one = authority)]
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
     #[account(mut)]
@@ -582,7 +588,7 @@ pub struct CreatePoolUser<'info> {
     #[account(
         seeds = [b"state".as_ref()], bump = state.bump)]
     pub state: Account<'info, StateAccount>,
-    #[account(mut, 
+    #[account(mut,
         seeds = [pool.mint.key().as_ref()], bump = pool.bump)]
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
@@ -596,28 +602,28 @@ pub struct CreatePoolUser<'info> {
 
 #[derive(Accounts)]
 pub struct Stake<'info> {
-    #[account(mut, 
+    #[account(mut,
         seeds = [pool.key().as_ref(), authority.key().as_ref()], bump = user.bump, has_one = pool, has_one = authority)]
     pub user: Account<'info, FarmPoolUserAccount>,
-    #[account(mut, 
+    #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump)]
     pub state: Account<'info, StateAccount>,
     #[account(
         seeds = [b"extra".as_ref()], bump = extra_reward_account.bump)]
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
-    #[account(mut, 
+    #[account(mut,
         seeds = [pool.mint.key().as_ref()], bump = pool.bump)]
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(constraint = mint.key() == pool.mint)]
     pub mint: Box<Account<'info, Mint>>,
-    #[account(mut, 
+    #[account(mut,
         constraint = pool_vault.owner == pool.key())]
     pub pool_vault: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
     pub user_vault: Box<Account<'info, TokenAccount>>,
-    #[account(mut, 
+    #[account(mut,
         constraint = fee_vault.key() == state.fee_vault)]
     pub fee_vault: Box<Account<'info, TokenAccount>>,
     pub system_program: Program<'info, System>,
@@ -628,26 +634,26 @@ pub struct Stake<'info> {
 
 #[derive(Accounts)]
 pub struct Harvest<'info> {
-    #[account(mut, 
+    #[account(mut,
         seeds = [pool.key().as_ref(), authority.key().as_ref()], bump = user.bump, has_one = pool, has_one = authority)]
     pub user: Account<'info, FarmPoolUserAccount>,
-    #[account(mut, 
+    #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump)]
     pub state: Account<'info, StateAccount>,
     #[account(
         seeds = [b"extra".as_ref()], bump = extra_reward_account.bump)]
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
-    #[account(mut, 
+    #[account(mut,
         seeds = [pool.mint.key().as_ref()], bump = pool.bump)]
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(constraint = mint.key() == pool.mint)]
     pub mint: Box<Account<'info, Mint>>,
-    #[account(mut, 
+    #[account(mut,
         constraint = reward_vault.owner == state.key())]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
-    #[account(mut, 
+    #[account(mut,
         constraint = user_vault.owner == authority.key())]
     pub user_vault: Box<Account<'info, TokenAccount>>,
     pub system_program: Program<'info, System>,
@@ -672,8 +678,7 @@ pub struct StateAccount {
 }
 impl StateAccount {
     fn get_profile_level<'info>(&self, score: u128) -> u64 {
-        let profile_levels: Vec<u128> =
-            self.profile_levels.iter().rev().cloned().collect();
+        let profile_levels: Vec<u128> = self.profile_levels.iter().rev().cloned().collect();
         let mut i = 0;
         for level in profile_levels.iter() {
             if score >= *level {
@@ -718,7 +723,7 @@ impl ExtraRewardsAccount {
     fn validate_lock_duration<'info>(&mut self, lock_duration: &i64) -> Result<()> {
         for config in self.configs.iter() {
             if config.duration == *lock_duration {
-                return Ok(())
+                return Ok(());
             }
         }
         Err(StakingError::InvalidLockDuration.into())
@@ -752,12 +757,8 @@ pub struct FarmPoolAccount {
 
 impl FarmPoolAccount {
     fn update<'info>(&mut self, state: &StateAccount, clock: &Sysvar<'info, Clock>) -> Result<()> {
-        let seconds = u128::try_from(
-            clock
-                .unix_timestamp
-                .safe_sub(self.last_reward_time)?,
-        )
-        .unwrap();
+        let seconds =
+            u128::try_from(clock.unix_timestamp.safe_sub(self.last_reward_time)?).unwrap();
         let mut reward_per_share: u128 = 0;
         if self.amount > 0 && seconds > 0 && self.point > 0 {
             reward_per_share = u128::from(state.token_per_second)
@@ -767,9 +768,7 @@ impl FarmPoolAccount {
                 .safe_div(u128::from(state.total_point))?
                 .safe_div(u128::from(self.amount))?;
         }
-        self.acc_reward_per_share = self
-            .acc_reward_per_share
-            .safe_add(reward_per_share)?;
+        self.acc_reward_per_share = self.acc_reward_per_share.safe_add(reward_per_share)?;
         self.last_reward_time = clock.unix_timestamp;
 
         Ok(())
@@ -795,7 +794,6 @@ pub struct FarmPoolUserAccount {
     pub reserved_3: u128,
 }
 
-
 impl FarmPoolUserAccount {
     fn calculate_reward_amount<'info>(
         &mut self,
@@ -814,23 +812,25 @@ impl FarmPoolUserAccount {
         Ok(())
     }
     fn calculate_reward_debt<'info>(&mut self, pool: &FarmPoolAccount) -> Result<()> {
-
         msg!("amount {}", self.amount);
         msg!("acc_per_share {}", pool.acc_reward_per_share);
-        msg!("multiplied {}", u128::from(self.amount).safe_mul(pool.acc_reward_per_share)?);
-        msg!("scaled {}", u128::from(self.amount)
-            .safe_mul(pool.acc_reward_per_share)?
-            .safe_div(ACC_PRECISION)?);
+        msg!(
+            "multiplied {}",
+            u128::from(self.amount).safe_mul(pool.acc_reward_per_share)?
+        );
+        msg!(
+            "scaled {}",
+            u128::from(self.amount)
+                .safe_mul(pool.acc_reward_per_share)?
+                .safe_div(ACC_PRECISION)?
+        );
 
         self.reward_debt = u128::from(self.amount)
             .safe_mul(pool.acc_reward_per_share)?
             .safe_div(ACC_PRECISION)?;
         Ok(())
     }
-    fn get_score<'info>(
-        &mut self,
-        extra_percentage: &u64,
-    ) -> Result<u128> {
+    fn get_score<'info>(&mut self, extra_percentage: &u64) -> Result<u128> {
         let score: u128 = u128::from(self.amount)
             .safe_mul(u128::from(*extra_percentage))?
             .safe_div(u128::from(FULL_100))?
@@ -842,7 +842,8 @@ impl FarmPoolUserAccount {
         extra_rewards_account: &ExtraRewardsAccount,
         state: &StateAccount,
     ) -> Result<()> {
-        let extra_percentage = extra_rewards_account.get_extra_reward_percentage(&self.lock_duration);
+        let extra_percentage =
+            extra_rewards_account.get_extra_reward_percentage(&self.lock_duration);
         let score = self.get_score(&extra_percentage)?;
         let profile_level = state.get_profile_level(score);
         self.unloc_score = score;
@@ -916,7 +917,6 @@ pub fn calc_fee(total: u64, fee_percent: u64, denominator: u64) -> Result<u64> {
     if _denominator == 0 {
         return Err(error!(StakingError::InvalidDenominator));
     }
-    let result = _total.safe_mul(_fee_percent)?
-        .safe_div(_denominator)?;
+    let result = _total.safe_mul(_fee_percent)?.safe_div(_denominator)?;
     Ok(result.try_into().unwrap())
 }
