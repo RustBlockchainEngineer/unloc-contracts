@@ -73,8 +73,6 @@ pub mod unloc_burn {
         Ok(())
     }
     pub fn buyback(ctx: Context<Buyback>) -> Result<()> {
-        ctx.accounts.validate()?;
-
         let amount_in: u64 = amount(&ctx.accounts.user_source_token_account.clone())?;
         let minimum_amount_out: u64 = 0;
 
@@ -180,7 +178,12 @@ pub struct Buyback<'info> {
         mut,
         seeds = [GLOBAL_STATE_SEED],
         bump = global_state.bump,
-        has_one = burner
+        has_one = burner,
+        has_one = amm,
+        has_one = serum_program,
+        has_one = serum_market,
+        constraint = global_state.usdc_vault == user_source_token_account.key() || global_state.wsol_vault == user_source_token_account.key(),
+        constraint = global_state.unloc_vault == user_destination_token_account.key()
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
     #[account(mut)]
@@ -237,28 +240,6 @@ pub struct Buyback<'info> {
     pub spl_token_program: AccountInfo<'info>,
 }
 impl<'a, 'b, 'c, 'info> Buyback<'info> {
-    pub fn validate(&self) -> Result<()> {
-        require(self.global_state.amm == self.amm.key(), "wrong amm")?;
-        require(
-            self.global_state.serum_program == self.serum_program.key(),
-            "wrong serum_program",
-        )?;
-        require(
-            self.global_state.serum_market == self.serum_market.key(),
-            "wrong serum_market",
-        )?;
-        require(
-            self.global_state.usdc_vault == self.user_source_token_account.key()
-                || self.global_state.wsol_vault == self.user_source_token_account.key(),
-            "wrong token account",
-        )?;
-        require(
-            self.global_state.unloc_vault == self.user_destination_token_account.key(),
-            "wrong token account",
-        )?;
-
-        Ok(())
-    }
     pub fn to_ctx(&self) -> CpiContext<'a, 'b, 'c, 'info, SwapBaseIn<'info>> {
         let cpi_accounts = SwapBaseIn {
             amm: self.amm.clone(),
