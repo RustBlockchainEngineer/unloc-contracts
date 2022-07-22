@@ -13,10 +13,6 @@ pub fn process_set_voting(
     voting_start_timestamp: u64,
     voting_end_timestamp: u64,
 ) -> Result<()> {
-    assert_owner(
-        ctx.accounts.global_state.super_owner,
-        ctx.accounts.super_owner.key(),
-    )?;
     if is_zero_account(&ctx.accounts.voting.to_account_info()) {
         ctx.accounts.global_state.voting_count =
             ctx.accounts.global_state.voting_count.safe_add(1)?;
@@ -40,6 +36,7 @@ pub struct SetVoting<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
+        has_one = super_owner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 
