@@ -162,7 +162,7 @@ export async function createAndMintNft(borrower: anchor.web3.PublicKey): Promise
     mintAuthority: superOwner
   })
   const tx = await provider.sendAndConfirm(createMetadataTx, [superOwnerKeypair])
-  console.log('creating nft meta tx = ', tx)
+  //console.log('creating nft meta tx = ', tx)
 
   const borrowerNftVault = await nftMint.createAccount(borrower);
   
@@ -186,7 +186,7 @@ export async function createAndMintNft(borrower: anchor.web3.PublicKey): Promise
 
 
   const tx2 = await provider.sendAndConfirm(createEditionTx, [superOwnerKeypair])
-  console.log('creating nft edition tx = ', tx2)
+  //console.log('creating nft edition tx = ', tx2)
 
   return {
     nft: nftMint,
