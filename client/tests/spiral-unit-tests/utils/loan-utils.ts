@@ -1,13 +1,15 @@
 
 import * as anchor from '@project-serum/anchor';
 import { MintLayout, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
+import { SystemProgram, Transaction, TransactionInstruction, Keypair } from '@solana/web3.js';
 import { IDL as idl, UnlocLoan } from '../../../src/types/unloc_loan'
 import SUPER_OWNER_WALLET from '../../test-users/super_owner.json'
 import UNLOC_TOKEN_KEYPAIR from '../../keypairs/unloc-token.json'
 import USDC_TOKEN_KEYPAIR from '../../keypairs/usdc-token.json'
 import TREASURY from '../../test-users/treasury.json'
 import { defaults } from '../../../src/global-config'
+import { Collection, CreateMasterEditionV3, CreateMetadataV2, DataV2, Edition, Metadata } from '@metaplex-foundation/mpl-token-metadata';
+
 
 const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
 const superOwner = superOwnerKeypair.publicKey
@@ -48,6 +50,7 @@ export async function safeAirdrop(connection: anchor.web3.Connection, key: ancho
   }
 
   export async function createTokenMints(superOwner: anchor.web3.Keypair, unlocKeypair: anchor.web3.Keypair, usdcKeypair: anchor.web3.Keypair) {
+    // if we only run this once per test suite, won't have to fetch account info which will save on time and compute
     const usdcMint = await provider.connection.getAccountInfo(usdcKeypair.publicKey)
     const unlocMint = await provider.connection.getAccountInfo(unlocKeypair.publicKey)
     let accountRentExempt = await provider.connection.getMinimumBalanceForRentExemption(MintLayout.span)
@@ -127,3 +130,93 @@ export async function safeAirdrop(connection: anchor.web3.Connection, key: ancho
         }
   }
 }
+
+export async function createAndMintNft(borrower: anchor.web3.PublicKey): Promise<nft> {
+  const nftMint = await Token.createMint(
+    provider.connection,
+    superOwnerKeypair,
+    superOwner,
+    superOwner,
+    0,
+    TOKEN_PROGRAM_ID
+  )
+  const collectionKey = Keypair.generate().publicKey
+  const dataV2 = new DataV2({
+    name: 'Test NFT',
+    symbol: 'TNFT',
+    uri: '',
+    sellerFeeBasisPoints: 0,
+    creators: null,
+    collection: new Collection({
+      key: collectionKey.toBase58(),
+      verified: false
+    }),
+    uses: null
+  })
+  const nftMetadataKey = await Metadata.getPDA(nftMint.publicKey)
+  const createMetadataTx = new CreateMetadataV2({ feePayer: superOwner }, {
+    metadata: nftMetadataKey,
+    metadataData: dataV2,
+    updateAuthority: superOwner,
+    mint: nftMint.publicKey,
+    mintAuthority: superOwner
+  })
+  const tx = await provider.sendAndConfirm(createMetadataTx, [superOwnerKeypair])
+  console.log('creating nft meta tx = ', tx)
+
+  const borrowerNftVault = await nftMint.createAccount(borrower);
+  
+  await nftMint.mintTo(
+    borrowerNftVault,
+    superOwner,
+    [],
+    1
+  );
+
+  // Create master edition after nft mint
+  const nftEditionKey = await Edition.getPDA(nftMint.publicKey)
+  const createEditionTx = new CreateMasterEditionV3({ feePayer: superOwner }, {
+    edition: nftEditionKey,
+    metadata: nftMetadataKey,
+    mint: nftMint.publicKey,
+    updateAuthority: superOwner,
+    mintAuthority: superOwner,
+    maxSupply: 0
+  })
+
+
+  const tx2 = await provider.sendAndConfirm(createEditionTx, [superOwnerKeypair])
+  console.log('creating nft edition tx = ', tx2)
+
+  return {
+    nft: nftMint,
+    metadata: nftMetadataKey,
+    editionKey: nftEditionKey,
+    borrowerNftVault: borrowerNftVault
+  }
+}
+
+export enum OfferState {
+  Proposed,
+  Accepted,
+  Expired,
+  Fulfilled,
+  NFTClaimed,
+  Canceled
+}
+export enum SubOfferState {
+  Proposed,
+  Accepted,
+  Expired,
+  Fulfilled,
+  LoanPaymentClaimed,
+  Canceled,
+  NFTClaimed
+}
+
+type nft = {
+  nft: Token,
+  metadata: anchor.web3.PublicKey,
+  editionKey: anchor.web3.PublicKey,
+  borrowerNftVault: anchor.web3.PublicKey
+} 

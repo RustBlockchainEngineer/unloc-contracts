@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "typeRoots": ["types/", "node_modules/@types"],
+    "typeRoots": ["types/", "node_modules/@types", "jest"],
     "lib": ["esnext"],
     "allowJs": true,
     "esModuleInterop": true,
@@ -10,5 +10,5 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["./src/index.ts"]
+  "include": ["./src/index.ts", "./tests/spiral-unit-tests/**/*.spec.ts"]
 }
