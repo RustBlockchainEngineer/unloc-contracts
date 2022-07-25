@@ -22,3 +22,7 @@ export const REWARD_VAULT_TAG = Buffer.from('REWARD_VAULT_SEED')
 export const OFFER_SEED = Buffer.from("OFFER_SEED")
 export const SUB_OFFER_SEED = Buffer.from("SUB_OFFER_SEED")
 export const TREASURY_VAULT_TAG = Buffer.from('TREASURY_VAULT_SEED')
+
+export const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID: anchor.web3.PublicKey = new anchor.web3.PublicKey(
+    'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
+  )

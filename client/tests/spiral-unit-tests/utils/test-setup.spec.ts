@@ -41,7 +41,7 @@ This runs once before the entire test suit to initialize the state.
 This instruction initalizes the state of the GlobalState account.
 */
 before(async () => {
-    console.log("Running setup...")
+    console.log("Running setup for test suite...")
     await safeAirdrop(provider.connection, superOwnerKeypair.publicKey, 10)
     await safeAirdrop(provider.connection, borrowerKeypair.publicKey, 10)
     await safeAirdrop(provider.connection, treasuryKeypair.publicKey, 10)
@@ -51,7 +51,7 @@ before(async () => {
     const rewardVault = await pda([REWARD_VAULT_TAG], programId)
     try {
         const signers = [superOwnerKeypair]
-        const initGlobalStateTx = await program.methods.setGlobalState(accruedInterestNumerator, denominator, minRepaidNumerator, aprNumerator, expireLoanDuration, rewardRate, lenderRewardsPercentage)
+        await program.methods.setGlobalState(accruedInterestNumerator, denominator, minRepaidNumerator, aprNumerator, expireLoanDuration, rewardRate, lenderRewardsPercentage)
         .accounts({
         superOwner: superOwnerKeypair.publicKey,
         payer: superOwnerKeypair.publicKey,
@@ -64,8 +64,7 @@ before(async () => {
         })
         .signers(signers)
         .rpc()
-        //console.log("init global state tx: ", initGlobalStateTx)
-        console.log("Global state initiated")
+        console.log("Global state initiated, ready for tests!")
 
         // assertions
         let globalStateData = await program.account.globalState.fetch(globalState)

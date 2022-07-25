@@ -1,6 +1,6 @@
 
 import * as anchor from '@project-serum/anchor';
-import { MintLayout, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { MintLayout, Token, TOKEN_PROGRAM_ID, AccountLayout } from '@solana/spl-token';
 import { SystemProgram, Transaction, TransactionInstruction, Keypair } from '@solana/web3.js';
 import { IDL as idl, UnlocLoan } from '../../../src/types/unloc_loan'
 import SUPER_OWNER_WALLET from '../../test-users/super_owner.json'
@@ -9,7 +9,8 @@ import USDC_TOKEN_KEYPAIR from '../../keypairs/usdc-token.json'
 import TREASURY from '../../test-users/treasury.json'
 import { defaults } from '../../../src/global-config'
 import { Collection, CreateMasterEditionV3, CreateMetadataV2, DataV2, Edition, Metadata } from '@metaplex-foundation/mpl-token-metadata';
-
+import { SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID } from './const'
+import { mintTokensBuilder, token } from '@metaplex-foundation/js';
 
 const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
 const superOwner = superOwnerKeypair.publicKey
@@ -193,6 +194,87 @@ export async function createAndMintNft(borrower: anchor.web3.PublicKey): Promise
     metadata: nftMetadataKey,
     editionKey: nftEditionKey,
     borrowerNftVault: borrowerNftVault
+  }
+}
+
+export async function findAssociatedTokenAddress(
+  walletAddress: anchor.web3.PublicKey,
+  tokenMintAddress: anchor.web3.PublicKey
+): Promise<anchor.web3.PublicKey> {
+  return (await anchor.web3.PublicKey.findProgramAddress(
+      [
+          walletAddress.toBuffer(),
+          TOKEN_PROGRAM_ID.toBuffer(),
+          tokenMintAddress.toBuffer(),
+      ],
+      SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID
+  ))[0]
+}
+
+export async function createATA(user: anchor.web3.Keypair, mint: anchor.web3.PublicKey) {
+  const lamports = await Token.getMinBalanceRentForExemptAccount(provider.connection)
+  const userAta = await findAssociatedTokenAddress(user.publicKey, mint)
+  let instructions: TransactionInstruction[] = []
+  instructions.push(
+    SystemProgram.createAccount({
+      fromPubkey: user.publicKey,
+      newAccountPubkey: userAta,
+      lamports: lamports,
+      space: AccountLayout,
+      programId: TOKEN_PROGRAM_ID
+    })
+  )
+  instructions.push(
+    Token.createInitAccountInstruction(TOKEN_PROGRAM_ID, mint, userAta, user.publicKey)
+  )
+
+  return instructions
+}
+
+export async function mintTokens(wallet: anchor.web3.Keypair, mint: anchor.web3.PublicKey, amt: number){
+  let walletAta = await findAssociatedTokenAddress(wallet.publicKey, mint)
+  let associatedAcct = await provider.connection.getAccountInfo(walletAta)
+  let tx = new Transaction()
+  if(!associatedAcct) {
+    tx.add(
+      SystemProgram.createAccount({
+        fromPubkey: wallet.publicKey,
+        newAccountPubkey: walletAta,
+        lamports: await Token.getMinBalanceRentForExemptAccount(provider.connection),
+        space: AccountLayout,
+        programId: TOKEN_PROGRAM_ID
+      })
+    )
+    tx.add(
+      Token.createInitAccountInstruction(
+        TOKEN_PROGRAM_ID,
+        mint,
+        walletAta,
+        wallet.publicKey
+      )
+    )
+    tx.add(Token.createMintToInstruction(
+      TOKEN_PROGRAM_ID,
+      mint,
+      walletAta,
+      usdcTokenKeypair.publicKey,
+      [],
+      amt,
+    ))
+
+    await provider.sendAndConfirm(tx, [wallet, usdcTokenKeypair])
+  }
+  else{
+    tx.add(Token.createMintToInstruction(
+      TOKEN_PROGRAM_ID,
+      mint,
+      walletAta,
+      usdcTokenKeypair.publicKey,
+      [],
+      amt,
+    ))
+
+    await provider.sendAndConfirm(tx, [wallet, usdcTokenKeypair])
   }
 }
 

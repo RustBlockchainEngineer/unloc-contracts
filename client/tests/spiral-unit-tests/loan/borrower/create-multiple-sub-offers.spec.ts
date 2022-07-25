@@ -1,10 +1,10 @@
 import * as anchor from '@project-serum/anchor';
 import SUPER_OWNER_WALLET from '../../../test-users/super_owner.json'
 import TREASURY from '../../../test-users/treasury.json'
-import UNLOC_TOKEN_KEYPAIR from '../../../keypairs/unloc-token.json'
-import USDC_TOKEN_KEYPAIR from '../../../keypairs/usdc-token.json'
 import { Token } from '@solana/spl-token';
 import { UnlocLoan } from '../../../../src/types/unloc_loan';
+import UNLOC_TOKEN_KEYPAIR from '../../../keypairs/unloc-token.json'
+import USDC_TOKEN_KEYPAIR from '../../../keypairs/usdc-token.json'
 import { TOKEN_META_PID, UNLOC_MINT, USDC_MINT } from '../../../../src';
 import { defaults } from '../../../../src/global-config'
 import { assert } from 'chai';
@@ -17,8 +17,6 @@ describe('create loan with multiple sub offers', async () => {
     // fetch test keypairs
     const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
     const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))
-    const unlocTokenKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(UNLOC_TOKEN_KEYPAIR))
-    const usdcTokenKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(USDC_TOKEN_KEYPAIR))
     const treasuryKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(TREASURY))
 
 
@@ -26,26 +24,20 @@ describe('create loan with multiple sub offers', async () => {
     const envProvider = anchor.AnchorProvider.env();
     const provider = new anchor.AnchorProvider(envProvider.connection, new anchor.Wallet(superOwnerKeypair), envProvider.opts)
     anchor.setProvider(provider);
-
     const program = anchor.workspace.UnlocLoan as anchor.Program<UnlocLoan>;
     const programId = program.programId
 
+    // derive global state account
     const globalState = await pda([GLOBAL_STATE_TAG], programId)
-    const rewardVault = await pda([REWARD_VAULT_TAG], programId)
 
     // define constants
-    const denominator = new anchor.BN(10000);
-    const lenderRewardsPercentage = new anchor.BN(6000);
-    const rewardMint = UNLOC_MINT
-    let nftMint: Token = null as any;
-    let nftMetadataKey: anchor.web3.PublicKey = null as any;
-    let nftEditionKey: anchor.web3.PublicKey = null as any;
-    let borrowerNftVault: anchor.web3.PublicKey = null as any;
-    const accruedInterestNumerator = new anchor.BN(10000000);
-    const aprNumerator = new anchor.BN(1 * denominator.toNumber() / 100); // 1%
-    const minRepaidNumerator = new anchor.BN(denominator.toNumber() / 2); // 0.5
-    const rewardRate = new anchor.BN(300);
-    const expireLoanDuration = new anchor.BN(90 * 24 * 3600);
+    const denominator = new anchor.BN(10000)
+    let nftMint: Token = null as any
+    let nftMetadataKey: anchor.web3.PublicKey = null as any
+    let nftEditionKey: anchor.web3.PublicKey = null as any
+    let borrowerNftVault: anchor.web3.PublicKey = null as any
+    const aprNumerator = new anchor.BN(1 * denominator.toNumber() / 100) // 1%
+    const expireLoanDuration = new anchor.BN(90 * 24 * 3600)
     
     it('create loan ofer with NFT', async () => {
         // create nft and mint to borrower's wallet
@@ -59,7 +51,8 @@ describe('create loan with multiple sub offers', async () => {
         const offer = await pda([OFFER_SEED, borrowerKeypair.publicKey.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     
         try {
-            const tx1 = await program.methods.setOffer()
+            // create offer with NFT
+            await program.methods.setOffer()
             .accounts({
                 borrower: borrowerKeypair.publicKey,
                 payer: borrowerKeypair.publicKey,
@@ -73,7 +66,6 @@ describe('create loan with multiple sub offers', async () => {
             })
             .signers([borrowerKeypair])
             .rpc()
-            //console.log('set Offer tx = ', tx1)
         } catch (e) {
             console.log("Caught error: ", e)
             assert.fail()
@@ -103,21 +95,21 @@ describe('create loan with multiple sub offers', async () => {
         const subOfferKey = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber.toArrayLike(Buffer, 'be', 8)], programId)
         const treasuryVault = await pda([TREASURY_VAULT_TAG, USDC_MINT.toBuffer()], programId)
         try {
-        const subOfferTx = await program.methods.setSubOffer(offerAmount, subOfferNumber, expireLoanDuration, aprNumerator)
-        .accounts({
-            borrower: borrowerKeypair.publicKey,
-            payer: borrowerKeypair.publicKey,
-            globalState: globalState,
-            offer: offer,
-            subOffer: subOfferKey,
-            offerMint: USDC_MINT,
-            treasuryWallet: treasuryKeypair.publicKey,
-            treasuryVault: treasuryVault,
-            ...defaults
-        })
-        .signers([borrowerKeypair])
-        .rpc()
-        //console.log('set 1st sub offer tx: ', subOfferTx)
+            // create sub offer with loan parameters
+            await program.methods.setSubOffer(offerAmount, subOfferNumber, expireLoanDuration, aprNumerator)
+            .accounts({
+                borrower: borrowerKeypair.publicKey,
+                payer: borrowerKeypair.publicKey,
+                globalState: globalState,
+                offer: offer,
+                subOffer: subOfferKey,
+                offerMint: USDC_MINT,
+                treasuryWallet: treasuryKeypair.publicKey,
+                treasuryVault: treasuryVault,
+                ...defaults
+            })
+            .signers([borrowerKeypair])
+            .rpc()
 
         // validations
         const subOfferData = await program.account.subOffer.fetch(subOfferKey)
@@ -151,21 +143,21 @@ describe('create loan with multiple sub offers', async () => {
             const subOfferKey = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber.toArrayLike(Buffer, 'be', 8)], programId)
             const treasuryVault = await pda([TREASURY_VAULT_TAG, USDC_MINT.toBuffer()], programId)
             try {
-            const subOfferTx = await program.methods.setSubOffer(offerAmount2, subOfferNumber, expireLoanDuration, aprNumerator)
-            .accounts({
-                borrower: borrowerKeypair.publicKey,
-                payer: borrowerKeypair.publicKey,
-                globalState: globalState,
-                offer: offer,
-                subOffer: subOfferKey,
-                offerMint: USDC_MINT,
-                treasuryWallet: treasuryKeypair.publicKey,
-                treasuryVault: treasuryVault,
-                ...defaults
-            })
-            .signers([borrowerKeypair])
-            .rpc()
-            //console.log('set end sub offer tx: ', subOfferTx)
+                // create 2nd loan sub offer
+                await program.methods.setSubOffer(offerAmount2, subOfferNumber, expireLoanDuration, aprNumerator)
+                .accounts({
+                    borrower: borrowerKeypair.publicKey,
+                    payer: borrowerKeypair.publicKey,
+                    globalState: globalState,
+                    offer: offer,
+                    subOffer: subOfferKey,
+                    offerMint: USDC_MINT,
+                    treasuryWallet: treasuryKeypair.publicKey,
+                    treasuryVault: treasuryVault,
+                    ...defaults
+                })
+                .signers([borrowerKeypair])
+                .rpc()
 
             // validations
             const subOfferData = await program.account.subOffer.fetch(subOfferKey)
@@ -180,10 +172,10 @@ describe('create loan with multiple sub offers', async () => {
             assert.equal(subOfferData.loanDuration.toNumber(), expireLoanDuration.toNumber())
             assert.equal(subOfferData.aprNumerator.toNumber(), aprNumerator.toNumber())
             assert.equal(subOfferData.state, SubOfferState.Proposed)
-        } catch (e) {
-            console.log("Error: ", e)
-            assert.fail()
-        }
+            } catch (e) {
+                console.log("Error: ", e)
+                assert.fail()
+            }
         } else {
             console.log("mint account null")
             assert.fail()
@@ -199,21 +191,21 @@ describe('create loan with multiple sub offers', async () => {
             const subOfferKey = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber.toArrayLike(Buffer, 'be', 8)], programId)
             const treasuryVault = await pda([TREASURY_VAULT_TAG, USDC_MINT.toBuffer()], programId)
             try {
-            const subOfferTx = await program.methods.setSubOffer(offerAmount3, subOfferNumber, expireLoanDuration, aprNumerator)
-            .accounts({
-                borrower: borrowerKeypair.publicKey,
-                payer: borrowerKeypair.publicKey,
-                globalState: globalState,
-                offer: offer,
-                subOffer: subOfferKey,
-                offerMint: USDC_MINT,
-                treasuryWallet: treasuryKeypair.publicKey,
-                treasuryVault: treasuryVault,
-                ...defaults
-            })
-            .signers([borrowerKeypair])
-            .rpc()
-            //console.log('set 3rd sub offer tx: ', subOfferTx)
+                // create 3rd sub offer
+                await program.methods.setSubOffer(offerAmount3, subOfferNumber, expireLoanDuration, aprNumerator)
+                .accounts({
+                    borrower: borrowerKeypair.publicKey,
+                    payer: borrowerKeypair.publicKey,
+                    globalState: globalState,
+                    offer: offer,
+                    subOffer: subOfferKey,
+                    offerMint: USDC_MINT,
+                    treasuryWallet: treasuryKeypair.publicKey,
+                    treasuryVault: treasuryVault,
+                    ...defaults
+                })
+                .signers([borrowerKeypair])
+                .rpc()
 
             // validations
             const subOfferData = await program.account.subOffer.fetch(subOfferKey)

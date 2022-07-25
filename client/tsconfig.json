@@ -10,5 +10,5 @@
     "declaration": true,
     "declarationMap": true
   },
-  "include": ["./src/index.ts", "./tests/spiral-unit-tests/**/*.spec.ts"]
+  "include": ["./src/index.ts", "./tests/spiral-unit-tests/**/*.spec.ts", "tests/spiral-unit-tests/loan/borrower/cancel-offer.ts", "tests/spiral-unit-tests/loan/borrower/create-loan-offer.ts", "tests/spiral-unit-tests/loan/borrower/cancel-offer.ts", "tests/spiral-unit-tests/loan/lender/accept-offer.ts", "tests/spiral-unit-tests/loan/borrower/cancel-offer.ts", "tests/spiral-unit-tests/loan/borrower/cancel-sub-offer.ts", "tests/spiral-unit-tests/loan/borrower/create-loan-offer.ts", "tests/spiral-unit-tests/loan/borrower/create-multiple-sub-offers.ts"]
 }
