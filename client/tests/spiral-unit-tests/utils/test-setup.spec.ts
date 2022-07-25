@@ -64,7 +64,8 @@ before(async () => {
         })
         .signers(signers)
         .rpc()
-        console.log("init global state tx: ", initGlobalStateTx)
+        //console.log("init global state tx: ", initGlobalStateTx)
+        console.log("Global state initiated")
 
         // assertions
         let globalStateData = await program.account.globalState.fetch(globalState)

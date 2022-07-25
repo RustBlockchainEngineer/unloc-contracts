@@ -12,7 +12,6 @@ import { GLOBAL_STATE_TAG, REWARD_VAULT_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASUR
 import { checkWalletATA } from '../../../../src'
 
 describe('create loan and sub offer', async () => {
-  console.log("Create loan offer test")
   // fetch test keypairs
   const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
   const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))

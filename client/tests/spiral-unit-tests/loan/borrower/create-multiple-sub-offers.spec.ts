@@ -14,7 +14,6 @@ import { GLOBAL_STATE_TAG, REWARD_VAULT_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASUR
 
 
 describe('create loan with multiple sub offers', async () => {
-    console.log("Create multiple sub offers test")
     // fetch test keypairs
     const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
     const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))
@@ -166,7 +165,7 @@ describe('create loan with multiple sub offers', async () => {
             })
             .signers([borrowerKeypair])
             .rpc()
-            console.log('set end sub offer tx: ', subOfferTx)
+            //console.log('set end sub offer tx: ', subOfferTx)
 
             // validations
             const subOfferData = await program.account.subOffer.fetch(subOfferKey)
@@ -214,7 +213,7 @@ describe('create loan with multiple sub offers', async () => {
             })
             .signers([borrowerKeypair])
             .rpc()
-            console.log('set 3rd sub offer tx: ', subOfferTx)
+            //console.log('set 3rd sub offer tx: ', subOfferTx)
 
             // validations
             const subOfferData = await program.account.subOffer.fetch(subOfferKey)

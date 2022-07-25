@@ -13,7 +13,6 @@ import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
 import { GLOBAL_STATE_TAG, REWARD_VAULT_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from '../../utils/const'
 
 describe('create and cancel sub offer', async () => {
-    console.log("Cancel sub offer test")
     // fetch test keypairs
     const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
     const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))
@@ -72,7 +71,7 @@ describe('create and cancel sub offer', async () => {
             })
             .signers([borrowerKeypair])
             .rpc()
-            console.log('set Offer tx = ', tx1)
+            //console.log('set Offer tx = ', tx1)
         } catch (e) {
             console.log("Caught error: ",e)
             assert.fail()
@@ -115,7 +114,7 @@ describe('create and cancel sub offer', async () => {
             })
             .signers([borrowerKeypair])
             .rpc()
-            console.log('set 1st sub offer tx: ', subOfferTx)
+            //console.log('set 1st sub offer tx: ', subOfferTx)
     
             // validations
             const subOfferData = await program.account.subOffer.fetch(subOfferKey)
@@ -154,7 +153,7 @@ describe('create and cancel sub offer', async () => {
                 })
                 .signers([borrowerKeypair])
                 .rpc()
-                console.log('cancel 1st sub offer tx: ', cancelSubOfferTx1)
+                //console.log('cancel 1st sub offer tx: ', cancelSubOfferTx1)
 
                 // validations
                 const subOfferData = await program.account.subOffer.fetch(subOfferKey)
@@ -195,7 +194,7 @@ describe('create and cancel sub offer', async () => {
             })
             .signers([borrowerKeypair])
             .rpc()
-            console.log('set 2nd sub offer tx: ', subOfferTx)
+            //console.log('set 2nd sub offer tx: ', subOfferTx)
     
             // validations
             const subOfferData = await program.account.subOffer.fetch(subOfferKey)
@@ -242,7 +241,7 @@ describe('create and cancel sub offer', async () => {
             })
             .signers([borrowerKeypair])
             .rpc()
-            console.log('set 3rd sub offer tx: ', subOfferTx)
+            //console.log('set 3rd sub offer tx: ', subOfferTx)
     
             // validations
             const subOfferData = await program.account.subOffer.fetch(subOfferKey)
@@ -281,7 +280,7 @@ describe('create and cancel sub offer', async () => {
                 })
                 .signers([borrowerKeypair])
                 .rpc()
-                console.log('cancel 2nd sub offer tx: ', cancelSubOfferTx1)
+                //console.log('cancel 2nd sub offer tx: ', cancelSubOfferTx1)
 
                 // validations
                 const subOfferData = await program.account.subOffer.fetch(subOfferKey)

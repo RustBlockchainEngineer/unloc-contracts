@@ -15,7 +15,6 @@ import { GLOBAL_STATE_TAG, REWARD_VAULT_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASUR
 
 
 describe('create loan offer and cancel', async () => {
-    console.log("Cancel offer tes")
     // fetch test keypairs
     const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
     const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))
@@ -63,7 +62,7 @@ describe('create loan offer and cancel', async () => {
             })
             .signers([borrowerKeypair])
             .rpc()
-            console.log('set Offer tx = ', tx1)
+            //console.log('set Offer tx = ', tx1)
         } catch (e) {
             console.log("Caught error: ",e)
             assert.fail()
@@ -101,7 +100,7 @@ describe('create loan offer and cancel', async () => {
                 })
                 .signers([borrowerKeypair])
                 .rpc()
-                console.log("cancel offer tx: ", cancelOfferTx)
+                //console.log("cancel offer tx: ", cancelOfferTx)
 
                 // validations
                 const offerData = await program.account.offer.fetch(offer)
