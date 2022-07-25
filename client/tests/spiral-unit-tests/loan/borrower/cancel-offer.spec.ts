@@ -15,12 +15,10 @@ import { GLOBAL_STATE_TAG, REWARD_VAULT_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASUR
 
 
 describe('create loan offer and cancel', async () => {
+    console.log("Cancel offer tes")
     // fetch test keypairs
     const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
     const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))
-    const unlocTokenKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(UNLOC_TOKEN_KEYPAIR))
-    const usdcTokenKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(USDC_TOKEN_KEYPAIR))
-    const treasuryKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(TREASURY))
 
 
     // Configure the client to use the local cluster.
@@ -31,9 +29,6 @@ describe('create loan offer and cancel', async () => {
     const program = anchor.workspace.UnlocLoan as anchor.Program<UnlocLoan>;
     const programId = program.programId
 
-    const globalState = await pda([GLOBAL_STATE_TAG], programId)
-    const rewardVault = await pda([REWARD_VAULT_TAG], programId)
-
     // define constants
     const denominator = new anchor.BN(10000);
     const lenderRewardsPercentage = new anchor.BN(6000);
@@ -41,48 +36,6 @@ describe('create loan offer and cancel', async () => {
     let nftMetadataKey: anchor.web3.PublicKey = null as any;
     let nftEditionKey: anchor.web3.PublicKey = null as any;
     let borrowerNftVault: anchor.web3.PublicKey = null as any;
-    const accruedInterestNumerator = new anchor.BN(10000000);
-    const aprNumerator = new anchor.BN(1 * denominator.toNumber() / 100); // 1%
-    const minRepaidNumerator = new anchor.BN(denominator.toNumber() / 2); // 0.5
-    const rewardRate = new anchor.BN(300);
-    const expireLoanDuration = new anchor.BN(90 * 24 * 3600);
-
-    it('Creating token mints', async () => {
-        await safeAirdrop(provider.connection, superOwnerKeypair.publicKey, 10)
-        await safeAirdrop(provider.connection, borrowerKeypair.publicKey, 10)
-        await createTokenMints(superOwnerKeypair, unlocTokenKeypair, usdcTokenKeypair)
-    })
-    
-    it('init global state account', async () => {
-        /* 
-            Declare parameters for the process_set_global_state instruction.
-            This instruction initalizes the state of the GlobalState account.
-        */
-        const signers = [superOwnerKeypair]
-        const initGlobalStateTx = await program.methods.setGlobalState(accruedInterestNumerator, denominator, minRepaidNumerator, aprNumerator, expireLoanDuration, rewardRate, lenderRewardsPercentage)
-        .accounts({
-        superOwner: superOwnerKeypair.publicKey,
-        payer: superOwnerKeypair.publicKey,
-        globalState: globalState,
-        rewardMint: unlocTokenKeypair.publicKey,
-        rewardVault: rewardVault,
-        newSuperOwner: superOwnerKeypair.publicKey,
-        treasuryWallet: treasuryKeypair.publicKey,
-        ...defaults
-        })
-        .signers(signers)
-        .rpc()
-        console.log("Init global state tx: ", initGlobalStateTx)
-        
-        // assertions
-        let globalStateData = await program.account.globalState.fetch(globalState)
-        assert.equal(globalStateData.superOwner.toBase58(), superOwnerKeypair.publicKey.toBase58())
-        assert.equal(globalStateData.treasuryWallet.toBase58(), treasuryKeypair.publicKey.toBase58())
-        assert.equal(globalStateData.rewardVault.toBase58(), rewardVault.toBase58())
-        assert.equal(globalStateData.accruedInterestNumerator.toNumber(), accruedInterestNumerator.toNumber())
-        assert.equal(globalStateData.denominator.toNumber(), denominator.toNumber())
-        assert.equal(globalStateData.aprNumerator.toNumber(), aprNumerator.toNumber())
-    })
 
     it('create loan ofer with NFT', async () => {
         // create nft and mint to borrower's wallet
