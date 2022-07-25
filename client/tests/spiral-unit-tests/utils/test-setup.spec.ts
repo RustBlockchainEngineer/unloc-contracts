@@ -64,7 +64,7 @@ before(async () => {
         })
         .signers(signers)
         .rpc()
-        console.log("Global state initiated, ready for tests!")
+        console.log("Global state initialized, ready for tests!")
 
         // assertions
         let globalStateData = await program.account.globalState.fetch(globalState)
@@ -76,5 +76,6 @@ before(async () => {
         assert.equal(globalStateData.aprNumerator.toNumber(), aprNumerator.toNumber())
     } catch (e) {
         console.log("Caught error: ", e)
+        assert.fail()
     }
 })

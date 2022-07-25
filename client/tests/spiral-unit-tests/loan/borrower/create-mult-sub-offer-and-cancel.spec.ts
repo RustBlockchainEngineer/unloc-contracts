@@ -10,7 +10,7 @@ import { pda, OfferState, SubOfferState, createAndMintNft } from '../../utils/lo
 import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
 import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from '../../utils/const'
 
-describe('create and cancel single sub offer', async () => {
+describe('create and cancel sub offer', async () => {
     // fetch test keypairs
     const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
     const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))
@@ -35,7 +35,7 @@ describe('create and cancel single sub offer', async () => {
     const aprNumerator = new anchor.BN(1 * denominator.toNumber() / 100) // 1%
     const expireLoanDuration = new anchor.BN(90 * 24 * 3600)
 
-    it('Cancel loan sub offer', async () => {
+    it('Create multiple sub offers and cancel', async () => {
         // create nft and mint to borrower's wallet
         let nftObject = await createAndMintNft(borrowerKeypair.publicKey)
         nftMint = nftObject.nft
@@ -43,9 +43,12 @@ describe('create and cancel single sub offer', async () => {
         nftEditionKey = nftObject.editionKey
         borrowerNftVault = nftObject.borrowerNftVault
 
-        if(nftMint) {
-            const offer = await pda([OFFER_SEED, borrowerKeypair.publicKey.toBuffer(), nftMint.publicKey.toBuffer()], programId)
+        const offer = await pda([OFFER_SEED, borrowerKeypair.publicKey.toBuffer(), nftMint.publicKey.toBuffer()], programId)
+        const treasuryVault = await pda([TREASURY_VAULT_TAG, USDC_MINT.toBuffer()], programId)
 
+
+
+        if(nftMint) {
             try {
                 await program.methods.setOffer()
                 .accounts({
@@ -80,14 +83,13 @@ describe('create and cancel single sub offer', async () => {
             assert.fail()
         }
 
-        const offerAmount = new anchor.BN(1000)
-        const offer = await pda([OFFER_SEED, borrowerKeypair.publicKey.toBuffer(), nftMint.publicKey.toBuffer()], programId)
-        const offerData = await program.account.offer.fetch(offer)
-        const subOfferNumber = offerData.subOfferCount
-        const subOfferKey = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber.toBuffer("be", 8)], programId)
-        const treasuryVault = await pda([TREASURY_VAULT_TAG, USDC_MINT.toBuffer()], programId)
         try {
-            // create sub offer
+            const offerAmount = new anchor.BN(1000)
+            const offerData = await program.account.offer.fetch(offer)
+            const subOfferNumber = offerData.subOfferCount
+            const subOfferKey = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber.toBuffer("be", 8)], programId)
+
+            // create first sub offer
             await program.methods.setSubOffer(offerAmount, subOfferNumber, expireLoanDuration, aprNumerator)
             .accounts({
                 borrower: borrowerKeypair.publicKey,
@@ -117,12 +119,56 @@ describe('create and cancel single sub offer', async () => {
             assert.equal(subOfferData.aprNumerator.toNumber(), aprNumerator.toNumber())
             assert.equal(subOfferData.state, OfferState.Proposed)
         } catch (e) {
-            console.log("Error with first suboffer: ", e)
+            console.log("Error creating first suboffer: ", e)
             assert.fail()
         }
 
         try {
-            // cancel sub offer
+            const offerAmount2 = new anchor.BN(2000)
+            const offerData2 = await program.account.offer.fetch(offer)
+            const subOfferNumber2 = offerData2.subOfferCount
+            const subOfferKey2 = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber2.toBuffer("be", 8)], programId)
+
+            // create second sub offer
+            await program.methods.setSubOffer(offerAmount2, subOfferNumber2, expireLoanDuration, aprNumerator)
+            .accounts({
+                borrower: borrowerKeypair.publicKey,
+                payer: borrowerKeypair.publicKey,
+                globalState: globalState,
+                offer: offer,
+                subOffer: subOfferKey2,
+                offerMint: USDC_MINT,
+                treasuryWallet: treasuryKeypair.publicKey,
+                treasuryVault: treasuryVault,
+                ...defaults
+            })
+            .signers([borrowerKeypair])
+            .rpc()
+
+            // validations
+            const subOfferData = await program.account.subOffer.fetch(subOfferKey2)
+            const updatedOfferData = await program.account.offer.fetch(offer)
+            assert.equal(updatedOfferData.subOfferCount, 2)
+            assert.equal(subOfferData.offer.toBase58(), offer.toBase58())
+            assert.equal(subOfferData.nftMint.toBase58(), nftMint.publicKey.toBase58())
+            assert.equal(subOfferData.borrower.toBase58(), borrowerKeypair.publicKey.toBase58())
+            assert.equal(subOfferData.offerMint.toBase58(), USDC_MINT.toBase58())
+            assert.equal(subOfferData.offerAmount, 2000)
+            assert.equal(subOfferData.subOfferNumber.toNumber(), subOfferNumber2.toNumber())
+            assert.equal(subOfferData.loanDuration.toNumber(), expireLoanDuration.toNumber())
+            assert.equal(subOfferData.aprNumerator.toNumber(), aprNumerator.toNumber())
+            assert.equal(subOfferData.state, OfferState.Proposed)
+        } catch (e) {
+            console.log("Error creating second suboffer: ", e)
+            assert.fail()
+        }
+
+        try {
+            const offerData = await program.account.offer.fetch(offer)
+            const subOfferNumber = offerData.subOfferCount.sub(new anchor.BN(1))
+            const subOfferKey = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber.toBuffer("be", 8)], programId)
+
+            // cancel latest sub offer
             await program.methods.cancelSubOffer()
                 .accounts({
                     borrower: borrowerKeypair.publicKey,
@@ -136,7 +182,7 @@ describe('create and cancel single sub offer', async () => {
                 const subOfferData = await program.account.subOffer.fetch(subOfferKey)
                 //const updatedOfferData = await program.account.offer.fetch(offer)
                 assert.equal(subOfferData.state, SubOfferState.Canceled)
-                // don't see this being updated in the program code, maybe it doesn't matter since the state is set to canceled
+                // don't see this being updated in the code, maybe it doesn't matter since the state is set to canceled
                 // wouldn't it make sense to update the offer sub offer count here ?
                 // assert.equal(updatedOfferData.subOfferCount, 0)
         } catch (e) {
