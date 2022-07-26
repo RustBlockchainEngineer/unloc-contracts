@@ -5,8 +5,8 @@ import { Token } from '@solana/spl-token';
 import { UnlocLoan } from '../../../../src/types/unloc_loan';
 import { TOKEN_META_PID, USDC_MINT } from '../../../../src';
 import { defaults } from '../../../../src/global-config'
-import { assert, expect } from 'chai';
-import { safeAirdrop, pda, OfferState, createAndMintNft, SubOfferState } from '../../utils/loan-utils'
+import { assert } from 'chai';
+import { pda, OfferState, createAndMintNft, SubOfferState } from '../../utils/loan-utils'
 import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
 import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from '../../utils/const'
 import { checkWalletATA } from '../../../../src'
@@ -38,7 +38,7 @@ describe('create loan and sub offer', async () => {
   const aprNumerator = new anchor.BN(1 * denominator.toNumber() / 100) // 1%
   const expireLoanDuration = new anchor.BN(90 * 24 * 3600)
 
-  it('create loan offer with NFT', async () => {
+  it('create loan offer and sub offer with NFT', async () => {
     // create nft and mint to borrower's wallet
     let nftObject = await createAndMintNft(borrowerKeypair.publicKey)
     nftMint = nftObject.nft
@@ -46,57 +46,50 @@ describe('create loan and sub offer', async () => {
     nftEditionKey = nftObject.editionKey
     borrowerNftVault = nftObject.borrowerNftVault
 
-    if(nftMint) {
+    // derive offer address
     const offer = await pda([OFFER_SEED, borrowerKeypair.publicKey.toBuffer(), nftMint.publicKey.toBuffer()], programId)
-    // create offer with minted NFT
-    try {
-        await program.methods.setOffer()
-        .accounts({
-            borrower: borrowerKeypair.publicKey,
-            payer: borrowerKeypair.publicKey,
-            offer: offer,
-            nftMint: nftMint.publicKey,
-            nftMetadata: nftMetadataKey,
-            userVault: borrowerNftVault,
-            edition: nftEditionKey,
-            metadataProgram: TOKEN_META_PID,
-            ...defaults
-        })
-        .signers([borrowerKeypair])
-        .rpc()
-    } catch (e) {
-        console.log("Caught error: ",e)
-        assert.fail()
-    }
 
-    // validations on offer information
-    const offerData = await program.account.offer.fetch(offer)
-    const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), provider.connection, borrowerKeypair.publicKey)
-    //const tokenInfo = await nftMint.getAccountInfo(borrowerNftATA)
-
-    //assert.equal(tokenInfo.isFrozen, true)
-    //console.log("delegate: ", tokenInfo.delegate)
-    //assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
-    assert.equal(offerData.borrower.toBase58(), borrowerKeypair.publicKey.toBase58())
-    assert.equal(offerData.nftMint.toBase58(), nftMint.publicKey.toBase58())
-    assert.equal(offerData.subOfferCount, 0)
-    assert.equal(offerData.startSubOfferNum, 0)
-    assert.equal(offerData.state, OfferState.Proposed)
-    } else {
-      console.log("mint account null")
-      assert.fail()
-    }
-  })
-
-  it('create loan sub offer', async () => {
-    if(nftMint){
-      const offerAmount = new anchor.BN(1000)
-      const offer = await pda([OFFER_SEED, borrowerKeypair.publicKey.toBuffer(), nftMint.publicKey.toBuffer()], programId)
-      const offerData = await program.account.offer.fetch(offer)
-      const subOfferNumber = offerData.subOfferCount
-      const subOfferKey = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber.toArrayLike(Buffer, 'be', 8)], programId)
-      const treasuryVault = await pda([TREASURY_VAULT_TAG, USDC_MINT.toBuffer()], programId)
+    if(nftMint) {
+      // create offer with minted NFT
       try {
+          await program.methods.setOffer()
+          .accounts({
+              borrower: borrowerKeypair.publicKey,
+              payer: borrowerKeypair.publicKey,
+              offer: offer,
+              nftMint: nftMint.publicKey,
+              nftMetadata: nftMetadataKey,
+              userVault: borrowerNftVault,
+              edition: nftEditionKey,
+              metadataProgram: TOKEN_META_PID,
+              ...defaults
+          })
+          .signers([borrowerKeypair])
+          .rpc()
+      } catch (e) {
+          console.log("Caught error: ",e)
+          assert.fail()
+      }
+      // validations on offer information
+      const offerData = await program.account.offer.fetch(offer)
+      //const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), provider.connection, borrowerKeypair.publicKey)
+      //const tokenInfo = await nftMint.getAccountInfo(borrowerNftATA)
+
+      //assert.equal(tokenInfo.isFrozen, true)
+      //console.log("delegate: ", tokenInfo.delegate)
+      //assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
+      assert.equal(offerData.borrower.toBase58(), borrowerKeypair.publicKey.toBase58())
+      assert.equal(offerData.nftMint.toBase58(), nftMint.publicKey.toBase58())
+      assert.equal(offerData.subOfferCount, 0)
+      assert.equal(offerData.startSubOfferNum, 0)
+      assert.equal(offerData.state, OfferState.Proposed)
+
+      try {
+        const offerAmount = new anchor.BN(1000)
+        const subOfferNumber = offerData.subOfferCount
+        const subOfferKey = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber.toArrayLike(Buffer, 'be', 8)], programId)
+        const treasuryVault = await pda([TREASURY_VAULT_TAG, USDC_MINT.toBuffer()], programId)
+
         // create sub offer with loan parameters
         await program.methods.setSubOffer(offerAmount, subOfferNumber, expireLoanDuration, aprNumerator)
         .accounts({
