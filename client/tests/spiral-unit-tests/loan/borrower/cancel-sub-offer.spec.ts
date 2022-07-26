@@ -6,16 +6,21 @@ import { UnlocLoan } from '../../../../src/types/unloc_loan'
 import { TOKEN_META_PID, USDC_MINT } from '../../../../src'
 import { defaults } from '../../../../src/global-config'
 import { assert } from 'chai'
-import { pda, OfferState, SubOfferState, createAndMintNft } from '../../utils/loan-utils'
+import { pda, SubOfferState, createAndMintNft } from '../../utils/loan-utils'
 import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
 import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from '../../utils/const'
+
+/**
+ * Test focuses on cancelling a singular sub offer account.
+ * Assertions:
+ * - Sub offer state set to 'Canceled'
+ */
 
 describe('create and cancel single sub offer', async () => {
     // fetch test keypairs
     const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
     const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))
     const treasuryKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(TREASURY))
-
 
     // Configure the client to use the local cluster.
     const envProvider = anchor.AnchorProvider.env()
@@ -24,6 +29,7 @@ describe('create and cancel single sub offer', async () => {
     const program = anchor.workspace.UnlocLoan as anchor.Program<UnlocLoan>
     const programId = program.programId
 
+    // derive global state pda
     const globalState = await pda([GLOBAL_STATE_TAG], programId)
 
     // define constants
@@ -45,7 +51,6 @@ describe('create and cancel single sub offer', async () => {
 
         if(nftMint) {
             const offer = await pda([OFFER_SEED, borrowerKeypair.publicKey.toBuffer(), nftMint.publicKey.toBuffer()], programId)
-
             try {
                 await program.methods.setOffer()
                 .accounts({
@@ -65,16 +70,6 @@ describe('create and cancel single sub offer', async () => {
                 console.log("Caught error: ",e)
                 assert.fail()
             }
-
-            // validations
-            const offerData = await program.account.offer.fetch(offer)
-            assert.equal(offerData.borrower.toBase58(), borrowerKeypair.publicKey.toBase58())
-            assert.equal(offerData.nftMint.toBase58(), nftMint.publicKey.toBase58())
-            assert.equal(offerData.subOfferCount, 0)
-            assert.equal(offerData.startSubOfferNum, 0)
-            assert.equal(offerData.state, OfferState.Proposed)
-            // need to check status of nft (frozen, delegated, etc...)
-
         } else {
             console.log("mint account null")
             assert.fail()
@@ -102,20 +97,6 @@ describe('create and cancel single sub offer', async () => {
             })
             .signers([borrowerKeypair])
             .rpc()
-
-            // validations
-            const subOfferData = await program.account.subOffer.fetch(subOfferKey)
-            const updatedOfferData = await program.account.offer.fetch(offer)
-            assert.equal(updatedOfferData.subOfferCount, 1)
-            assert.equal(subOfferData.offer.toBase58(), offer.toBase58())
-            assert.equal(subOfferData.nftMint.toBase58(), nftMint.publicKey.toBase58())
-            assert.equal(subOfferData.borrower.toBase58(), borrowerKeypair.publicKey.toBase58())
-            assert.equal(subOfferData.offerMint.toBase58(), USDC_MINT.toBase58())
-            assert.equal(subOfferData.offerAmount, 1000)
-            assert.equal(subOfferData.subOfferNumber.toNumber(), subOfferNumber.toNumber())
-            assert.equal(subOfferData.loanDuration.toNumber(), expireLoanDuration.toNumber())
-            assert.equal(subOfferData.aprNumerator.toNumber(), aprNumerator.toNumber())
-            assert.equal(subOfferData.state, OfferState.Proposed)
         } catch (e) {
             console.log("Error with first suboffer: ", e)
             assert.fail()

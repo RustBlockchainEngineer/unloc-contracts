@@ -13,6 +13,9 @@ import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from
 import { checkWalletATA } from '../../../../src'
 import { TransactionInstruction } from '@solana/web3.js'
 
+/**
+ * Still a work in progress...
+ */
 describe('lender accepts proposed loan offer', async () => {
     // fetch test keypairs
     const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
@@ -23,11 +26,11 @@ describe('lender accepts proposed loan offer', async () => {
     // Configure the client to use the local cluster.
     const envProvider = anchor.AnchorProvider.env()
     const provider = new anchor.AnchorProvider(envProvider.connection, new anchor.Wallet(superOwnerKeypair), envProvider.opts)
-    anchor.setProvider(provider);
-
+    anchor.setProvider(provider)
     const program = anchor.workspace.UnlocLoan as anchor.Program<UnlocLoan>
     const programId = program.programId
 
+    // derive global state pda
     const globalState = await pda([GLOBAL_STATE_TAG], programId)
 
     // define constants
@@ -127,7 +130,7 @@ describe('lender accepts proposed loan offer', async () => {
         }
         try {
             console.log("sending tx to loan program")
-            const lenderAccpet = await program.methods.acceptOffer()
+            await program.methods.acceptOffer()
             .accounts({
                 lender: lenderKeypair.publicKey,
                 borrower: borrowerKeypair.publicKey,

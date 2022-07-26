@@ -10,6 +10,14 @@ import { pda, OfferState, SubOfferState, createAndMintNft } from '../../utils/lo
 import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
 import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from '../../utils/const'
 
+/**
+ * Test focuses on cancelling one of many sub offers on a loan by targeting the process_cancel_sub_offer instruction in the
+ * unloc_loan program.
+ * Assertions:
+ * - canceled sub offer state updated to 'Canceled'
+ * - other sub offer's state still set to 'Proposed'
+ */
+
 describe('create and cancel sub offer', async () => {
     // fetch test keypairs
     const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
@@ -24,6 +32,7 @@ describe('create and cancel sub offer', async () => {
     const program = anchor.workspace.UnlocLoan as anchor.Program<UnlocLoan>
     const programId = program.programId
 
+    // derive global state pda
     const globalState = await pda([GLOBAL_STATE_TAG], programId)
 
     // define constants
@@ -46,10 +55,9 @@ describe('create and cancel sub offer', async () => {
         const offer = await pda([OFFER_SEED, borrowerKeypair.publicKey.toBuffer(), nftMint.publicKey.toBuffer()], programId)
         const treasuryVault = await pda([TREASURY_VAULT_TAG, USDC_MINT.toBuffer()], programId)
 
-
-
         if(nftMint) {
             try {
+                // creating loan offer
                 await program.methods.setOffer()
                 .accounts({
                     borrower: borrowerKeypair.publicKey,
@@ -68,16 +76,6 @@ describe('create and cancel sub offer', async () => {
                 console.log("Caught error: ",e)
                 assert.fail()
             }
-
-            // validations
-            const offerData = await program.account.offer.fetch(offer)
-            assert.equal(offerData.borrower.toBase58(), borrowerKeypair.publicKey.toBase58())
-            assert.equal(offerData.nftMint.toBase58(), nftMint.publicKey.toBase58())
-            assert.equal(offerData.subOfferCount, 0)
-            assert.equal(offerData.startSubOfferNum, 0)
-            assert.equal(offerData.state, OfferState.Proposed)
-            // need to check status of nft (frozen, delegated, etc...)
-
         } else {
             console.log("mint account null")
             assert.fail()
@@ -104,20 +102,6 @@ describe('create and cancel sub offer', async () => {
             })
             .signers([borrowerKeypair])
             .rpc()
-
-            // validations
-            const subOfferData = await program.account.subOffer.fetch(subOfferKey)
-            const updatedOfferData = await program.account.offer.fetch(offer)
-            assert.equal(updatedOfferData.subOfferCount, 1)
-            assert.equal(subOfferData.offer.toBase58(), offer.toBase58())
-            assert.equal(subOfferData.nftMint.toBase58(), nftMint.publicKey.toBase58())
-            assert.equal(subOfferData.borrower.toBase58(), borrowerKeypair.publicKey.toBase58())
-            assert.equal(subOfferData.offerMint.toBase58(), USDC_MINT.toBase58())
-            assert.equal(subOfferData.offerAmount, 1000)
-            assert.equal(subOfferData.subOfferNumber.toNumber(), subOfferNumber.toNumber())
-            assert.equal(subOfferData.loanDuration.toNumber(), expireLoanDuration.toNumber())
-            assert.equal(subOfferData.aprNumerator.toNumber(), aprNumerator.toNumber())
-            assert.equal(subOfferData.state, OfferState.Proposed)
         } catch (e) {
             console.log("Error creating first suboffer: ", e)
             assert.fail()
@@ -144,20 +128,6 @@ describe('create and cancel sub offer', async () => {
             })
             .signers([borrowerKeypair])
             .rpc()
-
-            // validations
-            const subOfferData = await program.account.subOffer.fetch(subOfferKey2)
-            const updatedOfferData = await program.account.offer.fetch(offer)
-            assert.equal(updatedOfferData.subOfferCount, 2)
-            assert.equal(subOfferData.offer.toBase58(), offer.toBase58())
-            assert.equal(subOfferData.nftMint.toBase58(), nftMint.publicKey.toBase58())
-            assert.equal(subOfferData.borrower.toBase58(), borrowerKeypair.publicKey.toBase58())
-            assert.equal(subOfferData.offerMint.toBase58(), USDC_MINT.toBase58())
-            assert.equal(subOfferData.offerAmount, 2000)
-            assert.equal(subOfferData.subOfferNumber.toNumber(), subOfferNumber2.toNumber())
-            assert.equal(subOfferData.loanDuration.toNumber(), expireLoanDuration.toNumber())
-            assert.equal(subOfferData.aprNumerator.toNumber(), aprNumerator.toNumber())
-            assert.equal(subOfferData.state, OfferState.Proposed)
         } catch (e) {
             console.log("Error creating second suboffer: ", e)
             assert.fail()
@@ -180,8 +150,12 @@ describe('create and cancel sub offer', async () => {
 
                 // validations
                 const subOfferData = await program.account.subOffer.fetch(subOfferKey)
+                const subOfferNumber1 = offerData.subOfferCount.sub(new anchor.BN(2))
+                const subOfferKey1 = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber1.toBuffer("be", 8)], programId)
+                const firstSubOfferData = await program.account.subOffer.fetch(subOfferKey1)
                 //const updatedOfferData = await program.account.offer.fetch(offer)
                 assert.equal(subOfferData.state, SubOfferState.Canceled)
+                assert.equal(firstSubOfferData.state, SubOfferState.Proposed)
                 // don't see this being updated in the code, maybe it doesn't matter since the state is set to canceled
                 // wouldn't it make sense to update the offer sub offer count here ?
                 // assert.equal(updatedOfferData.subOfferCount, 0)

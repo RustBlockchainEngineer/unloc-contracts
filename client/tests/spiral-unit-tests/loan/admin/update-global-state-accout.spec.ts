@@ -4,11 +4,17 @@ import TREASURY from '../../../test-users/treasury.json'
 import UNLOC_TOKEN_KEYPAIR from '../../../keypairs/unloc-token.json'
 import { UnlocLoan } from '../../../../src/types/unloc_loan'
 import { defaults } from '../../../../src/global-config'
-import { safeAirdrop, pda } from '../../utils/loan-utils'
+import { pda } from '../../utils/loan-utils'
 import { GLOBAL_STATE_TAG, REWARD_VAULT_TAG } from '../../utils/const'
-import { assert, expect } from 'chai'
-import { Keypair } from '@solana/web3.js'
+import { assert } from 'chai'
 
+/**
+ * Test focuses on updating the global state account by targeting the process_set_global_state instruction in the unloc_loan program.
+ * The test updates the aprNumerator and the rewardRate values stored in the global state account.
+ * Assertions:
+ * - RewardRate == udpated value
+ * - aprNumerator == updated value
+ */
 
 // fetch test keypairs
 const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
@@ -57,11 +63,7 @@ describe('set global state tests', async () => {
 
             // assertions
             let globalStateData = await program.account.globalState.fetch(globalState)
-            assert.equal(globalStateData.superOwner.toBase58(), superOwnerKeypair.publicKey.toBase58())
-            assert.equal(globalStateData.treasuryWallet.toBase58(), treasuryKeypair.publicKey.toBase58())
-            assert.equal(globalStateData.rewardVault.toBase58(), rewardVault.toBase58())
-            assert.equal(globalStateData.accruedInterestNumerator.toNumber(), accruedInterestNumerator.toNumber())
-            assert.equal(globalStateData.denominator.toNumber(), denominator.toNumber())
+            assert.equal(globalStateData.rewardRate.toNumber(), rewardRate.toNumber())
             assert.equal(globalStateData.aprNumerator.toNumber(), aprNumerator.toNumber())
         } catch (e) {
             console.log("Caught error: ", e)

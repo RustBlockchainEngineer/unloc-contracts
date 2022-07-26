@@ -234,6 +234,7 @@ export async function createATA(user: anchor.web3.Keypair, mint: anchor.web3.Pub
 export async function mintTokens(wallet: anchor.web3.Keypair, mint: anchor.web3.PublicKey, amt: number){
   let walletAta = await findAssociatedTokenAddress(wallet.publicKey, mint)
   let associatedAcct = await provider.connection.getAccountInfo(walletAta)
+  console.log("minting tokens")
   let tx = new Transaction()
   if(!associatedAcct) {
     tx.add(
@@ -257,12 +258,12 @@ export async function mintTokens(wallet: anchor.web3.Keypair, mint: anchor.web3.
       TOKEN_PROGRAM_ID,
       mint,
       walletAta,
-      usdcTokenKeypair.publicKey,
+      superOwnerKeypair.publicKey,
       [],
       amt,
     ))
 
-    await provider.sendAndConfirm(tx, [wallet, usdcTokenKeypair])
+    await provider.sendAndConfirm(tx, [wallet, superOwnerKeypair])
   }
   else{
     tx.add(Token.createMintToInstruction(
