@@ -4,17 +4,20 @@ import TREASURY from '../../../test-users/treasury.json'
 import LENDER from '../../../test-users/lender1.json'
 import { Token } from '@solana/spl-token'
 import { UnlocLoan } from '../../../../src/types/unloc_loan'
-import { TOKEN_META_PID, USDC_MINT } from '../../../../src'
+import { TOKEN_META_PID, WSOL_MINT } from '../../../../src'
 import { defaults, chainlinkIds } from '../../../../src/global-config'
-import { assert, expect } from 'chai'
-import { pda, OfferState, createAndMintNft, SubOfferState, findAssociatedTokenAddress, createATA, mintTokens } from '../../utils/loan-utils'
+import { assert } from 'chai'
+import { pda, createAndMintNft, SubOfferState } from '../../utils/loan-utils'
 import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
-import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from '../../utils/const'
-import { checkWalletATA } from '../../../../src'
-import { TransactionInstruction } from '@solana/web3.js'
+import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG, REWARD_VAULT_TAG } from '../../utils/const'
 
 /**
- * Still a work in progress...
+ * Test focuses on the process_accept_offer instruction in the unloc_loan program.
+ * Assertions:
+ * - subOffer state == Accepted
+ * - NFT token account is Frozen
+ * - NFT delegate == offer
+ * - should check the borrower has received the tokens for the loan?
  */
 describe('lender accepts proposed loan offer', async () => {
     // fetch test keypairs
@@ -32,6 +35,7 @@ describe('lender accepts proposed loan offer', async () => {
 
     // derive global state pda
     const globalState = await pda([GLOBAL_STATE_TAG], programId)
+    const rewardVault = await pda([REWARD_VAULT_TAG], programId)
 
     // define constants
     const denominator = new anchor.BN(10000)
@@ -42,7 +46,7 @@ describe('lender accepts proposed loan offer', async () => {
     const aprNumerator = new anchor.BN(1 * denominator.toNumber() / 100) // 1%
     const expireLoanDuration = new anchor.BN(90 * 24 * 3600)
 
-    it('setup for loan acceptance test', async () => {
+    it('lender accepts sub offer and lends WSOL', async () => {
         // create nft and mint to borrower's wallet
         let nftObject = await createAndMintNft(borrowerKeypair.publicKey)
         nftMint = nftObject.nft
@@ -76,7 +80,8 @@ describe('lender accepts proposed loan offer', async () => {
             const offerData = await program.account.offer.fetch(offer)
             const subOfferNumber = offerData.subOfferCount
             const subOfferKey = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber.toBuffer("be", 8)], programId)
-            const treasuryVault = await pda([TREASURY_VAULT_TAG, USDC_MINT.toBuffer()], programId)
+
+            const treasuryVault = await pda([TREASURY_VAULT_TAG, WSOL_MINT.toBuffer()], programId)
             // create sub offer for lender to accept
             try {
                 await program.methods.setSubOffer(offerAmount, subOfferNumber, expireLoanDuration, aprNumerator)
@@ -86,7 +91,7 @@ describe('lender accepts proposed loan offer', async () => {
                     globalState: globalState,
                     offer: offer,
                     subOffer: subOfferKey,
-                    offerMint: USDC_MINT,
+                    offerMint: WSOL_MINT,
                     treasuryWallet: treasuryKeypair.publicKey,
                     treasuryVault: treasuryVault,
                     ...defaults
@@ -97,66 +102,46 @@ describe('lender accepts proposed loan offer', async () => {
                 console.log("Caught error: ", e)
                 assert.fail()
             }
+
+            try {
+                const subOfferData = await program.account.subOffer.fetch(subOfferKey)
+                const offerMint = subOfferData.offerMint
+                const borrower = offerData.borrower
+                let lenderOfferVault = treasuryVault
+                let borrowerOfferVault = treasuryVault
+    
+                // accept offer
+                await program.methods.acceptOffer()
+                .accounts({
+                    lender: lenderKeypair.publicKey,
+                    borrower: borrower,
+                    globalState: globalState,
+                    offer: offer,
+                    subOffer: subOfferKey,
+                    offerMint: offerMint,
+                    borrowerOfferVault: borrowerOfferVault,
+                    lenderOfferVault: lenderOfferVault,
+                    rewardVault: rewardVault,
+                    ...chainlinkIds,
+                    ...defaults
+                })
+                .signers([lenderKeypair])
+                .rpc()
+    
+                // validations
+                let acceptedSubOffer = await program.account.subOffer.fetch(subOfferKey)
+                const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
+    
+                assert.equal(acceptedSubOffer.state, SubOfferState.Accepted)
+                assert.equal(tokenInfo.isFrozen, true)
+                assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
+            } catch (e) {
+                console.log("Caught error: ", e)
+                assert.fail()
+            }
         } else {
         console.log("mint account null")
         assert.fail()
         }
-    })
-
-    it('lender accepts sub offer', async () => {
-        const offer = await pda([OFFER_SEED, borrowerKeypair.publicKey.toBuffer(), nftMint.publicKey.toBuffer()], programId)
-        const offerData = await program.account.offer.fetch(offer)
-        const subOfferNumber = offerData.subOfferCount.sub(new anchor.BN(1))
-        const subOfferKey = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber.toBuffer("be", 8)], programId)
-        const subOfferData = await program.account.subOffer.fetch(subOfferKey)
-        let borrowerOfferVault = await findAssociatedTokenAddress(borrowerKeypair.publicKey, USDC_MINT)
-        let lenderOfferVault = await findAssociatedTokenAddress(lenderKeypair.publicKey, USDC_MINT)
-
-        // mint tokens of offer mint to lender's associated token address (lender offer vault)
-        await mintTokens(lenderKeypair, USDC_MINT, subOfferData.offerAmount.toNumber())
-        console.log("tokens minted")
-
-        let borrowerOfferAcct = await provider.connection.getAccountInfo(borrowerOfferVault)
-        let lenderOfferAcct = await provider.connection.getAccountInfo(lenderOfferVault)
-        let preInstructions: TransactionInstruction[] = []
-
-        if(!borrowerOfferAcct){
-            preInstructions = await createATA(borrowerKeypair, USDC_MINT)
-            console.log("creating ata")
-        }
-        if(!lenderOfferAcct){
-            console.log("lender does not have token account for this offer's mint")
-            assert.fail()
-        }
-        try {
-            console.log("sending tx to loan program")
-            await program.methods.acceptOffer()
-            .accounts({
-                lender: lenderKeypair.publicKey,
-                borrower: borrowerKeypair.publicKey,
-                globalState: globalState,
-                offer: offer,
-                subOffer: subOfferKey,
-                offerMint: USDC_MINT,
-                borrowerOfferVault: borrowerOfferVault,
-                lenderOfferVault: lenderOfferVault,
-                ...chainlinkIds,
-                ...defaults
-            })
-            .preInstructions(preInstructions)
-            .signers([lenderKeypair, borrowerKeypair])
-            .rpc()
-
-            // validations
-            let acceptedSubOffer = await program.account.subOffer.fetch(subOfferKey)
-            assert.equal(acceptedSubOffer.state, SubOfferState.Accepted)
-            // check user ata balance
-            // check nft is frozen after offer accpeted
-
-        } catch (e) {
-            console.log("Caught error: ", e)
-            assert.fail()
-        }
-
     })
 })

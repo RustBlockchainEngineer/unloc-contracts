@@ -115,6 +115,8 @@ describe('create loan with multiple sub offers', async () => {
             // validations
             const subOfferData = await program.account.subOffer.fetch(subOfferKey)
             const updatedOfferData = await program.account.offer.fetch(offer)
+            const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
+
             assert.equal(updatedOfferData.subOfferCount, 1)
             assert.equal(subOfferData.offer.toBase58(), offer.toBase58())
             assert.equal(subOfferData.nftMint.toBase58(), nftMint.publicKey.toBase58())
@@ -125,6 +127,8 @@ describe('create loan with multiple sub offers', async () => {
             assert.equal(subOfferData.loanDuration.toNumber(), expireLoanDuration.toNumber())
             assert.equal(subOfferData.aprNumerator.toNumber(), aprNumerator.toNumber())
             assert.equal(subOfferData.state, SubOfferState.Proposed)
+            assert.equal(tokenInfo.isFrozen, true)
+            assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
             } catch (e) {
                 console.log("Caught error: ", e)
                 assert.fail()
@@ -163,6 +167,8 @@ describe('create loan with multiple sub offers', async () => {
             // validations
             const subOfferData = await program.account.subOffer.fetch(subOfferKey)
             const updatedOfferData = await program.account.offer.fetch(offer)
+            const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
+
             assert.equal(updatedOfferData.subOfferCount, 2)
             assert.equal(subOfferData.offer.toBase58(), offer.toBase58())
             assert.equal(subOfferData.nftMint.toBase58(), nftMint.publicKey.toBase58())
@@ -173,6 +179,8 @@ describe('create loan with multiple sub offers', async () => {
             assert.equal(subOfferData.loanDuration.toNumber(), expireLoanDuration.toNumber())
             assert.equal(subOfferData.aprNumerator.toNumber(), aprNumerator.toNumber())
             assert.equal(subOfferData.state, SubOfferState.Proposed)
+            assert.equal(tokenInfo.isFrozen, true)
+            assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
             } catch (e) {
                 console.log("Error: ", e)
                 assert.fail()
@@ -211,6 +219,8 @@ describe('create loan with multiple sub offers', async () => {
             // validations
             const subOfferData = await program.account.subOffer.fetch(subOfferKey)
             const updatedOfferData = await program.account.offer.fetch(offer)
+            const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
+
             assert.equal(updatedOfferData.subOfferCount, 3)
             assert.equal(subOfferData.offer.toBase58(), offer.toBase58())
             assert.equal(subOfferData.nftMint.toBase58(), nftMint.publicKey.toBase58())
@@ -221,6 +231,8 @@ describe('create loan with multiple sub offers', async () => {
             assert.equal(subOfferData.loanDuration.toNumber(), expireLoanDuration.toNumber())
             assert.equal(subOfferData.aprNumerator.toNumber(), aprNumerator.toNumber())
             assert.equal(subOfferData.state, SubOfferState.Proposed)
+            assert.equal(tokenInfo.isFrozen, true)
+            assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
             } catch (e) {
             console.log("Error: ", e)
             assert.fail()

@@ -9,6 +9,7 @@ import { assert } from 'chai';
 import { pda, createAndMintNft, SubOfferState } from '../../utils/loan-utils'
 import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
 import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from '../../utils/const'
+import { off } from 'process';
 
 /**
  * Test focuses creating a ub offer by targeting the process_set_sub_offer instructions
@@ -21,6 +22,8 @@ import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from
  * - sub offer mint == mint passed in ix
  * - parameters of proposed loan initialized properly
  * - sub offer state initalized to 'Proposed'
+ * - NFT token account is frozen
+ * - NFT delegate == offer
  */
 
 describe('create loan and sub offer', async () => {
@@ -106,7 +109,9 @@ describe('create loan and sub offer', async () => {
 
                 // validations on sub offer information
                 const subOfferData = await program.account.subOffer.fetch(subOfferKey)
+                const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
                 const updatedOfferData = await program.account.offer.fetch(offer)
+
                 assert.equal(updatedOfferData.subOfferCount, 1)
                 assert.equal(subOfferData.offer.toBase58(), offer.toBase58())
                 assert.equal(subOfferData.nftMint.toBase58(), nftMint.publicKey.toBase58())
@@ -117,6 +122,8 @@ describe('create loan and sub offer', async () => {
                 assert.equal(subOfferData.loanDuration.toNumber(), expireLoanDuration.toNumber())
                 assert.equal(subOfferData.aprNumerator.toNumber(), aprNumerator.toNumber())
                 assert.equal(subOfferData.state, SubOfferState.Proposed)
+                assert.equal(tokenInfo.isFrozen, true)
+                assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
             } catch (e) {
                 console.log("Caught error: ", e)
                 assert.fail()

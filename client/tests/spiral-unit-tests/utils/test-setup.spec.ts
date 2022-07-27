@@ -7,6 +7,7 @@ import { UnlocLoan } from '../../../src/types/unloc_loan'
 import { defaults } from '../../../src/global-config'
 import { safeAirdrop, pda, createTokenMints } from './loan-utils'
 import PROPOSER1_WALLET from '../../test-users/borrower1.json'
+import LENDER from '../../test-users/lender1.json'
 import { GLOBAL_STATE_TAG, REWARD_VAULT_TAG } from './const'
 import { assert } from 'chai'
 
@@ -17,6 +18,7 @@ const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_
 const unlocTokenKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(UNLOC_TOKEN_KEYPAIR))
 const usdcTokenKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(USDC_TOKEN_KEYPAIR))
 const treasuryKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(TREASURY))
+const lenderKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(LENDER))
 
 
 // Configure the client to use the local cluster.
@@ -45,6 +47,7 @@ before(async () => {
     await safeAirdrop(provider.connection, superOwnerKeypair.publicKey, 10)
     await safeAirdrop(provider.connection, borrowerKeypair.publicKey, 10)
     await safeAirdrop(provider.connection, treasuryKeypair.publicKey, 10)
+    await safeAirdrop(provider.connection, lenderKeypair.publicKey, 10)
     await createTokenMints(superOwnerKeypair, unlocTokenKeypair, usdcTokenKeypair)
 
     const globalState = await pda([GLOBAL_STATE_TAG], programId)

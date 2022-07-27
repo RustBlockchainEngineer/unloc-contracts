@@ -1,15 +1,15 @@
 
 import * as anchor from '@project-serum/anchor';
-import { MintLayout, Token, TOKEN_PROGRAM_ID, AccountLayout } from '@solana/spl-token';
-import { SystemProgram, Transaction, TransactionInstruction, Keypair } from '@solana/web3.js';
+import { MintLayout, Token, TOKEN_PROGRAM_ID, AccountLayout, NATIVE_MINT } from '@solana/spl-token';
+import { SystemProgram, Transaction, TransactionInstruction, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { IDL as idl, UnlocLoan } from '../../../src/types/unloc_loan'
 import SUPER_OWNER_WALLET from '../../test-users/super_owner.json'
 import UNLOC_TOKEN_KEYPAIR from '../../keypairs/unloc-token.json'
 import USDC_TOKEN_KEYPAIR from '../../keypairs/usdc-token.json'
 import TREASURY from '../../test-users/treasury.json'
-import { defaults } from '../../../src/global-config'
+import { defaults, chainlinkIds } from '../../../src/global-config'
 import { Collection, CreateMasterEditionV3, CreateMetadataV2, DataV2, Edition, Metadata } from '@metaplex-foundation/mpl-token-metadata';
-import { SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID } from './const'
+import { SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, TREASURY_VAULT_TAG, GLOBAL_STATE_TAG } from './const'
 import { mintTokensBuilder, token } from '@metaplex-foundation/js';
 
 const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
@@ -211,13 +211,13 @@ export async function findAssociatedTokenAddress(
   ))[0]
 }
 
-export async function createATA(user: anchor.web3.Keypair, mint: anchor.web3.PublicKey) {
+export async function createATA(user: anchor.web3.PublicKey, mint: anchor.web3.PublicKey) {
   const lamports = await Token.getMinBalanceRentForExemptAccount(provider.connection)
-  const userAta = await findAssociatedTokenAddress(user.publicKey, mint)
+  const userAta = await findAssociatedTokenAddress(user, mint)
   let instructions: TransactionInstruction[] = []
   instructions.push(
     SystemProgram.createAccount({
-      fromPubkey: user.publicKey,
+      fromPubkey: user,
       newAccountPubkey: userAta,
       lamports: lamports,
       space: AccountLayout,
@@ -225,7 +225,7 @@ export async function createATA(user: anchor.web3.Keypair, mint: anchor.web3.Pub
     })
   )
   instructions.push(
-    Token.createInitAccountInstruction(TOKEN_PROGRAM_ID, mint, userAta, user.publicKey)
+    Token.createInitAccountInstruction(TOKEN_PROGRAM_ID, mint, userAta, user)
   )
 
   return instructions
@@ -277,6 +277,77 @@ export async function mintTokens(wallet: anchor.web3.Keypair, mint: anchor.web3.
 
     await provider.sendAndConfirm(tx, [wallet, usdcTokenKeypair])
   }
+}
+
+// export async function airdropWSOL(wallet: anchor.web3.Keypair, amt: number){
+//   const createATAIX = await createATA(
+//     wallet.publicKey,
+//     NATIVE_MINT
+//   )
+//   let tx = new Transaction()
+//   tx.add(createATAIX[0])
+//   console.log("creating wsol ata...")
+//   await provider.sendAndConfirm(tx, [wallet])
+
+//   const ata = await findAssociatedTokenAddress(wallet.publicKey, NATIVE_MINT)
+//   await safeAirdrop(provider.connection, ata, amt)
+//   const solTransferTransaction = new Transaction()
+//   .add(
+//     SystemProgram.transfer({
+//         fromPubkey: wallet.publicKey,
+//         toPubkey: ata,
+//         lamports: amt*LAMPORTS_PER_SOL
+//       }),
+//       createSyncNativeInstruction(
+//         associatedTokenAccount
+//     )
+//   )
+// }
+
+export const acceptLoanOffer = async (
+  subOffer: anchor.web3.PublicKey,
+  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signers: anchor.web3.Keypair[] = []
+) => {
+  const lender = signer
+  const subOfferData = await program.account.subOffer.fetch(subOffer)
+  const offer = subOfferData.offer
+  const offerMint = subOfferData.offerMint
+  const offerData = await program.account.offer.fetch(subOfferData.offer)
+  const borrower = offerData.borrower
+  //let borrowerOfferVault = await checkWalletATA(offerMint.toBase58(), programProvider.connection, borrower)
+  //let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), programProvider.connection, lender)
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], programId)
+  let lenderOfferVault = treasuryVault
+  let borrowerOfferVault = treasuryVault
+  
+
+  const globalState = await pda([GLOBAL_STATE_TAG], programId)
+  const rewardVault = await pda([REWARD_VAULT_TAG], programId)
+  try {
+    const tx = await program.methods.acceptOffer()
+      .accounts({
+        lender,
+        borrower,
+        globalState,
+        offer,
+        subOffer,
+        offerMint,
+        borrowerOfferVault,
+        lenderOfferVault,
+        rewardVault,
+        ...chainlinkIds,
+        ...defaults
+      })
+      .signers(signers)
+      .rpc()
+
+    // eslint-disable-next-line no-console
+    console.log('acceptOffer tx = ', tx)
+  } catch (e) {
+    console.log(e);
+  }
+
 }
 
 export enum OfferState {

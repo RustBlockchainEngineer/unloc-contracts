@@ -8,6 +8,7 @@ import { assert } from 'chai';
 import { pda, OfferState, createAndMintNft } from '../../utils/loan-utils'
 import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
 import { GLOBAL_STATE_TAG, OFFER_SEED } from '../../utils/const'
+import { checkWalletATA } from '../../../../src'
 
 /**
  * Test focuses creating an initial loan offer and sub offer by targeting the process_set_offer and process_set_sub_offer instructions
@@ -44,7 +45,7 @@ describe('create loan and sub offer', async () => {
   let nftEditionKey: anchor.web3.PublicKey = null as any
   let borrowerNftVault: anchor.web3.PublicKey = null as any
 
-  it('create loan offer and sub offer with NFT', async () => {
+  it('create loan offer with NFT', async () => {
     // create nft and mint to borrower's wallet
     let nftObject = await createAndMintNft(borrowerKeypair.publicKey)
     nftMint = nftObject.nft
@@ -78,12 +79,10 @@ describe('create loan and sub offer', async () => {
       }
       // validations on offer information
       const offerData = await program.account.offer.fetch(offer)
-      //const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), provider.connection, borrowerKeypair.publicKey)
-      //const tokenInfo = await nftMint.getAccountInfo(borrowerNftATA)
+      const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
 
-      //assert.equal(tokenInfo.isFrozen, true)
-      //console.log("delegate: ", tokenInfo.delegate)
-      //assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
+      assert.equal(tokenInfo.isFrozen, true)
+      assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
       assert.equal(offerData.borrower.toBase58(), borrowerKeypair.publicKey.toBase58())
       assert.equal(offerData.nftMint.toBase58(), nftMint.publicKey.toBase58())
       assert.equal(offerData.subOfferCount, 0)

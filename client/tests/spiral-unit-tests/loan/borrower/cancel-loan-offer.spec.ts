@@ -17,6 +17,7 @@ import { OFFER_SEED } from '../../utils/const'
  * Assertions:
  * - loan offer account's state has been updated to 'Canceled'
  * - NFT account is thawed and no longer frozen
+ * - NFT delegate == Offer account
  */
 
 describe('create loan offer and cancel', async () => {
@@ -86,8 +87,11 @@ describe('create loan offer and cancel', async () => {
 
                 // validations
                 const offerData = await program.account.offer.fetch(offer)
+                const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
+
                 assert.equal(offerData.state, OfferState.Canceled)
-                // nft thawed? should write function for this and frozen check
+                assert.equal(tokenInfo.isFrozen, false)
+                assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
             } catch (e) {
                 console.log("Caught error: ", e)
                 assert.fail()

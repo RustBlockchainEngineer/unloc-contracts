@@ -9,6 +9,7 @@ import { assert } from 'chai'
 import { pda, OfferState, SubOfferState, createAndMintNft } from '../../utils/loan-utils'
 import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
 import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from '../../utils/const'
+import { token } from '@metaplex-foundation/js'
 
 /**
  * Test focuses on cancelling one of many sub offers on a loan by targeting the process_cancel_sub_offer instruction in the
@@ -16,6 +17,8 @@ import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from
  * Assertions:
  * - canceled sub offer state updated to 'Canceled'
  * - other sub offer's state still set to 'Proposed'
+ * - NFT token account is frozen
+ * - NFT delegate == offer
  */
 
 describe('create and cancel sub offer', async () => {
@@ -150,12 +153,16 @@ describe('create and cancel sub offer', async () => {
 
                 // validations
                 const subOfferData = await program.account.subOffer.fetch(subOfferKey)
+                const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
                 const subOfferNumber1 = offerData.subOfferCount.sub(new anchor.BN(2))
                 const subOfferKey1 = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber1.toBuffer("be", 8)], programId)
                 const firstSubOfferData = await program.account.subOffer.fetch(subOfferKey1)
                 //const updatedOfferData = await program.account.offer.fetch(offer)
+
                 assert.equal(subOfferData.state, SubOfferState.Canceled)
                 assert.equal(firstSubOfferData.state, SubOfferState.Proposed)
+                assert.equal(tokenInfo.isFrozen, true)
+                assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
                 // don't see this being updated in the code, maybe it doesn't matter since the state is set to canceled
                 // wouldn't it make sense to update the offer sub offer count here ?
                 // assert.equal(updatedOfferData.subOfferCount, 0)

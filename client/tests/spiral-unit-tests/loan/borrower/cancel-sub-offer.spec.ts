@@ -9,11 +9,14 @@ import { assert } from 'chai'
 import { pda, SubOfferState, createAndMintNft } from '../../utils/loan-utils'
 import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
 import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG } from '../../utils/const'
+import { token } from '@metaplex-foundation/js'
 
 /**
  * Test focuses on cancelling a singular sub offer account.
  * Assertions:
  * - Sub offer state set to 'Canceled'
+ * - NFT is still frozen after sub offer canceled
+ * - NFT delegate == Offer account
  */
 
 describe('create and cancel single sub offer', async () => {
@@ -115,8 +118,12 @@ describe('create and cancel single sub offer', async () => {
 
                 // validations
                 const subOfferData = await program.account.subOffer.fetch(subOfferKey)
+                const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
                 //const updatedOfferData = await program.account.offer.fetch(offer)
+
                 assert.equal(subOfferData.state, SubOfferState.Canceled)
+                assert.equal(tokenInfo.isFrozen, true)
+                assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
                 // don't see this being updated in the program code, maybe it doesn't matter since the state is set to canceled
                 // wouldn't it make sense to update the offer sub offer count here ?
                 // assert.equal(updatedOfferData.subOfferCount, 0)
