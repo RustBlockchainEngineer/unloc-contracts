@@ -156,7 +156,7 @@ export async function createAndMintNft(borrower: anchor.web3.PublicKey): Promise
     mintAuthority: superOwner
   })
   const tx = await provider.sendAndConfirm(createMetadataTx, [superOwnerKeypair])
-  //console.log('creating nft meta tx = ', tx)
+  console.log('creating nft meta tx = ', tx)
 
   const borrowerNftVault = await nftMint.createAccount(borrower);
   
@@ -296,6 +296,17 @@ export async function mintTokens(wallet: anchor.web3.Keypair, mint: anchor.web3.
 //     )
 //   )
 // }
+
+export async function safeAirdrop(connection: anchor.web3.Connection, key: anchor.web3.PublicKey) {
+  try {
+    await connection.confirmTransaction(
+      await connection.requestAirdrop(key, LAMPORTS_PER_SOL),
+      "confirmed"
+    )
+  } catch (e) {
+    console.log("Airdrop error: ", e)
+   }
+}
 
 export const acceptLoanOffer = async (
   subOffer: anchor.web3.PublicKey,
