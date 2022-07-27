@@ -5,7 +5,7 @@ import UNLOC_TOKEN_KEYPAIR from '../../keypairs/unloc-token.json'
 import USDC_TOKEN_KEYPAIR from '../../keypairs/usdc-token.json'
 import { UnlocLoan } from '../../../src/types/unloc_loan'
 import { defaults } from '../../../src/global-config'
-import { safeAirdrop, pda, createTokenMints } from './loan-utils'
+import { airdropSol, pda, createTokenMints } from './loan-utils'
 import PROPOSER1_WALLET from '../../test-users/borrower1.json'
 import LENDER from '../../test-users/lender1.json'
 import { GLOBAL_STATE_TAG, REWARD_VAULT_TAG } from './const'
@@ -44,10 +44,10 @@ This instruction initalizes the state of the GlobalState account.
 */
 before(async () => {
     console.log("Running setup for test suite...")
-    await safeAirdrop(provider.connection, superOwnerKeypair.publicKey, 10)
-    await safeAirdrop(provider.connection, borrowerKeypair.publicKey, 10)
-    await safeAirdrop(provider.connection, treasuryKeypair.publicKey, 10)
-    await safeAirdrop(provider.connection, lenderKeypair.publicKey, 10)
+    await airdropSol(provider.connection, superOwnerKeypair.publicKey)
+    await airdropSol(provider.connection, borrowerKeypair.publicKey)
+    await airdropSol(provider.connection, treasuryKeypair.publicKey)
+    await airdropSol(provider.connection, lenderKeypair.publicKey)
     await createTokenMints(superOwnerKeypair, unlocTokenKeypair, usdcTokenKeypair)
 
     const globalState = await pda([GLOBAL_STATE_TAG], programId)

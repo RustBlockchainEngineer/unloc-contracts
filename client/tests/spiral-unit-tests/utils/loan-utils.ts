@@ -30,15 +30,8 @@ const envProvider = anchor.AnchorProvider.env();
 const provider = new anchor.AnchorProvider(envProvider.connection, new anchor.Wallet(superOwnerKeypair), envProvider.opts)
 anchor.setProvider(provider);
 
-export async function safeAirdrop(connection: anchor.web3.Connection, key: anchor.web3.PublicKey, amount: number) {
-    while (await connection.getBalance(key) < amount * 1000000000){
-      try{
-        await connection.confirmTransaction(
-          await connection.requestAirdrop(key, 1000000000),
-          "confirmed"
-        );
-      }catch{}
-    };
+export async function airdropSol(connection: anchor.web3.Connection, key: anchor.web3.PublicKey) {
+    await connection.confirmTransaction(await connection.requestAirdrop(key, LAMPORTS_PER_SOL), "confirmed")
   }
   
   export async function pda(seeds: (Buffer | Uint8Array)[], programId: anchor.web3.PublicKey) {
