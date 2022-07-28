@@ -1,47 +1,49 @@
-use amm_anchor::{SwapBaseIn, Amm as RaydiumSwap};
+use amm_anchor::{Amm as RaydiumSwap, SwapBaseIn};
 use anchor_lang::prelude::*;
-use anchor_spl::{
-    token::{
-        self, 
-        Token, 
-        TokenAccount, 
-        Burn, 
-        Mint, 
-        accessor::amount,
-    },
-};
+use anchor_spl::token::{self, accessor::amount, Burn, Mint, Token, TokenAccount};
 use std::str::FromStr;
+
 declare_id!("37TgoUgxSshhJmhNEAQMmAWF7XRhXEaY5HxcTZ6eYs6r");
 
 #[constant]
-pub const GLOBAL_STATE_SEED:&[u8] = b"GLOBAL_STATE_SEED";
+pub const GLOBAL_STATE_SEED: &[u8] = b"GLOBAL_STATE_SEED";
 #[constant]
-pub const UNLOC_VAULT_SEED:&[u8] = b"UNLOC_VAULT_SEED";
+pub const UNLOC_VAULT_SEED: &[u8] = b"UNLOC_VAULT_SEED";
 #[constant]
-pub const WSOL_VAULT_SEED:&[u8] = b"WSOL_VAULT_SEED";
+pub const WSOL_VAULT_SEED: &[u8] = b"WSOL_VAULT_SEED";
 #[constant]
-pub const USDC_VAULT_SEED:&[u8] = b"USDC_VAULT_SEED";
+pub const USDC_VAULT_SEED: &[u8] = b"USDC_VAULT_SEED";
 
-
-
-const DEVNET_MODE:bool = true;
-pub const WSOL_MINT:&str = "So11111111111111111111111111111111111111112";
-pub const USDC_MINT:&str = if DEVNET_MODE {"GH1gUyAw7ems5MD46WGC9JPMHncLVBkHagpXgtYVUyPr"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
-pub const UNLOC_MINT:&str = if DEVNET_MODE {"Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67D4s3kRmut"} else {"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"};
-pub const INITIAL_OWNER:&str = "atPFsAVbFFpgtdDoXMyVnp3696PZVfJ3MGQp6CiuZfW";
+const DEVNET_MODE: bool = true;
+pub const WSOL_MINT: &str = "So11111111111111111111111111111111111111112";
+pub const USDC_MINT: &str = if DEVNET_MODE {
+    "GH1gUyAw7ems5MD46WGC9JPMHncLVBkHagpXgtYVUyPr"
+} else {
+    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+};
+pub const UNLOC_MINT: &str = if DEVNET_MODE {
+    "Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67D4s3kRmut"
+} else {
+    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+};
+pub const INITIAL_OWNER: &str = "atPFsAVbFFpgtdDoXMyVnp3696PZVfJ3MGQp6CiuZfW";
 
 #[program]
 pub mod unloc_burn {
     use super::*;
-    pub fn set_global_state(ctx: Context<SetGlobalState>, 
+    pub fn set_global_state(
+        ctx: Context<SetGlobalState>,
         new_authority: Pubkey,
         new_burner: Pubkey,
     ) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
         let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
         let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
-        
-        require(ctx.accounts.unloc_mint.key() == unloc_mint, "wrong unloc_mint")?;
+
+        require(
+            ctx.accounts.unloc_mint.key() == unloc_mint,
+            "wrong unloc_mint",
+        )?;
         require(ctx.accounts.usdc_mint.key() == usdc_mint, "wrong usdc_mint")?;
         require(ctx.accounts.wsol_mint.key() == wsol_mint, "wrong wsol_mint")?;
 
@@ -54,7 +56,10 @@ pub mod unloc_burn {
             ctx.accounts.global_state.usdc_vault_bump = *ctx.bumps.get("usdc_vault").unwrap();
             ctx.accounts.global_state.wsol_vault_bump = *ctx.bumps.get("wsol_vault").unwrap();
         }
-        require(ctx.accounts.global_state.authority == ctx.accounts.authority.key(), "wrong authority of global state")?;
+        require(
+            ctx.accounts.global_state.authority == ctx.accounts.authority.key(),
+            "wrong authority of global state",
+        )?;
 
         ctx.accounts.global_state.authority = new_authority;
 
@@ -69,55 +74,48 @@ pub mod unloc_burn {
         Ok(())
     }
     pub fn buyback(ctx: Context<Buyback>) -> Result<()> {
-        ctx.accounts.validate()?;
-        
         let amount_in: u64 = amount(&ctx.accounts.user_source_token_account.clone())?;
         let minimum_amount_out: u64 = 0;
 
-        let signer_seeds = &[
-            GLOBAL_STATE_SEED, 
-            &[bump(&[
-                GLOBAL_STATE_SEED, 
-            ], &crate::ID)],
-        ];
+        let signer_seeds = &[GLOBAL_STATE_SEED, &[bump(&[GLOBAL_STATE_SEED], &crate::ID)]];
         let signer = &[&signer_seeds[..]];
         let ctx_swap = ctx.accounts.to_ctx();
         amm_anchor::swap_base_in(ctx_swap.with_signer(signer), amount_in, minimum_amount_out)
     }
     pub fn burn(ctx: Context<BurnUnloc>) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
-        require(ctx.accounts.unloc_mint.key() == unloc_mint, "wrong unloc_mint")?;
+        require(
+            ctx.accounts.unloc_mint.key() == unloc_mint,
+            "wrong unloc_mint",
+        )?;
 
         let cpi_accounts = Burn {
             mint: ctx.accounts.unloc_mint.to_account_info(),
             from: ctx.accounts.unloc_vault.to_account_info(),
             authority: ctx.accounts.global_state.to_account_info(),
         };
-    
+
         let cpi_program = ctx.accounts.token_program.to_account_info();
-        
+
         let signer_seeds = &[
-            GLOBAL_STATE_SEED, 
-            &[bump(&[
-                GLOBAL_STATE_SEED, 
-            ], ctx.program_id)],
+            GLOBAL_STATE_SEED,
+            &[bump(&[GLOBAL_STATE_SEED], ctx.program_id)],
         ];
         let signer = &[&signer_seeds[..]];
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-    
+
         token::burn(cpi_ctx, ctx.accounts.unloc_vault.amount)?;
         Ok(())
     }
 }
 
-
 #[derive(Accounts)]
 #[instruction()]
-pub struct SetGlobalState <'info>{
+pub struct SetGlobalState<'info> {
     #[account(mut)]
-    pub authority:  Signer<'info>,
+    pub authority: Signer<'info>,
     #[account(mut)]
-    pub payer:  Signer<'info>,
+    pub payer: Signer<'info>,
 
     #[account(
         init_if_needed,
@@ -126,7 +124,7 @@ pub struct SetGlobalState <'info>{
         payer = payer,
         space = std::mem::size_of::<GlobalState>() + 8
     )]
-    pub global_state:Box<Account<'info, GlobalState>>,
+    pub global_state: Box<Account<'info, GlobalState>>,
 
     pub unloc_mint: Box<Account<'info, Mint>>,
     #[account(
@@ -137,7 +135,7 @@ pub struct SetGlobalState <'info>{
         bump,
         payer = payer,
     )]
-    pub unloc_vault:Box<Account<'info, TokenAccount>>,
+    pub unloc_vault: Box<Account<'info, TokenAccount>>,
     pub usdc_mint: Box<Account<'info, Mint>>,
     #[account(
         init_if_needed,
@@ -147,7 +145,7 @@ pub struct SetGlobalState <'info>{
         bump,
         payer = payer,
     )]
-    pub usdc_vault:Box<Account<'info, TokenAccount>>,
+    pub usdc_vault: Box<Account<'info, TokenAccount>>,
 
     pub wsol_mint: Box<Account<'info, Mint>>,
     #[account(
@@ -158,7 +156,7 @@ pub struct SetGlobalState <'info>{
         bump,
         payer = payer,
     )]
-    pub wsol_vault:Box<Account<'info, TokenAccount>>,
+    pub wsol_vault: Box<Account<'info, TokenAccount>>,
 
     pub amm_program: Program<'info, RaydiumSwap>,
     /// CHECK: Safe
@@ -170,12 +168,10 @@ pub struct SetGlobalState <'info>{
     #[account(mut)]
     pub serum_market: AccountInfo<'info>,
     /// CHECK: Safe
-
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
 }
-
 
 #[derive(Accounts, Clone)]
 pub struct Buyback<'info> {
@@ -183,11 +179,16 @@ pub struct Buyback<'info> {
         mut,
         seeds = [GLOBAL_STATE_SEED],
         bump = global_state.bump,
-        has_one = burner
+        has_one = burner,
+        has_one = amm,
+        has_one = serum_program,
+        has_one = serum_market,
+        constraint = global_state.usdc_vault == user_source_token_account.key() || global_state.wsol_vault == user_source_token_account.key(),
+        constraint = global_state.unloc_vault == user_destination_token_account.key()
     )]
-    pub global_state:Box<Account<'info, GlobalState>>,
+    pub global_state: Box<Account<'info, GlobalState>>,
     #[account(mut)]
-    pub burner:  Signer<'info>,
+    pub burner: Signer<'info>,
 
     pub amm_program: Program<'info, RaydiumSwap>,
     /// CHECK: Safe
@@ -240,19 +241,6 @@ pub struct Buyback<'info> {
     pub spl_token_program: AccountInfo<'info>,
 }
 impl<'a, 'b, 'c, 'info> Buyback<'info> {
-    pub fn validate(&self) -> Result<()> {
-        
-        require(self.global_state.amm == self.amm.key(), "wrong amm")?;
-        require(self.global_state.serum_program == self.serum_program.key(), "wrong serum_program")?;
-        require(self.global_state.serum_market == self.serum_market.key(), "wrong serum_market")?;
-        require(
-            self.global_state.usdc_vault == self.user_source_token_account.key()
-            || self.global_state.wsol_vault == self.user_source_token_account.key()
-            , "wrong token account")?;
-        require(self.global_state.unloc_vault == self.user_destination_token_account.key() , "wrong token account")?;
-
-        Ok(())
-    }
     pub fn to_ctx(&self) -> CpiContext<'a, 'b, 'c, 'info, SwapBaseIn<'info>> {
         let cpi_accounts = SwapBaseIn {
             amm: self.amm.clone(),
@@ -275,21 +263,21 @@ impl<'a, 'b, 'c, 'info> Buyback<'info> {
             spl_token_program: self.spl_token_program.clone(),
         };
         let cpi_program = self.amm_program.to_account_info();
-        
+
         CpiContext::new(cpi_program, cpi_accounts)
     }
 }
 #[derive(Accounts)]
-pub struct BurnUnloc <'info> {
+pub struct BurnUnloc<'info> {
     #[account(
         mut,
         seeds = [GLOBAL_STATE_SEED],
         bump = global_state.bump,
         has_one = burner
     )]
-    pub global_state:Box<Account<'info, GlobalState>>,
+    pub global_state: Box<Account<'info, GlobalState>>,
     #[account(mut)]
-    pub burner:  Signer<'info>,
+    pub burner: Signer<'info>,
     #[account(mut)]
     pub unloc_mint: Box<Account<'info, Mint>>,
     #[account(
@@ -297,7 +285,7 @@ pub struct BurnUnloc <'info> {
         seeds = [UNLOC_VAULT_SEED],
         bump = global_state.unloc_vault_bump,
     )]
-    pub unloc_vault:Box<Account<'info, TokenAccount>>,
+    pub unloc_vault: Box<Account<'info, TokenAccount>>,
     pub token_program: Program<'info, Token>,
 }
 #[account]
@@ -317,8 +305,6 @@ pub struct GlobalState {
     pub unloc_vault: Pubkey,
     pub wsol_vault: Pubkey,
 }
-
-
 
 #[error_code]
 pub enum ErrorCode {
@@ -353,11 +339,11 @@ pub fn require(flag: bool, msg: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn is_zero_account(account_info:&AccountInfo)->bool{
+pub fn is_zero_account(account_info: &AccountInfo) -> bool {
     let account_data: &[u8] = &account_info.data.borrow();
     let len = account_data.len();
     let mut is_zero = true;
-    for i in 0..len-1 {
+    for i in 0..len - 1 {
         if account_data[i] != 0 {
             is_zero = false;
         }
@@ -365,7 +351,7 @@ pub fn is_zero_account(account_info:&AccountInfo)->bool{
     is_zero
 }
 
-pub fn bump(seeds:&[&[u8]], program_id: &Pubkey) -> u8 {
+pub fn bump(seeds: &[&[u8]], program_id: &Pubkey) -> u8 {
     let (_found_key, bump) = Pubkey::find_program_address(seeds, program_id);
     bump
 }

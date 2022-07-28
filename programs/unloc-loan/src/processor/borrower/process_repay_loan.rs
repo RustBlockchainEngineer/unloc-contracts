@@ -6,9 +6,14 @@ use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account}
 use std::str::FromStr;
 
 pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
-
-    require_eq!(ctx.accounts.offer.state, OfferState::get_state(OfferState::Accepted));
-    require_eq!(ctx.accounts.sub_offer.state, SubOfferState::get_state(SubOfferState::Accepted));
+    require_eq!(
+        ctx.accounts.offer.state,
+        OfferState::get_state(OfferState::Accepted)
+    );
+    require_eq!(
+        ctx.accounts.sub_offer.state,
+        SubOfferState::get_state(SubOfferState::Accepted)
+    );
 
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let reward_vault_amount = ctx.accounts.reward_vault.amount;
@@ -47,7 +52,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     if duration < min_duration {
         duration = min_duration;
     }
-  
+
     let accrued_amount = calc_fee(
         origin,
         offer_apr.safe_mul(duration)?,
@@ -177,7 +182,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
 
     // Revoke with offer PDA
     token::revoke(ctx.accounts.into_revoke_context())?;
-    
+
     ctx.accounts.offer.state = OfferState::get_state(OfferState::NFTClaimed);
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::NFTClaimed);
     Ok(())

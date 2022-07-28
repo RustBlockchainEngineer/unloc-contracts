@@ -43,10 +43,7 @@ pub fn handle(ctx: Context<CancelOffer>) -> Result<()> {
     )?;
 
     // Revoke with offer PDA
-    token::revoke(
-        ctx.accounts
-            .into_revoke_context(),
-    )?;
+    token::revoke(ctx.accounts.into_revoke_context())?;
 
     ctx.accounts.offer.state = OfferState::get_state(OfferState::Canceled);
 

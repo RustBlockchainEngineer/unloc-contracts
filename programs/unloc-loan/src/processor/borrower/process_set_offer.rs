@@ -34,11 +34,7 @@ pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
         ];
 
         // Approve with offer PDA
-        token::approve(
-            ctx.accounts
-                .into_approve_context(),
-            1,
-        )?;
+        token::approve(ctx.accounts.into_approve_context(), 1)?;
 
         // Freeze with offer PDA
         invoke_signed(
@@ -76,7 +72,7 @@ pub struct SetOffer<'info> {
     pub borrower: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
-    // init_if_needed is safe above solana-program v1.10.29
+    // init_if_needed is used safely. not possible to reinitialization
     #[account(
     init_if_needed,
     seeds = [OFFER_TAG, borrower.key().as_ref(), nft_mint.key().as_ref()],

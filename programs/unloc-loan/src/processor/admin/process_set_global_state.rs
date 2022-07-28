@@ -1,25 +1,20 @@
+use crate::{constant::*, states::*, utils::*};
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token, TokenAccount, Mint};
-use crate::{
-    constant::*,
-    states::*,
-    utils::*,
-};
+use anchor_spl::token::{Mint, Token, TokenAccount};
 use std::str::FromStr;
 
 pub fn handle(
-    ctx: Context<SetGlobalState>, 
-    accrued_interest_numerator: u64, 
-    denominator: u64,     
+    ctx: Context<SetGlobalState>,
+    accrued_interest_numerator: u64,
+    denominator: u64,
     min_repaid_numerator: u64,
     apr_numerator: u64,
     expire_loan_duration: u64,
     reward_rate: u64,
     lender_rewards_percentage: u64,
     new_super_owner: Pubkey,
-    treasury_wallet: Pubkey
+    treasury_wallet: Pubkey,
 ) -> Result<()> {
-
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
     require(ctx.accounts.reward_mint.key() == unloc_mint)?;
 
@@ -40,8 +35,11 @@ pub fn handle(
         ctx.accounts.global_state.bump = *ctx.bumps.get("global_state").unwrap();
         ctx.accounts.global_state.reward_vault_bump = *ctx.bumps.get("reward_vault").unwrap();
     }
-    assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?;
-    
+    assert_owner(
+        ctx.accounts.global_state.super_owner,
+        ctx.accounts.super_owner.key(),
+    )?;
+
     ctx.accounts.global_state.super_owner = new_super_owner;
     ctx.accounts.global_state.treasury_wallet = treasury_wallet;
     ctx.accounts.global_state.accrued_interest_numerator = accrued_interest_numerator;
@@ -51,16 +49,15 @@ pub fn handle(
     ctx.accounts.global_state.reward_rate = reward_rate;
     ctx.accounts.global_state.expire_loan_duration = expire_loan_duration;
     ctx.accounts.global_state.lender_rewards_percentage = lender_rewards_percentage;
-    
 
     Ok(())
 }
 
 #[derive(Accounts)]
 #[instruction()]
-pub struct SetGlobalState <'info>{
+pub struct SetGlobalState<'info> {
     #[account(mut)]
-    pub super_owner:  Signer<'info>,
+    pub super_owner: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
 
@@ -71,7 +68,7 @@ pub struct SetGlobalState <'info>{
         payer = payer,
         space = std::mem::size_of::<GlobalState>() + 8
     )]
-    pub global_state:Box<Account<'info, GlobalState>>,
+    pub global_state: Box<Account<'info, GlobalState>>,
 
     pub reward_mint: Box<Account<'info, Mint>>,
     #[account(
@@ -82,7 +79,7 @@ pub struct SetGlobalState <'info>{
         bump,
         payer = payer,
     )]
-    pub reward_vault:Box<Account<'info, TokenAccount>>,
+    pub reward_vault: Box<Account<'info, TokenAccount>>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
