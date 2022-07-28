@@ -39,7 +39,7 @@ describe('create loan offer and cancel', async () => {
     let borrowerNftVault: anchor.web3.PublicKey = null as any;
 
 
-    it('create loan ofer with NFT', async () => {
+    it('Cancel loan offer', async () => {
         // create nft and mint to borrower's wallet
         let nftObject = await createAndMintNft(borrowerKeypair.publicKey)
         nftMint = nftObject.nft

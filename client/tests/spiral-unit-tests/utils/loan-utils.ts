@@ -156,7 +156,7 @@ export async function createAndMintNft(borrower: anchor.web3.PublicKey): Promise
     mintAuthority: superOwner
   })
   const tx = await provider.sendAndConfirm(createMetadataTx, [superOwnerKeypair])
-  console.log('creating nft meta tx = ', tx)
+  //console.log('creating nft meta tx = ', tx)
 
   const borrowerNftVault = await nftMint.createAccount(borrower);
   
@@ -272,40 +272,26 @@ export async function mintTokens(wallet: anchor.web3.Keypair, mint: anchor.web3.
   }
 }
 
-// export async function airdropWSOL(wallet: anchor.web3.Keypair, amt: number){
-//   const createATAIX = await createATA(
-//     wallet.publicKey,
-//     NATIVE_MINT
-//   )
-//   let tx = new Transaction()
-//   tx.add(createATAIX[0])
-//   console.log("creating wsol ata...")
-//   await provider.sendAndConfirm(tx, [wallet])
-
-//   const ata = await findAssociatedTokenAddress(wallet.publicKey, NATIVE_MINT)
-//   await safeAirdrop(provider.connection, ata, amt)
-//   const solTransferTransaction = new Transaction()
-//   .add(
-//     SystemProgram.transfer({
-//         fromPubkey: wallet.publicKey,
-//         toPubkey: ata,
-//         lamports: amt*LAMPORTS_PER_SOL
-//       }),
-//       createSyncNativeInstruction(
-//         associatedTokenAccount
+// export async function safeAirdrop(connection: anchor.web3.Connection, key: anchor.web3.PublicKey) {
+//   try {
+//     await connection.confirmTransaction(
+//       await connection.requestAirdrop(key, LAMPORTS_PER_SOL),
+//       "confirmed"
 //     )
-//   )
+//   } catch (e) {
+//     console.log("Airdrop error: ", e)
+//    }
 // }
 
-export async function safeAirdrop(connection: anchor.web3.Connection, key: anchor.web3.PublicKey) {
-  try {
-    await connection.confirmTransaction(
-      await connection.requestAirdrop(key, LAMPORTS_PER_SOL),
-      "confirmed"
-    )
-  } catch (e) {
-    console.log("Airdrop error: ", e)
-   }
+export async function safeAirdrop(connection: anchor.web3.Connection, key: anchor.web3.PublicKey, amount: number) {
+  while (await connection.getBalance(key) < amount * 1000000000) {
+    try {
+      await connection.confirmTransaction(
+        await connection.requestAirdrop(key, 1000000000),
+        "confirmed"
+      );
+    } catch { }
+  };
 }
 
 export const acceptLoanOffer = async (

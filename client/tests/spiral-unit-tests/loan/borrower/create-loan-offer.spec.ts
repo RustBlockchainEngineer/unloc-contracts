@@ -36,9 +36,6 @@ describe('create loan and sub offer', async () => {
   const program = anchor.workspace.UnlocLoan as anchor.Program<UnlocLoan>;
   const programId = program.programId
 
-  // derive global state account
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
-
   // define constants
   let nftMint: Token = null as any
   let nftMetadataKey: anchor.web3.PublicKey = null as any
@@ -73,21 +70,22 @@ describe('create loan and sub offer', async () => {
           })
           .signers([borrowerKeypair])
           .rpc()
+           // validations on offer information
+          const offerData = await program.account.offer.fetch(offer)
+          const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
+
+          assert.equal(tokenInfo.isFrozen, true)
+          assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
+          assert.equal(offerData.borrower.toBase58(), borrowerKeypair.publicKey.toBase58())
+          assert.equal(offerData.nftMint.toBase58(), nftMint.publicKey.toBase58())
+          assert.equal(offerData.subOfferCount, 0)
+          assert.equal(offerData.startSubOfferNum, 0)
+          assert.equal(offerData.state, OfferState.Proposed)
+
       } catch (e) {
           console.log("Caught error: ",e)
           assert.fail()
       }
-      // validations on offer information
-      const offerData = await program.account.offer.fetch(offer)
-      const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
-
-      assert.equal(tokenInfo.isFrozen, true)
-      assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
-      assert.equal(offerData.borrower.toBase58(), borrowerKeypair.publicKey.toBase58())
-      assert.equal(offerData.nftMint.toBase58(), nftMint.publicKey.toBase58())
-      assert.equal(offerData.subOfferCount, 0)
-      assert.equal(offerData.startSubOfferNum, 0)
-      assert.equal(offerData.state, OfferState.Proposed)
     }
   })
 })

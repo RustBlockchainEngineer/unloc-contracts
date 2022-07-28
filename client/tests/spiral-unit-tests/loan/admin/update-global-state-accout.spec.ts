@@ -5,7 +5,7 @@ import UNLOC_TOKEN_KEYPAIR from '../../../keypairs/unloc-token.json'
 import { UnlocLoan } from '../../../../src/types/unloc_loan'
 import { defaults } from '../../../../src/global-config'
 import { pda } from '../../utils/loan-utils'
-import { GLOBAL_STATE_TAG, REWARD_VAULT_TAG } from '../../utils/const'
+import { GLOBAL_STATE_TAG, REWARD_VAULT_TAG, denominator } from '../../utils/const'
 import { assert } from 'chai'
 
 /**
@@ -31,7 +31,7 @@ const program = anchor.workspace.UnlocLoan as anchor.Program<UnlocLoan>
 const programId = program.programId
 
 // define constants
-const denominator = new anchor.BN(10000)
+//const denominator = new anchor.BN(10000)
 const lenderRewardsPercentage = new anchor.BN(6000)
 const accruedInterestNumerator = new anchor.BN(10000000)
 // increasing APR

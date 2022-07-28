@@ -2,14 +2,17 @@ import * as anchor from '@project-serum/anchor'
 import SUPER_OWNER_WALLET from '../../../test-users/super_owner.json'
 import TREASURY from '../../../test-users/treasury.json'
 import LENDER from '../../../test-users/lender1.json'
-import { Token } from '@solana/spl-token'
+import { Token, ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { UnlocLoan } from '../../../../src/types/unloc_loan'
 import { TOKEN_META_PID, WSOL_MINT } from '../../../../src'
 import { defaults, chainlinkIds } from '../../../../src/global-config'
 import { assert } from 'chai'
-import { pda, createAndMintNft, SubOfferState } from '../../utils/loan-utils'
+import { pda, createAndMintNft, SubOfferState, safeAirdrop } from '../../utils/loan-utils'
 import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
 import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG, REWARD_VAULT_TAG } from '../../utils/const'
+import { Keypair, Transaction } from '@solana/web3.js'
+import { TransactionBuilder } from '@metaplex-foundation/js'
+import { off } from 'process'
 
 /**
  * Test focuses on the process_accept_offer instruction in the unloc_loan program.
@@ -17,7 +20,8 @@ import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG, REWAR
  * - subOffer state == Accepted
  * - NFT token account is Frozen
  * - NFT delegate == offer
- * - should check the borrower has received the tokens for the loan?
+ * - Borrower's lamports balance increased by OfferAmount
+ * - Lender's lamports balance decreased by OfferAmount
  */
 describe('lender accepts proposed loan offer', async () => {
     // fetch test keypairs
@@ -107,8 +111,46 @@ describe('lender accepts proposed loan offer', async () => {
                 const subOfferData = await program.account.subOffer.fetch(subOfferKey)
                 const offerMint = subOfferData.offerMint
                 const borrower = offerData.borrower
-                let lenderOfferVault = treasuryVault
-                let borrowerOfferVault = treasuryVault
+
+                let lenderOfferVault = await Token.getAssociatedTokenAddress(
+                    ASSOCIATED_TOKEN_PROGRAM_ID,
+                    TOKEN_PROGRAM_ID,
+                    WSOL_MINT,
+                    lenderKeypair.publicKey
+                )
+                let borrowerOfferVault = await Token.getAssociatedTokenAddress(
+                    ASSOCIATED_TOKEN_PROGRAM_ID,
+                    TOKEN_PROGRAM_ID,
+                    WSOL_MINT,
+                    borrowerKeypair.publicKey
+                )
+
+                let tx = new Transaction
+                let lenderAtaIx = await Token.createAssociatedTokenAccountInstruction(
+                    ASSOCIATED_TOKEN_PROGRAM_ID,
+                    TOKEN_PROGRAM_ID,
+                    WSOL_MINT,
+                    lenderOfferVault,
+                    lenderKeypair.publicKey,
+                    lenderKeypair.publicKey
+                    )
+                tx.add(lenderAtaIx)
+
+                let borrowerAtaIx = await Token.createAssociatedTokenAccountInstruction(
+                    ASSOCIATED_TOKEN_PROGRAM_ID,
+                    TOKEN_PROGRAM_ID,
+                    WSOL_MINT,
+                    borrowerOfferVault,
+                    borrowerKeypair.publicKey,
+                    borrowerKeypair.publicKey
+                )
+                tx.add(borrowerAtaIx)
+
+                await provider.sendAndConfirm(tx, [lenderKeypair, borrowerKeypair])
+                safeAirdrop(provider.connection, lenderOfferVault, 4)
+
+                let lenderInitBalance = await (await provider.connection.getAccountInfo(lenderKeypair.publicKey)).lamports
+                let borrowerInitBalance = await (await provider.connection.getAccountInfo(borrowerKeypair.publicKey)).lamports
     
                 // accept offer
                 await program.methods.acceptOffer()
@@ -131,7 +173,11 @@ describe('lender accepts proposed loan offer', async () => {
                 // validations
                 let acceptedSubOffer = await program.account.subOffer.fetch(subOfferKey)
                 const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
+                let borrowerPostBalance = await (await provider.connection.getAccountInfo(borrowerKeypair.publicKey)).lamports
+                let lenderPostBalance = await (await provider.connection.getAccountInfo(lenderKeypair.publicKey)).lamports
     
+                assert.equal(borrowerPostBalance, borrowerInitBalance + offerAmount.toNumber())
+                assert.equal(lenderPostBalance, lenderInitBalance - offerAmount.toNumber())
                 assert.equal(acceptedSubOffer.state, SubOfferState.Accepted)
                 assert.equal(tokenInfo.isFrozen, true)
                 assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())

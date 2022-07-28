@@ -50,8 +50,12 @@ describe('create loan with multiple sub offers', async () => {
     let borrowerNftVault: anchor.web3.PublicKey = null as any
     const aprNumerator = new anchor.BN(1 * denominator.toNumber() / 100) // 1%
     const expireLoanDuration = new anchor.BN(90 * 24 * 3600)
+    const offer = await pda([OFFER_SEED, borrowerKeypair.publicKey.toBuffer(), nftMint.publicKey.toBuffer()], programId)
+                const treasuryVault = await pda([TREASURY_VAULT_TAG, USDC_MINT.toBuffer()], programId)
+
+
     
-    it('create loan ofer with NFT', async () => {
+    it('create multiple sub offers', async () => {
         // create nft and mint to borrower's wallet
         let nftObject = await createAndMintNft(borrowerKeypair.publicKey)
         nftMint = nftObject.nft
@@ -60,7 +64,6 @@ describe('create loan with multiple sub offers', async () => {
         borrowerNftVault = nftObject.borrowerNftVault
 
         if(nftMint) {
-            const offer = await pda([OFFER_SEED, borrowerKeypair.publicKey.toBuffer(), nftMint.publicKey.toBuffer()], programId)
             try {
                 // create offer with NFT
                 await program.methods.setOffer()
@@ -81,6 +84,7 @@ describe('create loan with multiple sub offers', async () => {
                 console.log("Caught error: ", e)
                 assert.fail()
             }
+
         } else {
             console.log("mint account null")
             assert.fail()
@@ -146,7 +150,6 @@ describe('create loan with multiple sub offers', async () => {
             const offerData = await program.account.offer.fetch(offer)
             const subOfferNumber = offerData.subOfferCount
             const subOfferKey = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumber.toArrayLike(Buffer, 'be', 8)], programId)
-            const treasuryVault = await pda([TREASURY_VAULT_TAG, USDC_MINT.toBuffer()], programId)
             try {
                 // create 2nd loan sub offer
                 await program.methods.setSubOffer(offerAmount2, subOfferNumber, expireLoanDuration, aprNumerator)
@@ -242,5 +245,4 @@ describe('create loan with multiple sub offers', async () => {
             assert.fail()
         }
     })
-
 })

@@ -44,10 +44,10 @@ This instruction initalizes the state of the GlobalState account.
 */
 before(async () => {
     console.log("Running setup for test suite...")
-    await safeAirdrop(provider.connection, superOwnerKeypair.publicKey)
-    await safeAirdrop(provider.connection, borrowerKeypair.publicKey)
-    await safeAirdrop(provider.connection, treasuryKeypair.publicKey)
-    await safeAirdrop(provider.connection, lenderKeypair.publicKey)
+    await safeAirdrop(provider.connection, superOwnerKeypair.publicKey, 1)
+    await safeAirdrop(provider.connection, borrowerKeypair.publicKey, 1)
+    await safeAirdrop(provider.connection, treasuryKeypair.publicKey, 1)
+    await safeAirdrop(provider.connection, lenderKeypair.publicKey, 1)
     await createTokenMints(superOwnerKeypair, unlocTokenKeypair, usdcTokenKeypair)
 
     const globalState = await pda([GLOBAL_STATE_TAG], programId)
