@@ -31,6 +31,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     let seconds_for_year = 3600 * 24 * 365;
     let offer_apr = ctx.accounts.sub_offer.apr_numerator;
     let min_repaid_numerator = ctx.accounts.global_state.min_repaid_numerator;
+
     let unloc_apr = ctx.accounts.global_state.apr_numerator;
     let denominator = ctx.accounts.global_state.denominator;
     let accrued_apr = ctx.accounts.global_state.accrued_interest_numerator;
@@ -138,8 +139,10 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
         .repaid_amount
         .safe_add(needed_amount)?;
     ctx.accounts.sub_offer.loan_ended_time = current_time;
-    ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Fulfilled);
-    ctx.accounts.offer.state = OfferState::get_state(OfferState::Fulfilled);
+
+    // this will be used if above and below actions are separated later
+    // ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Fulfilled);
+    // ctx.accounts.offer.state = OfferState::get_state(OfferState::Fulfilled);
 
     // Thaw borrower_nft_vault with offer PDA
     let nft_mint_key = ctx.accounts.nft_mint.key();

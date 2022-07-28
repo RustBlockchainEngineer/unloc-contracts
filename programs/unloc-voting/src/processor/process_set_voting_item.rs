@@ -9,7 +9,6 @@ use crate::{
 };
 
 pub fn process_set_voting_item(ctx: Context<SetVotingItem>, key: Pubkey) -> Result<()> { 
-    assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?;
     if is_zero_account(&ctx.accounts.voting_item.to_account_info()) {
         ctx.accounts.voting.total_items = ctx.accounts.voting.total_items.safe_add(1)?;
         ctx.accounts.voting_item.key = key;
@@ -32,6 +31,7 @@ pub struct SetVotingItem<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
+        has_one = super_owner
     )]
     pub global_state:Box<Account<'info, GlobalState>>,
 
@@ -43,7 +43,7 @@ pub struct SetVotingItem<'info> {
     pub voting:Box<Account<'info, Voting>>,
 
     #[account(
-        init_if_needed,
+        init,
         seeds = [VOTING_ITEM_TAG, voting.key().as_ref(), key.as_ref()],
         bump,
         payer = payer,

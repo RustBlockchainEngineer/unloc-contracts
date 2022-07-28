@@ -29,11 +29,9 @@ pub struct GlobalState {
     // borrower rewards percentage is the rest of lender rewards percentage
     pub lender_rewards_percentage: u64,
     // UNLOC staking pool info
-    pub unloc_staking_pid: Pubkey,
     pub unloc_staking_pool_id: Pubkey,
 
     // current voting info
-    pub voting_pid: Pubkey,
     pub voting: Pubkey,
 
     pub reserved: [u128; 15],

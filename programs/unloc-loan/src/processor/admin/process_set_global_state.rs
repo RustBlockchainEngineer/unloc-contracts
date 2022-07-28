@@ -15,7 +15,9 @@ pub fn handle(
     apr_numerator: u64,
     expire_loan_duration: u64,
     reward_rate: u64,
-    lender_rewards_percentage: u64
+    lender_rewards_percentage: u64,
+    new_super_owner: Pubkey,
+    treasury_wallet: Pubkey
 ) -> Result<()> {
 
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
@@ -40,8 +42,8 @@ pub fn handle(
     }
     assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?;
     
-    ctx.accounts.global_state.super_owner = *ctx.accounts.new_super_owner.key;
-    ctx.accounts.global_state.treasury_wallet = *ctx.accounts.treasury_wallet.key;
+    ctx.accounts.global_state.super_owner = new_super_owner;
+    ctx.accounts.global_state.treasury_wallet = treasury_wallet;
     ctx.accounts.global_state.accrued_interest_numerator = accrued_interest_numerator;
     ctx.accounts.global_state.denominator = denominator;
     ctx.accounts.global_state.min_repaid_numerator = min_repaid_numerator;
@@ -81,10 +83,6 @@ pub struct SetGlobalState <'info>{
         payer = payer,
     )]
     pub reward_vault:Box<Account<'info, TokenAccount>>,
-    /// CHECK: key only is used
-    pub new_super_owner:AccountInfo<'info>,
-    /// CHECK: key only is used
-    pub treasury_wallet:AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

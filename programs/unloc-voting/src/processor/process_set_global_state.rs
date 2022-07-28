@@ -8,8 +8,7 @@ use crate::{
 use std::str::FromStr;
 pub fn process_set_global_state(
     ctx: Context<SetGlobalState>, 
-    new_super_owner: Pubkey, 
-    staking_pid: Pubkey, 
+    new_super_owner: Pubkey,
 ) -> Result<()> {
     if is_zero_account(&ctx.accounts.global_state.to_account_info()) {
         let initial_owner = Pubkey::from_str(INITIAL_OWNER).unwrap();
@@ -21,7 +20,6 @@ pub fn process_set_global_state(
     assert_owner(ctx.accounts.global_state.super_owner, ctx.accounts.super_owner.key())?;
 
     ctx.accounts.global_state.super_owner = new_super_owner;
-    ctx.accounts.global_state.staking_pid = staking_pid;
 
     Ok(())
 }

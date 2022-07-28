@@ -41,7 +41,7 @@ pub mod unloc_staking {
         require!(profile_levels.len() <= MAX_PROFILE_LEVEL, StakingError::OverflowMaxProfileLevel);
         let state = &mut _ctx.accounts.state;
         state.authority = _ctx.accounts.authority.key();
-        state.bump = *ctx.bumps.get("state").unwrap();
+        state.bump = *_ctx.bumps.get("state").unwrap();
         state.start_time = _ctx.accounts.clock.unix_timestamp;
         state.token_per_second = token_per_second;
         state.early_unlock_fee = early_unlock_fee;
@@ -59,7 +59,7 @@ pub mod unloc_staking {
     ) -> Result<()> {
         let extra_account = &mut _ctx.accounts.extra_reward_account;
         extra_account.authority = _ctx.accounts.authority.key();
-        extra_account.bump = *ctx.bumps.get("extra_reward_account").unwrap();
+        extra_account.bump = *_ctx.bumps.get("extra_reward_account").unwrap();
         extra_account.configs = configs;
         extra_account.validate()?;
         Ok(())
@@ -101,7 +101,7 @@ pub mod unloc_staking {
         Ok(())
     }
     pub fn change_early_unlock_fee(
-        _ctx: Context<ChangeEarlyUnlockFee>,
+        _ctx: Context<ChangeState>,
         early_unlock_fee: u64,
     ) -> Result<()> {
         let state = &mut _ctx.accounts.state;
@@ -110,7 +110,7 @@ pub mod unloc_staking {
         Ok(())
     }
     pub fn change_profile_levels(
-        _ctx: Context<ChangeProfileLevels>,
+        _ctx: Context<ChangeState>,
         profile_levels: Vec<u128>,
     ) -> Result<()> {
         require!(profile_levels.len() <= MAX_PROFILE_LEVEL, StakingError::OverflowMaxProfileLevel);
@@ -145,7 +145,7 @@ pub mod unloc_staking {
         }
 
         let pool = &mut _ctx.accounts.pool;
-        pool.bump = *ctx.bumps.get("pool").unwrap();
+        pool.bump = *_ctx.bumps.get("pool").unwrap();
         pool.mint = _ctx.accounts.mint.key();
         pool.vault = _ctx.accounts.vault.key();
         pool.point = point;
@@ -208,7 +208,7 @@ pub mod unloc_staking {
     pub fn create_user(_ctx: Context<CreatePoolUser>, _bump: u8) -> Result<()> {
         let user = &mut _ctx.accounts.user;
         user.authority = _ctx.accounts.authority.key();
-        user.bump = *ctx.bumps.get("user").unwrap();
+        user.bump = *_ctx.bumps.get("user").unwrap();
         user.pool = _ctx.accounts.pool.key();
 
         let pool = &mut _ctx.accounts.pool;
@@ -425,8 +425,7 @@ pub struct CreateState<'info> {
     pub authority: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
@@ -463,17 +462,9 @@ pub struct ChangeTokensPerSecond<'info> {
     pub clock: Sysvar<'info, Clock>,
 }
 #[derive(Accounts)]
-pub struct ChangeEarlyUnlockFee<'info> {
+pub struct ChangeState<'info> {
     #[account(mut, 
         
-        seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
-    pub state: Account<'info, StateAccount>,
-    #[account(mut)]
-    pub authority: Signer<'info>,
-}
-#[derive(Accounts)]
-pub struct ChangeProfileLevels<'info> {
-    #[account(mut, 
         seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
     pub state: Account<'info, StateAccount>,
     #[account(mut)]
@@ -512,8 +503,7 @@ pub struct CreateFarmPool<'info> {
     pub authority: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
@@ -530,8 +520,7 @@ pub struct CloseFarmPool<'info> {
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     pub clock: Sysvar<'info, Clock>,
 }
 
@@ -564,8 +553,7 @@ pub struct CreateExtraRewardsConfigs<'info> {
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
     #[account(mut)]
     pub authority: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -576,8 +564,7 @@ pub struct SetExtraRewardsConfigs<'info> {
     pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
     #[account(mut)]
     pub authority: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -602,8 +589,7 @@ pub struct CreatePoolUser<'info> {
     pub authority: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
 }
@@ -634,8 +620,7 @@ pub struct Stake<'info> {
     #[account(mut, 
         constraint = fee_vault.key() == state.fee_vault)]
     pub fee_vault: Box<Account<'info, TokenAccount>>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
@@ -665,8 +650,7 @@ pub struct Harvest<'info> {
     #[account(mut, 
         constraint = user_vault.owner == authority.key())]
     pub user_vault: Box<Account<'info, TokenAccount>>,
-    /// CHECK: unchecked account
-    pub system_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,

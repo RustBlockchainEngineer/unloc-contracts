@@ -28,8 +28,8 @@ pub fn handle(ctx: Context<AcceptOffer>) -> Result<()> {
         let voting = Voting::try_deserialize(&mut voting_data)?;
         let voting_item = VotingItem::try_deserialize(&mut voting_item_data)?;
 
-        assert_pda(&[VOTING_TAG, &voting.voting_number.to_be_bytes()], &ctx.accounts.global_state.voting_pid, &voting_info.key())?;
-        assert_pda(&[VOTING_ITEM_TAG, voting_info.key().as_ref(), ctx.accounts.offer.collection.as_ref()], &ctx.accounts.global_state.voting_pid, &voting_item_info.key())?;
+        assert_pda(&[VOTING_TAG, &voting.voting_number.to_be_bytes()], &unloc_voting::id(), &voting_info.key())?;
+        assert_pda(&[VOTING_ITEM_TAG, voting_info.key().as_ref(), ctx.accounts.offer.collection.as_ref()], &unloc_voting::id(), &voting_item_info.key())?;
         
         total_point = voting.total_score;
         collection_point = voting_item.voting_score;
