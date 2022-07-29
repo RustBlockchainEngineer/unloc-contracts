@@ -26,9 +26,7 @@ import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata';
 describe('borrower repays loan', async () => {
     // fetch test keypairs
     const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))
-    //const borrowerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(PROPOSER1_WALLET))
     const treasuryKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(TREASURY))
-    //const lenderKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(LENDER))
     const lenderKeypair = Keypair.generate()
     const borrowerKeypair = Keypair.generate()
   
@@ -207,22 +205,11 @@ describe('borrower repays loan', async () => {
                 let acceptedSubOffer = await program.account.subOffer.fetch(subOfferKey)
                 let paidOffer = await program.account.offer.fetch(offer)
                 const tokenInfo = await nftMint.getAccountInfo(borrowerNftVault)
-                let borrowerPostBalance = await (await provider.connection.getAccountInfo(borrowerKeypair.publicKey)).lamports
-                let lenderPostBalance = await (await provider.connection.getAccountInfo(lenderKeypair.publicKey)).lamports
-                console.log("borrow post: ", borrowerPostBalance)
-                console.log("lender post: ", lenderPostBalance)
     
                 assert.equal(paidOffer.state, OfferState.NFTClaimed)
                 assert.equal(acceptedSubOffer.state, SubOfferState.NFTClaimed)
-
-                // doesn't seem like the state's are being updated in the program ??
-                // should be equal to NFTClaimed but that assertion does not pass
-                // assert.equal(paidOffer.state, OfferState.Accepted)
-                // assert.equal(acceptedSubOffer.state, SubOfferState.Accepted)
-                // this is also failing
                 assert.equal(tokenInfo.isFrozen, false)
-                assert.equal(tokenInfo.delegate.toBase58(), null)
-                console.log(tokenInfo)
+                assert.equal(tokenInfo.delegate, null)
             } catch (e) {
                 console.log("Caugh error: ", e)
                 assert.fail()

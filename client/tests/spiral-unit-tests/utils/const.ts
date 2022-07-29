@@ -27,6 +27,7 @@ export const denominator = new anchor.BN(10000)
 export const aprNumerator = new anchor.BN(1 * denominator.toNumber() / 100) // 1%
 export const expireLoanDuration = new anchor.BN(90 * 24 * 3600)
 
+
 export const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID: anchor.web3.PublicKey = new anchor.web3.PublicKey(
     'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
   )

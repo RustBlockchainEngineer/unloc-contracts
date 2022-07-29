@@ -11,8 +11,7 @@ import { pda, createAndMintNft, SubOfferState, safeAirdrop } from '../../utils/l
 import PROPOSER1_WALLET from '../../../test-users/borrower1.json'
 import { GLOBAL_STATE_TAG, OFFER_SEED, SUB_OFFER_SEED, TREASURY_VAULT_TAG, REWARD_VAULT_TAG } from '../../utils/const'
 import { Keypair, Transaction } from '@solana/web3.js'
-import { TransactionBuilder } from '@metaplex-foundation/js'
-import { off } from 'process'
+
 
 /**
  * Test focuses on the process_accept_offer instruction in the unloc_loan program.
@@ -23,6 +22,7 @@ import { off } from 'process'
  * - Borrower's lamports balance increased by OfferAmount
  * - Lender's lamports balance decreased by OfferAmount
  */
+
 describe('lender accepts proposed loan offer', async () => {
     // fetch test keypairs
     const superOwnerKeypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(SUPER_OWNER_WALLET))

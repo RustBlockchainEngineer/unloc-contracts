@@ -91,7 +91,7 @@ describe('create loan offer and cancel', async () => {
 
                 assert.equal(offerData.state, OfferState.Canceled)
                 assert.equal(tokenInfo.isFrozen, false)
-                assert.equal(tokenInfo.delegate.toBase58(), offer.toBase58())
+                assert.equal(tokenInfo.delegate, null)
             } catch (e) {
                 console.log("Caught error: ", e)
                 assert.fail()
