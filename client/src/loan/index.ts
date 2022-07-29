@@ -2,7 +2,7 @@ import * as anchor from '@project-serum/anchor'
 import { bool, publicKey, struct, u32, u64, u8 } from '@project-serum/borsh'
 import { NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { IDL as idl, UnlocLoan } from '../types/unloc_loan'
-import { chainlinkIds, defaults, discriminatorLen, NFT_LOAN_PID, TOKEN_META_PID, UNLOC_MINT } from '../global-config'
+import { chainlinkIds, defaults, discriminatorLen, NFT_LOAN_PID, STAKING_PID, TOKEN_META_PID, UNLOC_MINT, VOTING_PID } from '../global-config'
 import {
   Connection,
   Keypair,
@@ -237,14 +237,22 @@ export const setLoanGlobalState = async (
 
   try {
 
-    const tx = await program.methods.setGlobalState(accruedInterestNumerator, denominator, minRepaidNumerator, aprNumerator, expireLoanDuration, rewardRate, lenderRewardsPercentage)
+    const tx = await program.methods.setGlobalState(
+      accruedInterestNumerator, 
+      denominator, 
+      minRepaidNumerator, 
+      aprNumerator, 
+      expireLoanDuration, 
+      rewardRate, 
+      lenderRewardsPercentage,
+      superOwner,
+      treasury,
+      )
       .accounts({
         superOwner,
         globalState,
         rewardMint,
         rewardVault,
-        newSuperOwner: superOwner,
-        treasuryWallet: treasury,
         ...defaults
       })
       .signers(signers)
@@ -259,7 +267,6 @@ export const setLoanGlobalState = async (
 }
 
 export const setLoanStakingPool = async (
-  unlocStakingPid: anchor.web3.PublicKey,
   unlocStakingPoolId: anchor.web3.PublicKey,
   signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
@@ -268,7 +275,9 @@ export const setLoanStakingPool = async (
   const superOwner = signer
 
   try {
-    const tx = await program.methods.setStakingPool(unlocStakingPid, unlocStakingPoolId)
+    const tx = await program.methods.setStakingPool(
+      unlocStakingPoolId
+      )
       .accounts({
         superOwner,
         globalState,
@@ -282,7 +291,6 @@ export const setLoanStakingPool = async (
 }
 
 export const setLoanVoting = async (
-  votingPid: anchor.web3.PublicKey,
   votingId: anchor.web3.PublicKey,
   signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
@@ -291,7 +299,7 @@ export const setLoanVoting = async (
   const superOwner = signer
   const rewardVault = await pda([REWARD_VAULT_TAG], programId)
   try {
-    const tx = await program.methods.setVoting(votingPid, votingId)
+    const tx = await program.methods.setVoting(votingId)
       .accounts({
         superOwner,
         globalState,
@@ -583,7 +591,7 @@ export const createLoanSubOfferByStaking = async (
   const subOffer = await pda([SUB_OFFER_TAG, offer.toBuffer(), subOfferNumer.toArrayLike(Buffer, 'be', 8)], programId)
   const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], programId)
   const globalStateData = await program.account.globalState.fetch(globalState)
-  const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], globalStateData.unlocStakingPid)
+  const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], STAKING_PID)
   const treasuryWallet = globalStateData.treasuryWallet
   try {
     const tx = await program.methods
@@ -817,7 +825,7 @@ export const acceptLoanOfferByVoting = async (
   const globalState = await pda([GLOBAL_STATE_TAG], programId)
   const globalStateData = await program.account.globalState.fetch(globalState)
   const rewardVault = await pda([REWARD_VAULT_TAG], programId)
-  const votingPid = globalStateData.votingPid;
+  const votingPid = VOTING_PID;
   const currentVotingKey = await getCurrentVotingKey();
   const votingItemKey = await pda([VOTING_ITEM_TAG, currentVotingKey.toBuffer(), offerData.collection.toBuffer()], votingPid)
   try {

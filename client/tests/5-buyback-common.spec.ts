@@ -252,7 +252,7 @@ describe('buyback-common', () => {
 
     it('Set global state', async () => {
         try {
-            await setBuybackGlobalState(superOwner, poolKeys.id, market.address)
+            await setBuybackGlobalState(superOwner,superOwner, poolKeys.id, market.address)
         } catch (e) {
             console.log(e)
             assert.fail('error while set global state');
@@ -437,7 +437,7 @@ async function initAmm(
         )
     }
 
-    const txid = await provider.sendAndConfirm(transaction, signers, {
+    const txid = await provider.sendAndConfirm!(transaction, signers, {
         skipPreflight: true,
         preflightCommitment: "confirmed"
     })

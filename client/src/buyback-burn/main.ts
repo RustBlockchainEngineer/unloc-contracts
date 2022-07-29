@@ -61,6 +61,7 @@ export const getWsolVaultKey = async () => {
 }
 export const setBuybackGlobalState = async (
   newAuthority: PublicKey,
+  newBurner: PublicKey,
   amm: PublicKey,
   serumMarket: PublicKey,
   ammProgram: PublicKey = Liquidity.getProgramId(4),
@@ -74,7 +75,7 @@ export const setBuybackGlobalState = async (
   const wsolVault = await pda([WSOL_VAULT_SEED], buybackProgramId);
   const superOwner = signer;
 
-  const tx = await buybackProgram.methods.setGlobalState(newAuthority)
+  const tx = await buybackProgram.methods.setGlobalState(newAuthority, newBurner)
     .accounts({
       authority: superOwner,
       globalState,

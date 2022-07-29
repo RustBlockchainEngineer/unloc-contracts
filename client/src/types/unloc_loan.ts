@@ -58,6 +58,11 @@ export type UnlocLoan = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "globalState",
           "isMut": true,
           "isSigner": false
@@ -70,16 +75,6 @@ export type UnlocLoan = {
         {
           "name": "rewardVault",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "newSuperOwner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryWallet",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -131,6 +126,14 @@ export type UnlocLoan = {
         {
           "name": "lenderRewardsPercentage",
           "type": "u64"
+        },
+        {
+          "name": "newSuperOwner",
+          "type": "publicKey"
+        },
+        {
+          "name": "treasuryWallet",
+          "type": "publicKey"
         }
       ]
     },
@@ -149,10 +152,6 @@ export type UnlocLoan = {
         }
       ],
       "args": [
-        {
-          "name": "unlocStakingPid",
-          "type": "publicKey"
-        },
         {
           "name": "unlocStakingPoolId",
           "type": "publicKey"
@@ -204,10 +203,6 @@ export type UnlocLoan = {
         }
       ],
       "args": [
-        {
-          "name": "votingPid",
-          "type": "publicKey"
-        },
         {
           "name": "voting",
           "type": "publicKey"
@@ -406,6 +401,11 @@ export type UnlocLoan = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "offer",
           "isMut": true,
           "isSigner": false
@@ -463,6 +463,11 @@ export type UnlocLoan = {
       "accounts": [
         {
           "name": "borrower",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -965,6 +970,14 @@ export type UnlocLoan = {
         "kind": "struct",
         "fields": [
           {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "rewardVaultBump",
+            "type": "u8"
+          },
+          {
             "name": "superOwner",
             "type": "publicKey"
           },
@@ -1033,15 +1046,7 @@ export type UnlocLoan = {
             "type": "u64"
           },
           {
-            "name": "unlocStakingPid",
-            "type": "publicKey"
-          },
-          {
             "name": "unlocStakingPoolId",
-            "type": "publicKey"
-          },
-          {
-            "name": "votingPid",
             "type": "publicKey"
           },
           {
@@ -1065,6 +1070,10 @@ export type UnlocLoan = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
           {
             "name": "borrower",
             "type": "publicKey"
@@ -1110,6 +1119,10 @@ export type UnlocLoan = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
           {
             "name": "borrower",
             "type": "publicKey"
@@ -1413,6 +1426,11 @@ export const IDL: UnlocLoan = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "globalState",
           "isMut": true,
           "isSigner": false
@@ -1425,16 +1443,6 @@ export const IDL: UnlocLoan = {
         {
           "name": "rewardVault",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "newSuperOwner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryWallet",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -1486,6 +1494,14 @@ export const IDL: UnlocLoan = {
         {
           "name": "lenderRewardsPercentage",
           "type": "u64"
+        },
+        {
+          "name": "newSuperOwner",
+          "type": "publicKey"
+        },
+        {
+          "name": "treasuryWallet",
+          "type": "publicKey"
         }
       ]
     },
@@ -1504,10 +1520,6 @@ export const IDL: UnlocLoan = {
         }
       ],
       "args": [
-        {
-          "name": "unlocStakingPid",
-          "type": "publicKey"
-        },
         {
           "name": "unlocStakingPoolId",
           "type": "publicKey"
@@ -1559,10 +1571,6 @@ export const IDL: UnlocLoan = {
         }
       ],
       "args": [
-        {
-          "name": "votingPid",
-          "type": "publicKey"
-        },
         {
           "name": "voting",
           "type": "publicKey"
@@ -1761,6 +1769,11 @@ export const IDL: UnlocLoan = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "offer",
           "isMut": true,
           "isSigner": false
@@ -1818,6 +1831,11 @@ export const IDL: UnlocLoan = {
       "accounts": [
         {
           "name": "borrower",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -2320,6 +2338,14 @@ export const IDL: UnlocLoan = {
         "kind": "struct",
         "fields": [
           {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "rewardVaultBump",
+            "type": "u8"
+          },
+          {
             "name": "superOwner",
             "type": "publicKey"
           },
@@ -2388,15 +2414,7 @@ export const IDL: UnlocLoan = {
             "type": "u64"
           },
           {
-            "name": "unlocStakingPid",
-            "type": "publicKey"
-          },
-          {
             "name": "unlocStakingPoolId",
-            "type": "publicKey"
-          },
-          {
-            "name": "votingPid",
             "type": "publicKey"
           },
           {
@@ -2420,6 +2438,10 @@ export const IDL: UnlocLoan = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
           {
             "name": "borrower",
             "type": "publicKey"
@@ -2465,6 +2487,10 @@ export const IDL: UnlocLoan = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
           {
             "name": "borrower",
             "type": "publicKey"

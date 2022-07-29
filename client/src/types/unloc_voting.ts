@@ -41,6 +41,11 @@ export type UnlocVoting = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "globalState",
           "isMut": true,
           "isSigner": false
@@ -65,10 +70,6 @@ export type UnlocVoting = {
         {
           "name": "newSuperOwner",
           "type": "publicKey"
-        },
-        {
-          "name": "stakingPid",
-          "type": "publicKey"
         }
       ]
     },
@@ -77,6 +78,11 @@ export type UnlocVoting = {
       "accounts": [
         {
           "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -130,6 +136,11 @@ export type UnlocVoting = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "globalState",
           "isMut": true,
           "isSigner": false
@@ -172,6 +183,11 @@ export type UnlocVoting = {
       "accounts": [
         {
           "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -267,11 +283,11 @@ export type UnlocVoting = {
         "kind": "struct",
         "fields": [
           {
-            "name": "superOwner",
-            "type": "publicKey"
+            "name": "bump",
+            "type": "u8"
           },
           {
-            "name": "stakingPid",
+            "name": "superOwner",
             "type": "publicKey"
           },
           {
@@ -286,6 +302,10 @@ export type UnlocVoting = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
           {
             "name": "votingNumber",
             "type": "u64"
@@ -315,6 +335,10 @@ export type UnlocVoting = {
         "kind": "struct",
         "fields": [
           {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
             "name": "key",
             "type": "publicKey"
           },
@@ -334,6 +358,10 @@ export type UnlocVoting = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
           {
             "name": "owner",
             "type": "publicKey"
@@ -462,6 +490,11 @@ export const IDL: UnlocVoting = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "globalState",
           "isMut": true,
           "isSigner": false
@@ -486,10 +519,6 @@ export const IDL: UnlocVoting = {
         {
           "name": "newSuperOwner",
           "type": "publicKey"
-        },
-        {
-          "name": "stakingPid",
-          "type": "publicKey"
         }
       ]
     },
@@ -498,6 +527,11 @@ export const IDL: UnlocVoting = {
       "accounts": [
         {
           "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -551,6 +585,11 @@ export const IDL: UnlocVoting = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "globalState",
           "isMut": true,
           "isSigner": false
@@ -593,6 +632,11 @@ export const IDL: UnlocVoting = {
       "accounts": [
         {
           "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -688,11 +732,11 @@ export const IDL: UnlocVoting = {
         "kind": "struct",
         "fields": [
           {
-            "name": "superOwner",
-            "type": "publicKey"
+            "name": "bump",
+            "type": "u8"
           },
           {
-            "name": "stakingPid",
+            "name": "superOwner",
             "type": "publicKey"
           },
           {
@@ -707,6 +751,10 @@ export const IDL: UnlocVoting = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
           {
             "name": "votingNumber",
             "type": "u64"
@@ -736,6 +784,10 @@ export const IDL: UnlocVoting = {
         "kind": "struct",
         "fields": [
           {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
             "name": "key",
             "type": "publicKey"
           },
@@ -755,6 +807,10 @@ export const IDL: UnlocVoting = {
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
           {
             "name": "owner",
             "type": "publicKey"

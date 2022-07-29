@@ -44,14 +44,13 @@ export const initVotingProgram = (
 
 export const setVotingGlobalState = async (
   newSuperOwner: anchor.web3.PublicKey,
-  stakingPid: anchor.web3.PublicKey = STAKING_PID,
   signer: anchor.web3.PublicKey = votingProgramProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
   const globalState = await pda([VOTING_GLOBAL_STATE_TAG], votingProgramId);
   const superOwner = signer;
 
-  const tx = await votingProgram.methods.setGlobalState(newSuperOwner, stakingPid)
+  const tx = await votingProgram.methods.setGlobalState(newSuperOwner)
     .accounts({
       superOwner,
       globalState,

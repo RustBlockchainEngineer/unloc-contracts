@@ -131,6 +131,7 @@ export async function createStakingState(
   earlyUnlocFee: number,
   profileLevels: anchor.BN[],
   rewardMint: string,
+  feeVault: string = null,
 ) {
   const transaction = new Transaction()
 
@@ -146,8 +147,22 @@ export async function createStakingState(
     rewardMint,
     transaction
   )
+  if(!feeVault){
+    feeVault = stateRewardVault.toBase58();
+  }
 
-  const tx = await StakingProgram.methods.createState(stateBump, new BN(tokenPerSecond), new BN(earlyUnlocFee), profileLevels)
+  const tx = await StakingProgram.methods.createState(new BN(tokenPerSecond), new BN(earlyUnlocFee), profileLevels)
+  .accounts({
+    state: stateSigner,
+    rewardVault: stateRewardVault,
+    rewardMint: new PublicKey(rewardMint),
+    feeVault: new PublicKey(feeVault),
+    authority: wallet.publicKey,
+    payer: wallet.publicKey,
+    ...defaultAccounts
+  })
+  .preInstructions(transaction.instructions)
+  .rpc();
   return tx;
 }
 
@@ -181,8 +196,8 @@ export async function createStakingExtraReward(
     StakingProgram.programId
   );
   console.log(extraRewardSigner.toString(), extraRewardBump)
-
-  const tx = await StakingProgram.instruction.createExtraRewardConfigs(extraRewardBump,
+  const stateSigner = await getStakingStateAddress();
+  const tx = await StakingProgram.instruction.createExtraRewardConfigs(
     [
       { duration: new BN(43200 * 60), extraPercentage: new BN(0) },
       { duration: new BN(129600 * 60), extraPercentage: new BN(10 * 1000 * 1000 * 1000) },
@@ -191,6 +206,7 @@ export async function createStakingExtraReward(
     ],
     {
       accounts: {
+        state: stateSigner,
         extraRewardAccount: extraRewardSigner,
         authority: wallet.publicKey,
         ...defaultAccounts
@@ -292,13 +308,14 @@ export async function createStakingPool(
 
   // let pools = await StakingProgram.account.farmPoolAccount.all()
   transaction.add(
-    StakingProgram.instruction.createPool(poolBump, new BN('0'), new BN('0'), {
+    StakingProgram.instruction.createPool(new BN('0'), new BN('0'), {
       accounts: {
         pool: poolSigner,
         state: stateSigner,
         mint: rewardMint,
         vault: poolVault,
         authority: wallet.publicKey,
+        payer: wallet.publicKey,
         ...defaultAccounts
       },
       remainingAccounts: pools.map(p => ({
@@ -482,12 +499,13 @@ export async function stake(
   const userAccountData = await StakingProgram.account.farmPoolUserAccount.fetchNullable(userAccount)
   if (!userAccountData) {
     console.log("You are the new user to stake")
-    transaction.add(StakingProgram.instruction.createUser(bump1, {
+    transaction.add(StakingProgram.instruction.createUser({
       accounts: {
         user: userAccount,
         state: stateSigner,
         pool: poolSigner,
         authority: wallet.publicKey,
+        payer: wallet.publicKey,
         ...defaultAccounts
       }
     }));
@@ -535,12 +553,13 @@ export async function createStakingUser(
   if (!userAccountData) {
     console.log("You are the new user to stake")
     try {
-      const tx = await StakingProgram.methods.createUser(bump1)
+      const tx = await StakingProgram.methods.createUser()
         .accounts({
           user: userAccount,
           state: stateSigner,
           pool: poolSigner,
           authority: wallet.publicKey,
+          payer: wallet.publicKey,
           ...defaultAccounts
         })
         .signers(signers)
@@ -634,6 +653,7 @@ export async function harvest(
         ...defaultAccounts
       })
       .signers(signers)
+      .rpc()
 
     return tx;
   } catch (e) {
