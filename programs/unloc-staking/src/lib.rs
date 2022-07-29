@@ -30,7 +30,6 @@ pub mod unloc_staking {
 
     pub fn create_state(
         ctx: Context<CreateState>,
-        _bump: u8,
         token_per_second: u64,
         early_unlock_fee: u64,
         profile_levels: Vec<u128>,
@@ -61,7 +60,6 @@ pub mod unloc_staking {
 
     pub fn create_extra_reward_configs(
         ctx: Context<CreateExtraRewardsConfigs>,
-        _bump: u8,
         configs: Vec<DurationExtraRewardConfig>,
     ) -> Result<()> {
         let extra_account = &mut ctx.accounts.extra_reward_account;
@@ -133,7 +131,6 @@ pub mod unloc_staking {
 
     pub fn create_pool(
         ctx: Context<CreateFarmPool>,
-        _bump: u8,
         point: u64,
         amount_multipler: u64,
     ) -> Result<()> {
@@ -207,7 +204,7 @@ pub mod unloc_staking {
         Ok(())
     }
 
-    pub fn create_user(ctx: Context<CreatePoolUser>, _bump: u8) -> Result<()> {
+    pub fn create_user(ctx: Context<CreatePoolUser>) -> Result<()> {
         let user = &mut ctx.accounts.user;
         user.authority = ctx.accounts.authority.key();
         user.bump = *ctx.bumps.get("user").unwrap();
@@ -420,7 +417,7 @@ pub mod unloc_staking {
 }
 
 #[derive(Accounts)]
-#[instruction(bump: u8)]
+#[instruction()]
 pub struct CreateState<'info> {
     #[account(
         init,
@@ -493,7 +490,7 @@ pub struct ChangeFeeVault<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(bump: u8)]
+#[instruction()]
 pub struct CreateFarmPool<'info> {
     #[account(
         init,
@@ -547,7 +544,7 @@ pub struct ChangePoolSetting<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(bump: u8)]
+#[instruction()]
 pub struct CreateExtraRewardsConfigs<'info> {
     #[account(mut,
         seeds = [b"state".as_ref()],
@@ -574,7 +571,7 @@ pub struct SetExtraRewardsConfigs<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(bump: u8)]
+#[instruction()]
 pub struct CreatePoolUser<'info> {
     // this user account will be remained forever. we don't delete these accounts for permanent history
     #[account(
