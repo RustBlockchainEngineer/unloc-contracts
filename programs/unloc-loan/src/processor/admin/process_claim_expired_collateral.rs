@@ -10,7 +10,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 
 pub fn handle(ctx: Context<ClaimExpiredCollateral>) -> Result<()> {
-    require(ctx.accounts.borrower_nft_vault.amount > 0)?;
+    require(ctx.accounts.borrower_nft_vault.amount > 0, "ctx.accounts.borrower_nft_vault.amount")?;
 
     let borrower_key = ctx.accounts.offer.borrower;
     let started_time = ctx.accounts.sub_offer.loan_started_time;
@@ -24,6 +24,7 @@ pub fn handle(ctx: Context<ClaimExpiredCollateral>) -> Result<()> {
             > started_time
                 .safe_add(loan_duration)?
                 .safe_add(expire_loan_duration)?,
+        "current_time"
     )?;
 
     ctx.accounts.sub_offer.loan_ended_time = current_time;

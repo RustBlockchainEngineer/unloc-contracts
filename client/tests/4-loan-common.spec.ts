@@ -236,25 +236,21 @@ describe('loan-common', () => {
     assert(globalStateData.aprNumerator.toNumber() == aprNumerator.toNumber(), "aprNumerator")
 
     await setLoanStakingPool(
-      unlocStakingPid,
       unlocStakingPoolId,
       superOwner,
       signers
     )
     // assert
     globalStateData = await program.account.globalState.fetch(globalState)
-    assert(globalStateData.unlocStakingPid.equals(unlocStakingPid), "unlocStakingPid")
     assert(globalStateData.unlocStakingPoolId.equals(unlocStakingPoolId), "unlocStakingPoolId")
 
     await setLoanVoting(
-      votingPid,
       currentVotingKey,
       superOwner,
       signers
     )
     // assert
     globalStateData = await program.account.globalState.fetch(globalState)
-    assert(globalStateData.votingPid.equals(votingPid), "votingPid")
     assert(globalStateData.voting.equals(currentVotingKey), "currentVotingKey")
   });
 
@@ -309,7 +305,7 @@ describe('loan-common', () => {
   });
 
   let loanDuration = new anchor.BN(10) //10s
-  it('Set sub offer', async () => {
+  it('Set sub offer 1', async () => {
 
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const offerDataBefore = await program.account.offer.fetch(offer)
@@ -354,7 +350,35 @@ describe('loan-common', () => {
     assert(subOfferData.state == SubOfferState.Canceled, "state")
   });
 
-  it('Accept offer', async () => {
+  it('Set sub offer 2', async () => {
+
+    const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
+    const offerDataBefore = await program.account.offer.fetch(offer)
+    const subOfferNumer = offerDataBefore.subOfferCount
+    const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
+
+    const offerAmount = new anchor.BN(10 * offerDecimal)
+    const aprNumerator = new anchor.BN(12 * denominator.toNumber() / 100)
+    const signers = [borrowerKeypair]
+    await createLoanSubOfferByStaking(
+      offerAmount,
+      loanDuration,
+      aprNumerator,
+      nftMint.publicKey,
+      offerMint.publicKey,
+      borrower,
+      signers
+    )
+    //assert
+    const subOfferData = await program.account.subOffer.fetch(subOffer)
+    assert(subOfferData.subOfferNumber.toNumber() == subOfferNumer.toNumber(), "subOfferNumer")
+    assert(subOfferData.offer.equals(offer), "offer")
+    assert(subOfferData.offerMint.equals(offerMint.publicKey), "offerMint")
+    assert(subOfferData.loanDuration.toNumber() == loanDuration.toNumber(), "loanDuration")
+    assert(subOfferData.aprNumerator.toNumber() == aprNumerator.toNumber(), "aprNumerator")
+  });
+
+  it('Accept offer 1', async () => {
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const offerDataBefore = await program.account.offer.fetch(offer)
     const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))
@@ -401,7 +425,7 @@ describe('loan-common', () => {
   });
 
   loanDuration = new anchor.BN(1) //10s
-  it('Set sub offer', async () => {
+  it('Set sub offer 3', async () => {
 
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const offerDataBefore = await program.account.offer.fetch(offer)
@@ -444,7 +468,7 @@ describe('loan-common', () => {
     assert.ok(votingItem.voting.equals(votingKey))
   });
 
-  it('Accept offer', async () => {
+  it('Accept offer 2', async () => {
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const offerDataBefore = await program.account.offer.fetch(offer)
     const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))

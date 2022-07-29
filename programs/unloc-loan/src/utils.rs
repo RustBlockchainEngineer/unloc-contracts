@@ -22,8 +22,9 @@ pub fn assert_owner(cur_owner: Pubkey, given_owner: Pubkey) -> Result<()> {
     Ok(())
 }
 
-pub fn require(flag: bool) -> Result<()> {
+pub fn require(flag: bool, msg: &str) -> Result<()> {
     if !flag {
+        msg!("error: {}", msg);
         return Err(error!(LoanError::NotAllowed));
     }
     Ok(())

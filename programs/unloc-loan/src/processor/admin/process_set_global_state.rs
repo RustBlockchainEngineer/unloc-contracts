@@ -16,7 +16,7 @@ pub fn handle(
     treasury_wallet: Pubkey,
 ) -> Result<()> {
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
-    require(ctx.accounts.reward_mint.key() == unloc_mint)?;
+    require(ctx.accounts.reward_mint.key() == unloc_mint, "ctx.accounts.reward_mint")?;
 
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     if is_zero_account(&ctx.accounts.global_state.to_account_info()) {

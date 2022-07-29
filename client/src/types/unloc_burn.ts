@@ -41,6 +41,11 @@ export type UnlocBurn = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "globalState",
           "isMut": true,
           "isSigner": false
@@ -115,6 +120,10 @@ export type UnlocBurn = {
         {
           "name": "newAuthority",
           "type": "publicKey"
+        },
+        {
+          "name": "newBurner",
+          "type": "publicKey"
         }
       ]
     },
@@ -125,6 +134,11 @@ export type UnlocBurn = {
           "name": "globalState",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "burner",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "ammProgram",
@@ -228,6 +242,11 @@ export type UnlocBurn = {
           "isSigner": false
         },
         {
+          "name": "burner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "unlocMint",
           "isMut": true,
           "isSigner": false
@@ -253,11 +272,27 @@ export type UnlocBurn = {
         "kind": "struct",
         "fields": [
           {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "unlocVaultBump",
+            "type": "u8"
+          },
+          {
+            "name": "usdcVaultBump",
+            "type": "u8"
+          },
+          {
+            "name": "wsolVaultBump",
+            "type": "u8"
+          },
+          {
             "name": "authority",
             "type": "publicKey"
           },
           {
-            "name": "ammProgram",
+            "name": "burner",
             "type": "publicKey"
           },
           {
@@ -270,6 +305,18 @@ export type UnlocBurn = {
           },
           {
             "name": "serumMarket",
+            "type": "publicKey"
+          },
+          {
+            "name": "usdcVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "unlocVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "wsolVault",
             "type": "publicKey"
           }
         ]
@@ -378,6 +425,11 @@ export const IDL: UnlocBurn = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "globalState",
           "isMut": true,
           "isSigner": false
@@ -452,6 +504,10 @@ export const IDL: UnlocBurn = {
         {
           "name": "newAuthority",
           "type": "publicKey"
+        },
+        {
+          "name": "newBurner",
+          "type": "publicKey"
         }
       ]
     },
@@ -462,6 +518,11 @@ export const IDL: UnlocBurn = {
           "name": "globalState",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "burner",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "ammProgram",
@@ -565,6 +626,11 @@ export const IDL: UnlocBurn = {
           "isSigner": false
         },
         {
+          "name": "burner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "unlocMint",
           "isMut": true,
           "isSigner": false
@@ -590,11 +656,27 @@ export const IDL: UnlocBurn = {
         "kind": "struct",
         "fields": [
           {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "unlocVaultBump",
+            "type": "u8"
+          },
+          {
+            "name": "usdcVaultBump",
+            "type": "u8"
+          },
+          {
+            "name": "wsolVaultBump",
+            "type": "u8"
+          },
+          {
             "name": "authority",
             "type": "publicKey"
           },
           {
-            "name": "ammProgram",
+            "name": "burner",
             "type": "publicKey"
           },
           {
@@ -607,6 +689,18 @@ export const IDL: UnlocBurn = {
           },
           {
             "name": "serumMarket",
+            "type": "publicKey"
+          },
+          {
+            "name": "usdcVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "unlocVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "wsolVault",
             "type": "publicKey"
           }
         ]

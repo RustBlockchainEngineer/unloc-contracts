@@ -65,13 +65,13 @@ pub fn accept_offer(
         .sub_offer
         .update_rps(&ctx.accounts.global_state, &offer_mint)?;
 
-    require(ctx.accounts.sub_offer.sub_offer_number >= ctx.accounts.offer.start_sub_offer_num)?;
+    require(ctx.accounts.sub_offer.sub_offer_number >= ctx.accounts.offer.start_sub_offer_num, "sub_offer.sub_offer_number")?;
 
-    require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed))?;
-    require(ctx.accounts.sub_offer.state != SubOfferState::get_state(SubOfferState::Canceled))?;
+    require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed), "offer.state")?;
+    require(ctx.accounts.sub_offer.state != SubOfferState::get_state(SubOfferState::Canceled), "sub_offer.state")?;
 
     if ctx.accounts.offer_mint.key() == wsol_mint {
-        require(ctx.accounts.lender.lamports() >= ctx.accounts.sub_offer.offer_amount)?;
+        require(ctx.accounts.lender.lamports() >= ctx.accounts.sub_offer.offer_amount, "lender.lamports()")?;
         invoke(
             &system_instruction::transfer(
                 &ctx.accounts.lender.key,
@@ -85,11 +85,11 @@ pub fn accept_offer(
             ],
         )?;
     } else if ctx.accounts.offer_mint.key() == usdc_mint {
-        require(ctx.accounts.lender_offer_vault.amount >= ctx.accounts.sub_offer.offer_amount)?;
-        require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.lender.key())?;
-        require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.offer_mint.key())?;
-        require(ctx.accounts.borrower_offer_vault.owner == ctx.accounts.offer.borrower)?;
-        require(ctx.accounts.borrower_offer_vault.mint == ctx.accounts.offer_mint.key())?;
+        require(ctx.accounts.lender_offer_vault.amount >= ctx.accounts.sub_offer.offer_amount, "lender_offer_vault.amount")?;
+        require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.lender.key(), "lender_offer_vault.owner")?;
+        require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.offer_mint.key(), "lender_offer_vault.mint")?;
+        require(ctx.accounts.borrower_offer_vault.owner == ctx.accounts.offer.borrower, "borrower_offer_vault.owner")?;
+        require(ctx.accounts.borrower_offer_vault.mint == ctx.accounts.offer_mint.key(), "borrower_offer_vault.mint")?;
         let cpi_accounts = Transfer {
             from: ctx.accounts.lender_offer_vault.to_account_info(),
             to: ctx.accounts.borrower_offer_vault.to_account_info(),

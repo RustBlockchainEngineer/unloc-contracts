@@ -31,6 +31,11 @@ export type UnlocStaking = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -47,10 +52,6 @@ export type UnlocStaking = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
         {
           "name": "tokenPerSecond",
           "type": "u64"
@@ -71,6 +72,11 @@ export type UnlocStaking = {
       "name": "createExtraRewardConfigs",
       "accounts": [
         {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "extraRewardAccount",
           "isMut": true,
           "isSigner": false
@@ -87,10 +93,6 @@ export type UnlocStaking = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
         {
           "name": "configs",
           "type": {
@@ -287,6 +289,11 @@ export type UnlocStaking = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -303,10 +310,6 @@ export type UnlocStaking = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
         {
           "name": "point",
           "type": "u64"
@@ -434,6 +437,11 @@ export type UnlocStaking = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -444,12 +452,7 @@ export type UnlocStaking = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "stake",
@@ -1134,6 +1137,11 @@ export const IDL: UnlocStaking = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1150,10 +1158,6 @@ export const IDL: UnlocStaking = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
         {
           "name": "tokenPerSecond",
           "type": "u64"
@@ -1174,6 +1178,11 @@ export const IDL: UnlocStaking = {
       "name": "createExtraRewardConfigs",
       "accounts": [
         {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "extraRewardAccount",
           "isMut": true,
           "isSigner": false
@@ -1190,10 +1199,6 @@ export const IDL: UnlocStaking = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
         {
           "name": "configs",
           "type": {
@@ -1390,6 +1395,11 @@ export const IDL: UnlocStaking = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1406,10 +1416,6 @@ export const IDL: UnlocStaking = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
         {
           "name": "point",
           "type": "u64"
@@ -1537,6 +1543,11 @@ export const IDL: UnlocStaking = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1547,12 +1558,7 @@ export const IDL: UnlocStaking = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "stake",

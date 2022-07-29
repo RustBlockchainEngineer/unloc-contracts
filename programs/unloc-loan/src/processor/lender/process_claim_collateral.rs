@@ -8,8 +8,8 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 use std::str::FromStr;
 pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
-    require(ctx.accounts.borrower_nft_vault.amount > 0)?;
-    require(ctx.accounts.lender.key() == ctx.accounts.sub_offer.lender)?;
+    require(ctx.accounts.borrower_nft_vault.amount > 0, "borrower_nft_vault.amount")?;
+    require(ctx.accounts.lender.key() == ctx.accounts.sub_offer.lender, "lender")?;
 
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let reward_vault_amount = ctx.accounts.reward_vault.amount;
@@ -37,7 +37,7 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
 
     let duration = current_time.safe_sub(started_time)?;
 
-    require(current_time > started_time.safe_add(loan_duration)?)?;
+    require(current_time > started_time.safe_add(loan_duration)?, "current_time")?;
 
     let accrued_amount = calc_fee(
         origin,
@@ -68,7 +68,7 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
     let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
 
     if ctx.accounts.sub_offer.offer_mint == wsol_mint {
-        require(ctx.accounts.lender.lamports() >= unloc_fee_amount)?;
+        require(ctx.accounts.lender.lamports() >= unloc_fee_amount, "lender.lamports()")?;
         // pay unloc_fee_amount to unloc
         invoke(
             &system_instruction::transfer(
@@ -83,10 +83,8 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
             ],
         )?;
     } else if ctx.accounts.sub_offer.offer_mint == usdc_mint {
-        require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.sub_offer.lender)?;
-        require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.sub_offer.offer_mint)?;
-        require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.sub_offer.lender)?;
-        require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.sub_offer.offer_mint)?;
+        require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.sub_offer.lender, "lender_offer_vault.owner")?;
+        require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.sub_offer.offer_mint, "lender_offer_vault.mint")?;
 
         if unloc_fee_amount > ctx.accounts.lender_offer_vault.amount {
             return Err(LoanError::InvalidAmount.into());
@@ -107,7 +105,7 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
     ctx.accounts.sub_offer.loan_ended_time = current_time;
 
     // Thaw with Offer PDA
-    let offer_bump = *ctx.bumps.get("offer").unwrap();
+    let offer_bump = ctx.accounts.offer.bump;
     let signer_seeds = &[
         OFFER_TAG.as_ref(),
         borrower_key.as_ref(),

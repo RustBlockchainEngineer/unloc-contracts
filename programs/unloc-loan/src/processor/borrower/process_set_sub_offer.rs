@@ -49,12 +49,12 @@ pub fn set_sub_offer(
 ) -> Result<()> {
     let available_sub_offer_count =
         DEFULT_SUB_OFFER_COUNT + profile_level * SUB_OFFER_COUNT_PER_LEVEL;
-    let _available_sub_offer_count = ctx
+    let cur_available_sub_offer_count = ctx
         .accounts
         .offer
         .sub_offer_count
         .safe_sub(ctx.accounts.offer.start_sub_offer_num)?;
-    require(_available_sub_offer_count < available_sub_offer_count)?;
+    require(cur_available_sub_offer_count < available_sub_offer_count, "cur_available_sub_offer_count")?;
 
     if is_zero_account(&ctx.accounts.sub_offer.to_account_info()) {
         ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Proposed);
@@ -72,6 +72,7 @@ pub fn set_sub_offer(
     require(
         // ctx.accounts.offer_mint.key() == unloc_mint || // featured offer is not implemented yet
         ctx.accounts.offer_mint.key() == usdc_mint || ctx.accounts.offer_mint.key() == wsol_mint,
+        "offer_mint"
     )?;
 
     ctx.accounts.sub_offer.offer_mint = ctx.accounts.offer_mint.key();

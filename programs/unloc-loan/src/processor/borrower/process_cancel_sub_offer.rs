@@ -5,6 +5,7 @@ pub fn handle(ctx: Context<CancelSubOffer>) -> Result<()> {
     require(
         ctx.accounts.sub_offer.state == SubOfferState::get_state(SubOfferState::Proposed)
             || ctx.accounts.sub_offer.state == SubOfferState::get_state(SubOfferState::NFTClaimed),
+        "ctx.accounts.sub_offer.state"
     )?;
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Canceled);
 

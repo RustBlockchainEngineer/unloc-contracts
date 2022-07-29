@@ -8,13 +8,14 @@ pub fn handle(ctx: Context<CancelOffer>) -> Result<()> {
     require(
         ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed)
             || ctx.accounts.offer.state == OfferState::get_state(OfferState::NFTClaimed),
+        "ctx.accounts.offer.state"
     )?;
 
     let borrower_key = ctx.accounts.borrower.key();
     let nft_mint_key = ctx.accounts.nft_mint.key();
 
     // Thaw with Offer PDA
-    let offer_bump = *ctx.bumps.get("offer").unwrap();
+    let offer_bump = ctx.accounts.offer.bump;
     let signer_seeds = &[
         OFFER_TAG.as_ref(),
         borrower_key.as_ref(),
