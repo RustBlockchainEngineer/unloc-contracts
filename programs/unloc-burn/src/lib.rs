@@ -26,7 +26,7 @@ pub const UNLOC_MINT: &str = if DEVNET_MODE {
 } else {
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 };
-pub const INITIAL_OWNER: &str = "atPFsAVbFFpgtdDoXMyVnp3696PZVfJ3MGQp6CiuZfW";
+pub const INITIAL_OWNER: &str = "HV2t9B2oxdtkwbZrWj1vjZ2q3g4SH5rasGw8WohBFbvH";
 
 #[program]
 pub mod unloc_burn {
