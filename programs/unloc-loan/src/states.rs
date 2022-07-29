@@ -48,9 +48,9 @@ impl GlobalState {
         // check chainlink ids
         let sol_feed_key = Pubkey::from_str(CHAINLINK_SOL_FEED).unwrap();
         let usdc_feed_key = Pubkey::from_str(CHAINLINK_USDC_FEED).unwrap();
-        require(chainlink_program.key() == chainlink::id())?;
-        require(sol_feed.key() == sol_feed_key)?;
-        require(usdc_feed.key() == usdc_feed_key)?;
+        require(chainlink_program.key() == chainlink::id(), "chainlink_program")?;
+        require(sol_feed.key() == sol_feed_key, "sol_feed")?;
+        require(usdc_feed.key() == usdc_feed_key, "usdc_feed")?;
 
         let sol_price = get_chainlink_price(sol_feed, &chainlink_program.clone())?;
         let usdc_price = get_chainlink_price(usdc_feed, &chainlink_program.clone())?;

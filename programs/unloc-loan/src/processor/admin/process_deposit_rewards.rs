@@ -14,9 +14,9 @@ pub fn handle(ctx: Context<DepositRewards>, amount: u64) -> Result<()> {
     )?;
 
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
-    require(ctx.accounts.user_reward_vault.mint == unloc_mint)?;
-    require(ctx.accounts.user_reward_vault.owner == ctx.accounts.authority.key())?;
-    require(amount > 0)?;
+    require(ctx.accounts.user_reward_vault.mint == unloc_mint, "ctx.accounts.user_reward_vault.mint")?;
+    require(ctx.accounts.user_reward_vault.owner == ctx.accounts.authority.key(), "ctx.accounts.user_reward_vault.owner")?;
+    require(amount > 0, "amount")?;
 
     let cpi_accounts = Transfer {
         from: ctx.accounts.user_reward_vault.to_account_info(),

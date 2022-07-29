@@ -83,7 +83,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
 
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     if ctx.accounts.sub_offer.offer_mint == wsol_mint {
-        require(ctx.accounts.borrower.lamports() >= needed_amount.safe_add(unloc_fee_amount)?)?;
+        require(ctx.accounts.borrower.lamports() >= needed_amount.safe_add(unloc_fee_amount)?, "borrower.lamports()")?;
         invoke(
             &system_instruction::transfer(
                 &ctx.accounts.borrower.key(),
@@ -110,10 +110,10 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
             ],
         )?;
     } else {
-        require(ctx.accounts.borrower_offer_vault.owner == ctx.accounts.sub_offer.borrower)?;
-        require(ctx.accounts.borrower_offer_vault.mint == ctx.accounts.sub_offer.offer_mint)?;
-        require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.sub_offer.lender)?;
-        require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.sub_offer.offer_mint)?;
+        require(ctx.accounts.borrower_offer_vault.owner == ctx.accounts.sub_offer.borrower, "borrower_offer_vault.owner")?;
+        require(ctx.accounts.borrower_offer_vault.mint == ctx.accounts.sub_offer.offer_mint, "borrower_offer_vault.mint")?;
+        require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.sub_offer.lender, "lender_offer_vault.owner")?;
+        require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.sub_offer.offer_mint, "lender_offer_vault.mint")?;
 
         let _borrower_offer_vault = needed_amount.safe_add(unloc_fee_amount)?;
         if _borrower_offer_vault > ctx.accounts.borrower_offer_vault.amount {
@@ -152,7 +152,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     // Thaw borrower_nft_vault with offer PDA
     let nft_mint_key = ctx.accounts.nft_mint.key();
 
-    let offer_bump = *ctx.bumps.get("offer").unwrap();
+    let offer_bump = ctx.accounts.offer.bump;
     let signer_seeds = &[
         OFFER_TAG.as_ref(),
         borrower_key.as_ref(),

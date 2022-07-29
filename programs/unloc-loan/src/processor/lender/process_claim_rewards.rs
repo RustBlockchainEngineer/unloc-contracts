@@ -24,14 +24,14 @@ pub fn handle(ctx: Context<ClaimRewards>) -> Result<()> {
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
     // let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     // let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
-    require(ctx.accounts.lender_reward_vault.mint == unloc_mint)?;
-    require(ctx.accounts.borrower_reward_vault.mint == unloc_mint)?;
-    require(ctx.accounts.lender_reward_vault.owner == ctx.accounts.sub_offer.lender)?;
-    require(ctx.accounts.borrower_reward_vault.owner == ctx.accounts.sub_offer.borrower)?;
+    require(ctx.accounts.lender_reward_vault.mint == unloc_mint, "lender_reward_vault.mint")?;
+    require(ctx.accounts.borrower_reward_vault.mint == unloc_mint, "borrower_reward_vault.mint")?;
+    require(ctx.accounts.lender_reward_vault.owner == ctx.accounts.sub_offer.lender, "lender_reward_vault.owner")?;
+    require(ctx.accounts.borrower_reward_vault.owner == ctx.accounts.sub_offer.borrower, "borrower_reward_vault.owner")?;
 
     let is_lender = ctx.accounts.sub_offer.lender == ctx.accounts.authority.key();
     let is_borrower = ctx.accounts.sub_offer.borrower == ctx.accounts.authority.key();
-    require(is_lender || is_borrower)?;
+    require(is_lender || is_borrower, "is_lender || is_borrower")?;
 
     let total_point = ctx.accounts.sub_offer.total_point;
     let collection_point = ctx.accounts.sub_offer.collection_point;
@@ -48,7 +48,7 @@ pub fn handle(ctx: Context<ClaimRewards>) -> Result<()> {
     let lender_rewards_amount = calc_fee(reward_amount, lender_rewards_percentage, denominator)?;
     let borrower_rewards_amount = reward_amount.safe_sub(lender_rewards_amount)?;
 
-    let global_bump = *ctx.bumps.get("global_state").unwrap();
+    let global_bump = ctx.accounts.global_state.bump;
     let signer_seeds = &[GLOBAL_STATE_TAG, &[global_bump]];
     let signer = &[&signer_seeds[..]];
 

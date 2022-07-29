@@ -10,7 +10,7 @@ pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
     let metadata = Metadata::from_account_info(&ctx.accounts.nft_metadata.to_account_info())?;
     let collection = metadata.collection.unwrap();
     let collection_key = collection.key;
-    require(metadata.mint == ctx.accounts.nft_mint.key())?;
+    require(metadata.mint == ctx.accounts.nft_mint.key(), "metadata.mint")?;
 
     let borrower_key = ctx.accounts.borrower.key();
     let nft_mint_key = ctx.accounts.nft_mint.key();
