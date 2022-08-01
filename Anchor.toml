@@ -2,10 +2,10 @@
 url = "https://solana-api.projectserum.com"
 
 [programs.localnet]
-unloc_loan = "6oVXrGCdtnTUR6xCvn2Z3f2CYaiboAGar1DKxzeX8QYh"
-unloc_staking = "EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU"
-unloc_voting = "6z6RuFauTG511XRakJnPhxUTCVPohv6oC69xieMdm4Z9"
-unloc_burn = "37TgoUgxSshhJmhNEAQMmAWF7XRhXEaY5HxcTZ6eYs6r"
+unloc_loan = "TkpSRsB8yB2qRETXLuPxuZ6Fkg2vuJnmfsQiJLfVpmG"
+unloc_staking = "GMdNWaWuQQAMTFr1gWd5VeT6CLbwn6QwiTy3Ek8F6Xvr"
+unloc_voting = "7ZQhqWKTKbZZxvRVDVBLTfZneKyTsEyUTQKwbraLyAP3"
+unloc_burn = "2v8ZEC4QzHVf9ogZBvwtgasJsiNJfR3EtKqgtH39bTsw"
 
 # token metadata
 [[test.genesis]]

@@ -15,7 +15,7 @@ pub mod utils;
 
 use crate::processor::*;
 
-declare_id!("6z6RuFauTG511XRakJnPhxUTCVPohv6oC69xieMdm4Z9");
+declare_id!("7ZQhqWKTKbZZxvRVDVBLTfZneKyTsEyUTQKwbraLyAP3");
 
 #[program]
 pub mod unloc_voting {

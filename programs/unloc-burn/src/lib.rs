@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, accessor::amount, Burn, Mint, Token, TokenAccount};
 use std::str::FromStr;
 
-declare_id!("37TgoUgxSshhJmhNEAQMmAWF7XRhXEaY5HxcTZ6eYs6r");
+declare_id!("2v8ZEC4QzHVf9ogZBvwtgasJsiNJfR3EtKqgtH39bTsw");
 
 #[constant]
 pub const GLOBAL_STATE_SEED: &[u8] = b"GLOBAL_STATE_SEED";

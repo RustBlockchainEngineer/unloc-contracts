@@ -15,7 +15,7 @@ pub mod utils;
 
 use crate::processor::*;
 
-declare_id!("6oVXrGCdtnTUR6xCvn2Z3f2CYaiboAGar1DKxzeX8QYh");
+declare_id!("TkpSRsB8yB2qRETXLuPxuZ6Fkg2vuJnmfsQiJLfVpmG");
 
 #[program]
 pub mod unloc_loan {
