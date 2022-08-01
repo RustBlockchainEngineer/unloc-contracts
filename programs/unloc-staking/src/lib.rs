@@ -10,7 +10,7 @@ pub mod utils;
 
 use crate::{error::*, utils::*};
 
-declare_id!("EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU");
+declare_id!("GMdNWaWuQQAMTFr1gWd5VeT6CLbwn6QwiTy3Ek8F6Xvr");
 
 const DEVNET_MODE: bool = true;
 
