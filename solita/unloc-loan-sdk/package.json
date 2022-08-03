@@ -1,6 +1,6 @@
 {
   "name": "@unloc-dev/unloc-loan-solita",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "UNLOC-loan auto-generated SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
     "preversion": "yarn check:publish-ready",
     "postversion": "git add package.json && git commit -m \"chore: update $npm_package_name to v$npm_package_version\" && git tag $npm_package_name@$npm_package_version",
     "prepublish": "yarn check:publish-ready",
-    "api:gen": "DEBUG='(solita|rustbin):(info|error)' solita && mkdir -p ./src/idl && cp ../../target/idl/unloc_loan.json ./src/idl/.",
+    "api:gen": "DEBUG='(solita|rustbin):(info|error)' solita && mkdir -p ./src/idl && cp ../../target/idl/unloc_loan.json ./src/idl/. && cp ../../target/types/unloc_loan.ts ./src/idl/.",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
