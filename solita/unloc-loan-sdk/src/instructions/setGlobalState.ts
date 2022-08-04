@@ -8,6 +8,7 @@
 import * as splToken from '@solana/spl-token'
 import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
+import * as beetSolana from '@metaplex-foundation/beet-solana'
 
 /**
  * @category Instructions
@@ -22,6 +23,8 @@ export type SetGlobalStateInstructionArgs = {
   expireLoanDuration: beet.bignum
   rewardRate: beet.bignum
   lenderRewardsPercentage: beet.bignum
+  newSuperOwner: web3.PublicKey
+  treasuryWallet: web3.PublicKey
 }
 /**
  * @category Instructions
@@ -42,6 +45,8 @@ export const setGlobalStateStruct = new beet.BeetArgsStruct<
     ['expireLoanDuration', beet.u64],
     ['rewardRate', beet.u64],
     ['lenderRewardsPercentage', beet.u64],
+    ['newSuperOwner', beetSolana.publicKey],
+    ['treasuryWallet', beetSolana.publicKey],
   ],
   'SetGlobalStateInstructionArgs'
 )
@@ -53,8 +58,6 @@ export const setGlobalStateStruct = new beet.BeetArgsStruct<
  * @property [_writable_] globalState
  * @property [] rewardMint
  * @property [_writable_] rewardVault
- * @property [] newSuperOwner
- * @property [] treasuryWallet
  * @property [] clock
  * @category Instructions
  * @category SetGlobalState
@@ -66,8 +69,6 @@ export type SetGlobalStateInstructionAccounts = {
   globalState: web3.PublicKey
   rewardMint: web3.PublicKey
   rewardVault: web3.PublicKey
-  newSuperOwner: web3.PublicKey
-  treasuryWallet: web3.PublicKey
   systemProgram?: web3.PublicKey
   tokenProgram?: web3.PublicKey
   rent?: web3.PublicKey
@@ -121,16 +122,6 @@ export function createSetGlobalStateInstruction(
     {
       pubkey: accounts.rewardVault,
       isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.newSuperOwner,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.treasuryWallet,
-      isWritable: false,
       isSigner: false,
     },
     {

@@ -15,6 +15,7 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
  * @category generated
  */
 export type OfferArgs = {
+  bump: number
   borrower: web3.PublicKey
   nftMint: web3.PublicKey
   collection: web3.PublicKey
@@ -35,6 +36,7 @@ export const offerDiscriminator = [215, 88, 60, 71, 170, 162, 73, 229]
  */
 export class Offer implements OfferArgs {
   private constructor(
+    readonly bump: number,
     readonly borrower: web3.PublicKey,
     readonly nftMint: web3.PublicKey,
     readonly collection: web3.PublicKey,
@@ -50,6 +52,7 @@ export class Offer implements OfferArgs {
    */
   static fromArgs(args: OfferArgs) {
     return new Offer(
+      args.bump,
       args.borrower,
       args.nftMint,
       args.collection,
@@ -146,6 +149,7 @@ export class Offer implements OfferArgs {
    */
   pretty() {
     return {
+      bump: this.bump,
       borrower: this.borrower.toBase58(),
       nftMint: this.nftMint.toBase58(),
       collection: this.collection.toBase58(),
@@ -200,6 +204,7 @@ export const offerBeet = new beet.BeetStruct<
 >(
   [
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
+    ['bump', beet.u8],
     ['borrower', beetSolana.publicKey],
     ['nftMint', beetSolana.publicKey],
     ['collection', beetSolana.publicKey],

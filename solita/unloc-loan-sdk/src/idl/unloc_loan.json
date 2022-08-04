@@ -78,16 +78,6 @@
           "isSigner": false
         },
         {
-          "name": "newSuperOwner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryWallet",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -136,6 +126,14 @@
         {
           "name": "lenderRewardsPercentage",
           "type": "u64"
+        },
+        {
+          "name": "newSuperOwner",
+          "type": "publicKey"
+        },
+        {
+          "name": "treasuryWallet",
+          "type": "publicKey"
         }
       ]
     },
@@ -154,10 +152,6 @@
         }
       ],
       "args": [
-        {
-          "name": "unlocStakingPid",
-          "type": "publicKey"
-        },
         {
           "name": "unlocStakingPoolId",
           "type": "publicKey"
@@ -209,10 +203,6 @@
         }
       ],
       "args": [
-        {
-          "name": "votingPid",
-          "type": "publicKey"
-        },
         {
           "name": "voting",
           "type": "publicKey"
@@ -980,6 +970,14 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "rewardVaultBump",
+            "type": "u8"
+          },
+          {
             "name": "superOwner",
             "type": "publicKey"
           },
@@ -1048,15 +1046,7 @@
             "type": "u64"
           },
           {
-            "name": "unlocStakingPid",
-            "type": "publicKey"
-          },
-          {
             "name": "unlocStakingPoolId",
-            "type": "publicKey"
-          },
-          {
-            "name": "votingPid",
             "type": "publicKey"
           },
           {
@@ -1080,6 +1070,10 @@
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
           {
             "name": "borrower",
             "type": "publicKey"
@@ -1125,6 +1119,10 @@
       "type": {
         "kind": "struct",
         "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
           {
             "name": "borrower",
             "type": "publicKey"

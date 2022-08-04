@@ -15,7 +15,6 @@ import * as beet from '@metaplex-foundation/beet'
  * @category generated
  */
 export type SetStakingPoolInstructionArgs = {
-  unlocStakingPid: web3.PublicKey
   unlocStakingPoolId: web3.PublicKey
 }
 /**
@@ -30,7 +29,6 @@ export const setStakingPoolStruct = new beet.BeetArgsStruct<
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['unlocStakingPid', beetSolana.publicKey],
     ['unlocStakingPoolId', beetSolana.publicKey],
   ],
   'SetStakingPoolInstructionArgs'

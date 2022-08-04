@@ -16,7 +16,6 @@ import * as beet from '@metaplex-foundation/beet'
  * @category generated
  */
 export type SetVotingInstructionArgs = {
-  votingPid: web3.PublicKey
   voting: web3.PublicKey
 }
 /**
@@ -31,7 +30,6 @@ export const setVotingStruct = new beet.BeetArgsStruct<
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['votingPid', beetSolana.publicKey],
     ['voting', beetSolana.publicKey],
   ],
   'SetVotingInstructionArgs'

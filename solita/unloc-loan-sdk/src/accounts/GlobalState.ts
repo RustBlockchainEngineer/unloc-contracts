@@ -15,6 +15,8 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
  * @category generated
  */
 export type GlobalStateArgs = {
+  bump: number
+  rewardVaultBump: number
   superOwner: web3.PublicKey
   treasuryWallet: web3.PublicKey
   accruedInterestNumerator: beet.bignum
@@ -32,9 +34,7 @@ export type GlobalStateArgs = {
   rpsSol: beet.bignum
   rpsUsdc: beet.bignum
   lenderRewardsPercentage: beet.bignum
-  unlocStakingPid: web3.PublicKey
   unlocStakingPoolId: web3.PublicKey
-  votingPid: web3.PublicKey
   voting: web3.PublicKey
   reserved: beet.bignum[] /* size: 15 */
 }
@@ -49,6 +49,8 @@ export const globalStateDiscriminator = [163, 46, 74, 168, 216, 123, 133, 98]
  */
 export class GlobalState implements GlobalStateArgs {
   private constructor(
+    readonly bump: number,
+    readonly rewardVaultBump: number,
     readonly superOwner: web3.PublicKey,
     readonly treasuryWallet: web3.PublicKey,
     readonly accruedInterestNumerator: beet.bignum,
@@ -66,9 +68,7 @@ export class GlobalState implements GlobalStateArgs {
     readonly rpsSol: beet.bignum,
     readonly rpsUsdc: beet.bignum,
     readonly lenderRewardsPercentage: beet.bignum,
-    readonly unlocStakingPid: web3.PublicKey,
     readonly unlocStakingPoolId: web3.PublicKey,
-    readonly votingPid: web3.PublicKey,
     readonly voting: web3.PublicKey,
     readonly reserved: beet.bignum[] /* size: 15 */
   ) {}
@@ -78,6 +78,8 @@ export class GlobalState implements GlobalStateArgs {
    */
   static fromArgs(args: GlobalStateArgs) {
     return new GlobalState(
+      args.bump,
+      args.rewardVaultBump,
       args.superOwner,
       args.treasuryWallet,
       args.accruedInterestNumerator,
@@ -95,9 +97,7 @@ export class GlobalState implements GlobalStateArgs {
       args.rpsSol,
       args.rpsUsdc,
       args.lenderRewardsPercentage,
-      args.unlocStakingPid,
       args.unlocStakingPoolId,
-      args.votingPid,
       args.voting,
       args.reserved
     )
@@ -188,6 +188,8 @@ export class GlobalState implements GlobalStateArgs {
    */
   pretty() {
     return {
+      bump: this.bump,
+      rewardVaultBump: this.rewardVaultBump,
       superOwner: this.superOwner.toBase58(),
       treasuryWallet: this.treasuryWallet.toBase58(),
       accruedInterestNumerator: (() => {
@@ -345,9 +347,7 @@ export class GlobalState implements GlobalStateArgs {
         }
         return x
       })(),
-      unlocStakingPid: this.unlocStakingPid.toBase58(),
       unlocStakingPoolId: this.unlocStakingPoolId.toBase58(),
-      votingPid: this.votingPid.toBase58(),
       voting: this.voting.toBase58(),
       reserved: this.reserved,
     }
@@ -366,6 +366,8 @@ export const globalStateBeet = new beet.BeetStruct<
 >(
   [
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
+    ['bump', beet.u8],
+    ['rewardVaultBump', beet.u8],
     ['superOwner', beetSolana.publicKey],
     ['treasuryWallet', beetSolana.publicKey],
     ['accruedInterestNumerator', beet.u64],
@@ -383,9 +385,7 @@ export const globalStateBeet = new beet.BeetStruct<
     ['rpsSol', beet.u128],
     ['rpsUsdc', beet.u128],
     ['lenderRewardsPercentage', beet.u64],
-    ['unlocStakingPid', beetSolana.publicKey],
     ['unlocStakingPoolId', beetSolana.publicKey],
-    ['votingPid', beetSolana.publicKey],
     ['voting', beetSolana.publicKey],
     ['reserved', beet.uniformFixedSizeArray(beet.u128, 15)],
   ],
