@@ -7,7 +7,7 @@ use crate::{
     states::*,
     // utils::*,
 };
-use unloc_staking::FarmPoolUserAccount;
+use unloc_staking::states::FarmPoolUserAccount;
 pub fn process_vote(ctx: Context<Vote>) -> Result<()> {
     ctx.accounts.voting_user.bump = *ctx.bumps.get("voting_user").unwrap();
     ctx.accounts.voting_user.owner = ctx.accounts.user.key();
