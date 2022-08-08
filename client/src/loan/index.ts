@@ -228,6 +228,7 @@ export const setLoanGlobalState = async (
   lenderRewardsPercentage: anchor.BN,
   rewardMint: anchor.web3.PublicKey,
   treasury: anchor.web3.PublicKey,
+  newSuperOwner: anchor.web3.PublicKey = programProvider.wallet.publicKey,
   signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
@@ -245,7 +246,7 @@ export const setLoanGlobalState = async (
       expireLoanDuration, 
       rewardRate, 
       lenderRewardsPercentage,
-      superOwner,
+      newSuperOwner,
       treasury,
       )
       .accounts({
