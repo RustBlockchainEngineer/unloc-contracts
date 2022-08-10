@@ -1,7 +1,7 @@
 import { ProgramError } from '@project-serum/anchor';
 import _ from 'lodash';
 import assert from 'assert';
-import {IDL as stakingIDL} from '../src/types/unloc_staking'
+import {IDL as stakingIDL} from '../dist/cjs/types/unloc_staking'
 
 export async function wrapError (fn) {
   try {
