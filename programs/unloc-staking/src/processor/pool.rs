@@ -3,7 +3,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount};
 use std::mem::size_of;
 use std::str::FromStr;
 
-use crate::{error::*, utils::*, states::*};
+use crate::{utils::*, states::*};
 
 pub fn create_pool(
     ctx: Context<CreateFarmPool>,

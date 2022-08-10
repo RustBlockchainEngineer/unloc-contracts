@@ -6,3 +6,9 @@ pub use update_stake_state::*;
 
 pub mod pool;
 pub use pool::*;
+
+pub mod process_stake;
+pub use process_stake::*;
+
+pub mod harvest;
+pub use harvest::*;
