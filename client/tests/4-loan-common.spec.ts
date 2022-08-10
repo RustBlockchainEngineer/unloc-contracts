@@ -61,7 +61,6 @@ describe('loan-common', () => {
   const programId = program.programId
 
   initLoanProgram((program.provider as any).wallet, program.provider.connection, programId)
-
   const systemProgram = anchor.web3.SystemProgram.programId
   const tokenProgram = TOKEN_PROGRAM_ID
   const rent = anchor.web3.SYSVAR_RENT_PUBKEY
@@ -225,6 +224,7 @@ describe('loan-common', () => {
       lenderRewardsPercentage,
       rewardMint,
       treasury,
+      superOwner,
       superOwner,
       signers
     )
