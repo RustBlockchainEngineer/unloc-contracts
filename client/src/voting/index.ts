@@ -25,9 +25,6 @@ export const initVotingProgram = (
   connection: anchor.web3.Connection = SOLANA_CONNECTION,
   pid: anchor.web3.PublicKey = VOTING_PID
 ) => {
-  if (votingProgram != null) {
-    return;
-  }
   votingProgramId = pid;
   const provider = new anchor.AnchorProvider(connection, wallet, {
     skipPreflight: true,
