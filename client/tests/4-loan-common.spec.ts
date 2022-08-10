@@ -26,7 +26,7 @@ import {
 import * as anchor from '@project-serum/anchor';
 
 import { assert } from 'chai'
-import { UnlocLoan } from '../src/types/unloc_loan';
+import { UnlocLoan } from '../dist/cjs/types/unloc_loan';
 
 import SUPER_OWNER_WALLET from './test-users/super_owner.json'
 import PROPOSER1_WALLET from './test-users/borrower1.json'

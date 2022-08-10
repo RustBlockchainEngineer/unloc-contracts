@@ -3,7 +3,7 @@ import { burn, buyback, getBuybackGlobalState, getUnlocVaultKey, getUsdcVaultKey
 import * as anchor from '@project-serum/anchor';
 
 import { assert } from 'chai'
-import { UnlocBurn } from '../src/types/unloc_burn';
+import { UnlocBurn } from '../dist/cjs/types/unloc_burn';
 
 import SUPER_OWNER_WALLET from './test-users/super_owner.json'
 import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
