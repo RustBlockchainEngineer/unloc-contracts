@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
-use std::convert::TryInto;
+use anchor_spl::token::{self, Mint, Token, TokenAccount};
 use std::mem::size_of;
 use std::str::FromStr;
 
