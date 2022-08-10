@@ -19,9 +19,9 @@ import { VOTING_ITEM_TAG } from './../voting'
 import { pda, SOLANA_CONNECTION } from './../utils'
 
 
-export let program: anchor.Program<UnlocLoan> = null as unknown as anchor.Program<UnlocLoan>
-export let programProvider: anchor.AnchorProvider = null as unknown as anchor.AnchorProvider
-export let programId: anchor.web3.PublicKey = null as unknown as anchor.web3.PublicKey
+let program: anchor.Program<UnlocLoan> = null as unknown as anchor.Program<UnlocLoan>
+let programProvider: anchor.AnchorProvider = null as unknown as anchor.AnchorProvider
+let programId: anchor.web3.PublicKey = null as unknown as anchor.web3.PublicKey
 
 const GLOBAL_STATE_TAG = Buffer.from('GLOBAL_STATE_SEED')
 const OFFER_TAG = Buffer.from('OFFER_SEED')
