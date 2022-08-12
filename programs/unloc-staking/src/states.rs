@@ -1,10 +1,10 @@
 use anchor_lang::prelude::*;
 use std::convert::TryFrom;
 use std::convert::TryInto;
-use crate::{error::*, utils::*};
+use crate::{error::*, utils::*, constant::*};
 
-const ACC_PRECISION: u128 = 100_000_000_000;
-const FULL_100: u64 = 100_000_000_000;
+// const ACC_PRECISION: u128 = 100_000_000_000;
+// const FULL_100: u64 = 100_000_000_000;
 
 #[account]
 #[derive(Default)]
