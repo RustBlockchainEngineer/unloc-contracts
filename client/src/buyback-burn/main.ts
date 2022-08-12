@@ -29,9 +29,6 @@ export const initBuybackProgram = (
   connection: anchor.web3.Connection = SOLANA_CONNECTION,
   pid: anchor.web3.PublicKey = BUYBACK_PID
 ) => {
-  if (buybackProgram != null) {
-    return;
-  }
   buybackProgramId = pid;
   // const provider = new anchor.Provider(connection, wallet, anchor.Provider.defaultOptions())
   const provider = new anchor.AnchorProvider(connection, wallet, {

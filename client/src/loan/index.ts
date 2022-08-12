@@ -19,9 +19,9 @@ import { VOTING_ITEM_TAG } from './../voting'
 import { pda, SOLANA_CONNECTION } from './../utils'
 
 
-export let program: anchor.Program<UnlocLoan> = null as unknown as anchor.Program<UnlocLoan>
-export let programProvider: anchor.AnchorProvider = null as unknown as anchor.AnchorProvider
-export let programId: anchor.web3.PublicKey = null as unknown as anchor.web3.PublicKey
+export let loanProgram: anchor.Program<UnlocLoan> = null as unknown as anchor.Program<UnlocLoan>
+export let loanProvider: anchor.AnchorProvider = null as unknown as anchor.AnchorProvider
+export let loanProgramId: anchor.web3.PublicKey = null as unknown as anchor.web3.PublicKey
 
 const GLOBAL_STATE_TAG = Buffer.from('GLOBAL_STATE_SEED')
 const OFFER_TAG = Buffer.from('OFFER_SEED')
@@ -39,40 +39,37 @@ export const initLoanProgram = (
   connection: anchor.web3.Connection = SOLANA_CONNECTION,
   pid: anchor.web3.PublicKey = NFT_LOAN_PID
 ) => {
-  if (program != null) {
-    return
-  }
-  programId = pid
+  loanProgramId = pid
   const provider = new anchor.AnchorProvider(connection, wallet, { skipPreflight: true })
-  programProvider = provider;
+  loanProvider = provider;
 
-  // Generate the program client from IDL.
-  program = new (anchor as any).Program(idl, programId, provider) as anchor.Program<UnlocLoan>
+  // Generate the loanProgram client from IDL.
+  loanProgram = new (anchor as any).Program(idl, loanProgramId, provider) as anchor.Program<UnlocLoan>
 }
 // initLoanProgram(SOLANA_CONNECTION, Keypair.generate())
 
 export const getLoanGlobalState = async () => {
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
-  return await program.account.globalState.fetchNullable(globalState)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
+  return await loanProgram.account.globalState.fetchNullable(globalState)
 }
 
 export const getCurrentVotingKey = async () => {
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
-  const globalStateData = await program.account.globalState.fetch(globalState)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
+  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
   return globalStateData?.voting;
 };
 
 
 export const getLoanOfferList = async () => {
-  return await program.account.offer.all()
+  return await loanProgram.account.offer.all()
 }
 
 export const getLoanOfferMultiple = async (keys: anchor.web3.PublicKey[]) => {
-  return await program.account.offer.fetchMultiple(keys)
+  return await loanProgram.account.offer.fetchMultiple(keys)
 }
 
 export const getLoanOffer = async (key: anchor.web3.PublicKey) => {
-  return await program.account.offer.fetchNullable(key)
+  return await loanProgram.account.offer.fetchNullable(key)
 }
 
 export const getLoanOffersBy = async (
@@ -109,14 +106,14 @@ export const getLoanOffersBy = async (
     filters.push(filter)
   }
 
-  return await program.account.offer.all(filters)
+  return await loanProgram.account.offer.all(filters)
 }
 
 export const getLoanSubOffer = async (key: anchor.web3.PublicKey) => {
-  const subOffer = await program.account.subOffer.fetchNullable(key)
+  const subOffer = await loanProgram.account.subOffer.fetchNullable(key)
   if (subOffer) {
     const offerKey = subOffer.offer
-    const offerData = await program.account.offer.fetch(offerKey)
+    const offerData = await loanProgram.account.offer.fetch(offerKey)
     if (offerData.startSubOfferNum.toNumber() > subOffer.subOfferNumber.toNumber()) {
       return null
     }
@@ -160,11 +157,11 @@ export const getLoanSubOfferList = async (
     filters.push(filter)
   }
 
-  const subOffers = await program.account.subOffer.all(filters)
+  const subOffers = await loanProgram.account.subOffer.all(filters)
   const result: any[] = []
   for (let i = 0; i < subOffers.length; i++) {
     const offerKey = subOffers[i].account.offer
-    const offerData = await program.account.offer.fetch(offerKey)
+    const offerData = await loanProgram.account.offer.fetch(offerKey)
     if (offerData.startSubOfferNum.toNumber() <= subOffers[i].account.subOfferNumber.toNumber()) {
       result.push(subOffers[i])
     }
@@ -173,11 +170,11 @@ export const getLoanSubOfferList = async (
 }
 
 export const getAllLoanSubOffers = async () => {
-  const subOffers = await program.account.subOffer.all()
+  const subOffers = await loanProgram.account.subOffer.all()
   const result: any[] = []
   for (let i = 0; i < subOffers.length; i++) {
     const offerKey = subOffers[i].account.offer
-    const offerData = await program.account.offer.fetch(offerKey)
+    const offerData = await loanProgram.account.offer.fetch(offerKey)
     if (offerData.startSubOfferNum.toNumber() <= subOffers[i].account.subOfferNumber.toNumber()) {
       result.push(subOffers[i])
     }
@@ -186,13 +183,13 @@ export const getAllLoanSubOffers = async () => {
 }
 
 export const getLoanSubOfferMultiple = async (keys: anchor.web3.PublicKey[], offerState?: number) => {
-  const subOffers: any[] = await program.account.subOffer.fetchMultiple(keys)
+  const subOffers: any[] = await loanProgram.account.subOffer.fetchMultiple(keys)
 
   // Filter for nulls and get the offer address
   const offerAddresses = subOffers.filter((subOffer) => subOffer).map((subOffer) => subOffer.offer)
 
   // Get all offer data in a single call instead of a loop, filter for nulls
-  const offers: any[] = (await program.account.offer.fetchMultiple(offerAddresses)).filter((data) => data)
+  const offers: any[] = (await loanProgram.account.offer.fetchMultiple(offerAddresses)).filter((data) => data)
 
   const result: any[] = []
   for (let i = 0; i < subOffers.length; i++) {
@@ -228,16 +225,17 @@ export const setLoanGlobalState = async (
   lenderRewardsPercentage: anchor.BN,
   rewardMint: anchor.web3.PublicKey,
   treasury: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  newSuperOwner: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
-  const rewardVault = await pda([REWARD_VAULT_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
+  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   const superOwner = signer
 
   try {
 
-    const tx = await program.methods.setGlobalState(
+    const tx = await loanProgram.methods.setGlobalState(
       accruedInterestNumerator, 
       denominator, 
       minRepaidNumerator, 
@@ -245,7 +243,7 @@ export const setLoanGlobalState = async (
       expireLoanDuration, 
       rewardRate, 
       lenderRewardsPercentage,
-      superOwner,
+      newSuperOwner,
       treasury,
       )
       .accounts({
@@ -268,14 +266,14 @@ export const setLoanGlobalState = async (
 
 export const setLoanStakingPool = async (
   unlocStakingPoolId: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
   const superOwner = signer
 
   try {
-    const tx = await program.methods.setStakingPool(
+    const tx = await loanProgram.methods.setStakingPool(
       unlocStakingPoolId
       )
       .accounts({
@@ -292,14 +290,14 @@ export const setLoanStakingPool = async (
 
 export const setLoanVoting = async (
   votingId: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
   const superOwner = signer
-  const rewardVault = await pda([REWARD_VAULT_TAG], programId)
+  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   try {
-    const tx = await program.methods.setVoting(votingId)
+    const tx = await loanProgram.methods.setVoting(votingId)
       .accounts({
         superOwner,
         globalState,
@@ -316,16 +314,16 @@ export const setLoanVoting = async (
 }
 export const depositRewards = async (
   amount: anchor.BN,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
   const rewardMint = UNLOC_MINT
-  const rewardVault = await pda([REWARD_VAULT_TAG], programId)
+  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   const authority = signer
-  const userRewardVault = await checkWalletATA(rewardMint.toBase58(), programProvider.connection, authority)
+  const userRewardVault = await checkWalletATA(rewardMint.toBase58(), loanProvider.connection, authority)
 
-  const tx = await program.methods.depositRewards(amount)
+  const tx = await loanProgram.methods.depositRewards(amount)
     .accounts({
       globalState,
       authority,
@@ -342,15 +340,15 @@ export const depositRewards = async (
 }
 export const withdrawRewards = async (
   amount: anchor.BN,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
   const rewardMint = UNLOC_MINT
-  const rewardVault = await pda([REWARD_VAULT_TAG], programId)
+  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   const authority = signer
-  const userRewardVault = await checkWalletATA(rewardMint.toBase58(), programProvider.connection, authority)
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
-  const tx = await program.methods.withdrawRewards(amount)
+  const userRewardVault = await checkWalletATA(rewardMint.toBase58(), loanProvider.connection, authority)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
+  const tx = await loanProgram.methods.withdrawRewards(amount)
     .accounts({
       globalState,
       authority,
@@ -368,28 +366,28 @@ export const withdrawRewards = async (
 // super owner can call this function
 export const claimExpiredCollateral = async (
   subOffer: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
-  const globalStateData = await program.account.globalState.fetch(globalState)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
+  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
   const treasuryWallet = globalStateData.treasuryWallet
-  const subOfferData = await program.account.subOffer.fetch(subOffer)
+  const subOfferData = await loanProgram.account.subOffer.fetch(subOffer)
   const offer = subOfferData.offer
-  const offerData = await program.account.offer.fetch(offer)
+  const offerData = await loanProgram.account.offer.fetch(offer)
   const nftMint = offerData.nftMint
 
-  let userNftVault = await checkWalletATA(nftMint.toBase58(), programProvider.connection, signer)
+  let userNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, signer)
   const preInstructions: TransactionInstruction[] = []
 
   if (!userNftVault) {
     userNftVault = await addTokenAccountInstruction(nftMint, signer, preInstructions, signer, signers)
   }
 
-  let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), programProvider.connection, offerData.borrower)
+  let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, offerData.borrower)
   const edition = await Edition.getPDA(nftMint);
   try {
-    const tx = await program.methods.claimExpiredCollateral()
+    const tx = await loanProgram.methods.claimExpiredCollateral()
       .accounts({
         superOwner: signer,
         globalState,
@@ -418,24 +416,24 @@ export const claimExpiredCollateral = async (
 
 export const claimRewards = async (
   subOffer: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
-  const subOfferData = await program.account.subOffer.fetch(subOffer)
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
+  const subOfferData = await loanProgram.account.subOffer.fetch(subOffer)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
   const rewardMint = UNLOC_MINT
-  const rewardVault = await pda([REWARD_VAULT_TAG], programId)
+  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   const authority = signer
-  let lenderRewardVault = await checkWalletATA(rewardMint.toBase58(), programProvider.connection, subOfferData.lender)
+  let lenderRewardVault = await checkWalletATA(rewardMint.toBase58(), loanProvider.connection, subOfferData.lender)
   const preInstructions: TransactionInstruction[] = []
   if (!lenderRewardVault) {
     lenderRewardVault = await addTokenAccountInstruction(rewardMint, subOfferData.lender, preInstructions, signer, signers)
   }
-  let borrowerRewardVault = await checkWalletATA(rewardMint.toBase58(), programProvider.connection, subOfferData.borrower)
+  let borrowerRewardVault = await checkWalletATA(rewardMint.toBase58(), loanProvider.connection, subOfferData.borrower)
   if (!borrowerRewardVault) {
     borrowerRewardVault = await addTokenAccountInstruction(rewardMint, subOfferData.borrower, preInstructions, signer, signers)
   }
-  const tx = await program.methods.claimRewards()
+  const tx = await loanProgram.methods.claimRewards()
     .accounts({
       authority,
       globalState,
@@ -456,22 +454,22 @@ export const claimRewards = async (
 
 export const setLoanOffer = async (
   nftMint: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
   const borrowerNftVault: anchor.web3.PublicKey = await checkWalletATA(
     nftMint.toBase58(),
-    programProvider.connection,
+    loanProvider.connection,
     signer
   )
 
   const borrower = signer
-  const offer = await pda([OFFER_TAG, borrower.toBuffer(), nftMint.toBuffer()], programId)
+  const offer = await pda([OFFER_TAG, borrower.toBuffer(), nftMint.toBuffer()], loanProgramId)
   const nftMetadata = await Metadata.getPDA(nftMint)
   const edition = await Edition.getPDA(nftMint);
 
   try {
-    const tx = await program.methods.setOffer()
+    const tx = await loanProgram.methods.setOffer()
       .accounts({
         borrower,
         offer,
@@ -494,20 +492,20 @@ export const setLoanOffer = async (
 }
 export const cancelLoanOffer = async (
   nftMint: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
   const borrower = signer
-  const offer = await pda([OFFER_TAG, borrower.toBuffer(), nftMint.toBuffer()], programId)
+  const offer = await pda([OFFER_TAG, borrower.toBuffer(), nftMint.toBuffer()], loanProgramId)
 
-  let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), programProvider.connection, borrower)
+  let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, borrower)
   const preInstructions: TransactionInstruction[] = []
   if (!borrowerNftVault) {
     borrowerNftVault = await addTokenAccountInstruction(nftMint, borrower, preInstructions, signer, signers)
   }
   const edition = await Edition.getPDA(nftMint);
   try {
-    const tx = await program.methods.cancelOffer()
+    const tx = await loanProgram.methods.cancelOffer()
       .accounts({
         borrower,
         offer,
@@ -534,23 +532,23 @@ export const createLoanSubOffer = async (
   aprNumerator: anchor.BN,
   nftMint: anchor.web3.PublicKey,
   offerMint: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
   if (offerMint.equals(NATIVE_MINT)) {
     offerMint = WSOL_MINT
   }
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
   const borrower = signer
-  const offer = await pda([OFFER_TAG, borrower.toBuffer(), nftMint.toBuffer()], programId)
-  const offerData = await program.account.offer.fetch(offer)
+  const offer = await pda([OFFER_TAG, borrower.toBuffer(), nftMint.toBuffer()], loanProgramId)
+  const offerData = await loanProgram.account.offer.fetch(offer)
   const subOfferNumer = offerData.subOfferCount
-  const subOffer = await pda([SUB_OFFER_TAG, offer.toBuffer(), subOfferNumer.toArrayLike(Buffer, 'be', 8)], programId)
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], programId)
-  const globalStateData = await program.account.globalState.fetch(globalState)
+  const subOffer = await pda([SUB_OFFER_TAG, offer.toBuffer(), subOfferNumer.toArrayLike(Buffer, 'be', 8)], loanProgramId)
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
+  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
   const treasuryWallet = globalStateData.treasuryWallet
   try {
-    const tx = await program.methods.setSubOffer(offerAmount, subOfferNumer, loanDuration, aprNumerator)
+    const tx = await loanProgram.methods.setSubOffer(offerAmount, subOfferNumer, loanDuration, aprNumerator)
       .accounts({
         borrower,
         globalState,
@@ -577,24 +575,24 @@ export const createLoanSubOfferByStaking = async (
   aprNumerator: anchor.BN,
   nftMint: anchor.web3.PublicKey,
   offerMint: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
   if (offerMint.equals(NATIVE_MINT)) {
     offerMint = WSOL_MINT
   }
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
   const borrower = signer
-  const offer = await pda([OFFER_TAG, borrower.toBuffer(), nftMint.toBuffer()], programId)
-  const offerData = await program.account.offer.fetch(offer)
+  const offer = await pda([OFFER_TAG, borrower.toBuffer(), nftMint.toBuffer()], loanProgramId)
+  const offerData = await loanProgram.account.offer.fetch(offer)
   const subOfferNumer = offerData.subOfferCount
-  const subOffer = await pda([SUB_OFFER_TAG, offer.toBuffer(), subOfferNumer.toArrayLike(Buffer, 'be', 8)], programId)
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], programId)
-  const globalStateData = await program.account.globalState.fetch(globalState)
+  const subOffer = await pda([SUB_OFFER_TAG, offer.toBuffer(), subOfferNumer.toArrayLike(Buffer, 'be', 8)], loanProgramId)
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
+  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
   const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], STAKING_PID)
   const treasuryWallet = globalStateData.treasuryWallet
   try {
-    const tx = await program.methods
+    const tx = await loanProgram.methods
       .setSubOffer(offerAmount, subOfferNumer, loanDuration, aprNumerator)
       .accounts({
         borrower,
@@ -625,21 +623,21 @@ export const updateLoanSubOffer = async (
   aprNumerator: anchor.BN,
 
   subOffer: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
   const borrower = signer
-  const subOfferData = await program.account.subOffer.fetch(subOffer)
-  const offer = await pda([OFFER_TAG, borrower.toBuffer(), subOfferData.nftMint.toBuffer()], programId)
+  const subOfferData = await loanProgram.account.subOffer.fetch(subOffer)
+  const offer = await pda([OFFER_TAG, borrower.toBuffer(), subOfferData.nftMint.toBuffer()], loanProgramId)
   const subOfferNumer = subOfferData.subOfferNumber
   const offerMint = subOfferData.offerMint
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, subOfferData.offerMint.toBuffer()], programId)
-  const globalStateData = await program.account.globalState.fetch(globalState)
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, subOfferData.offerMint.toBuffer()], loanProgramId)
+  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
 
   const treasuryWallet = globalStateData.treasuryWallet
   try {
-    const tx = await program.methods.setSubOffer(offerAmount, subOfferNumer, loanDuration, aprNumerator)
+    const tx = await loanProgram.methods.setSubOffer(offerAmount, subOfferNumer, loanDuration, aprNumerator)
       .accounts({
         borrower,
         globalState,
@@ -669,22 +667,22 @@ export const updateLoanSubOfferByStaking = async (
   aprNumerator: anchor.BN,
 
   subOffer: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
   const borrower = signer
-  const subOfferData = await program.account.subOffer.fetch(subOffer)
-  const offer = await pda([OFFER_TAG, borrower.toBuffer(), subOfferData.nftMint.toBuffer()], programId)
+  const subOfferData = await loanProgram.account.subOffer.fetch(subOffer)
+  const offer = await pda([OFFER_TAG, borrower.toBuffer(), subOfferData.nftMint.toBuffer()], loanProgramId)
   const subOfferNumer = subOfferData.subOfferNumber
   const offerMint = subOfferData.offerMint
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, subOfferData.offerMint.toBuffer()], programId)
-  const globalStateData = await program.account.globalState.fetch(globalState)
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, subOfferData.offerMint.toBuffer()], loanProgramId)
+  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
   const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], globalStateData.unlocStakingPid)
 
   const treasuryWallet = globalStateData.treasuryWallet
   try {
-    const tx = await program.methods.setSubOfferByStaking(offerAmount, subOfferNumer, loanDuration, minRepaidNumerator, aprNumerator)
+    const tx = await loanProgram.methods.setSubOfferByStaking(offerAmount, subOfferNumer, loanDuration, minRepaidNumerator, aprNumerator)
       .accounts({
         subOfferCtx: {
           borrower,
@@ -712,14 +710,14 @@ export const updateLoanSubOfferByStaking = async (
 
 export const cancelLoanSubOffer = async (
   subOffer: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
   const borrower = signer
-  const subOfferData = await program.account.subOffer.fetch(subOffer)
-  const offer = await pda([OFFER_TAG, borrower.toBuffer(), subOfferData.nftMint.toBuffer()], programId)
+  const subOfferData = await loanProgram.account.subOffer.fetch(subOffer)
+  const offer = await pda([OFFER_TAG, borrower.toBuffer(), subOfferData.nftMint.toBuffer()], loanProgramId)
   try {
-    const tx = await program.methods.cancelSubOffer()
+    const tx = await loanProgram.methods.cancelSubOffer()
       .accounts({
         borrower,
         offer,
@@ -737,21 +735,21 @@ export const cancelLoanSubOffer = async (
 }
 export const acceptLoanOffer = async (
   subOffer: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
   const lender = signer
-  const subOfferData = await program.account.subOffer.fetch(subOffer)
+  const subOfferData = await loanProgram.account.subOffer.fetch(subOffer)
   const offer = subOfferData.offer
   const offerMint = subOfferData.offerMint
-  const offerData = await program.account.offer.fetch(subOfferData.offer)
+  const offerData = await loanProgram.account.offer.fetch(subOfferData.offer)
   const borrower = offerData.borrower
-  let borrowerOfferVault = await checkWalletATA(offerMint.toBase58(), programProvider.connection, borrower)
-  let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), programProvider.connection, lender)
+  let borrowerOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, borrower)
+  let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, lender)
   const preInstructions: TransactionInstruction[] = []
   const postInstructions: TransactionInstruction[] = []
   if (offerMint.equals(WSOL_MINT)) {
-    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], programId)
+    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
     lenderOfferVault = treasuryVault
     borrowerOfferVault = treasuryVault
   } else {
@@ -764,10 +762,10 @@ export const acceptLoanOffer = async (
       return
     }
   }
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
-  const rewardVault = await pda([REWARD_VAULT_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
+  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   try {
-    const tx = await program.methods.acceptOffer()
+    const tx = await loanProgram.methods.acceptOffer()
       .accounts({
         lender,
         borrower,
@@ -795,21 +793,21 @@ export const acceptLoanOffer = async (
 }
 export const acceptLoanOfferByVoting = async (
   subOffer: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
   const lender = signer
-  const subOfferData = await program.account.subOffer.fetch(subOffer)
+  const subOfferData = await loanProgram.account.subOffer.fetch(subOffer)
   const offer = subOfferData.offer
   const offerMint = subOfferData.offerMint
-  const offerData = await program.account.offer.fetch(subOfferData.offer)
+  const offerData = await loanProgram.account.offer.fetch(subOfferData.offer)
   const borrower = offerData.borrower
-  let borrowerOfferVault = await checkWalletATA(offerMint.toBase58(), programProvider.connection, borrower)
-  let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), programProvider.connection, lender)
+  let borrowerOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, borrower)
+  let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, lender)
   const preInstructions: TransactionInstruction[] = []
   const postInstructions: TransactionInstruction[] = []
   if (offerMint.equals(WSOL_MINT)) {
-    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], programId)
+    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
     lenderOfferVault = treasuryVault
     borrowerOfferVault = treasuryVault
   } else {
@@ -822,14 +820,14 @@ export const acceptLoanOfferByVoting = async (
       return
     }
   }
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
-  const globalStateData = await program.account.globalState.fetch(globalState)
-  const rewardVault = await pda([REWARD_VAULT_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
+  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
+  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   const votingPid = VOTING_PID;
   const currentVotingKey = await getCurrentVotingKey();
   const votingItemKey = await pda([VOTING_ITEM_TAG, currentVotingKey.toBuffer(), offerData.collection.toBuffer()], votingPid)
   try {
-    const tx = await program.methods.acceptOffer()
+    const tx = await loanProgram.methods.acceptOffer()
       .accounts({
         lender,
         borrower,
@@ -862,28 +860,28 @@ export const acceptLoanOfferByVoting = async (
 
 export const repayLoan = async (
   subOffer: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
   const borrower = signer
-  const globalStateData = await program.account.globalState.fetch(globalState)
+  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
   const treasuryWallet = globalStateData.treasuryWallet
-  const subOfferData = await program.account.subOffer.fetch(subOffer)
+  const subOfferData = await loanProgram.account.subOffer.fetch(subOffer)
   const offer = subOfferData.offer
   const lender = subOfferData.lender
-  const offerData = await program.account.offer.fetch(offer)
+  const offerData = await loanProgram.account.offer.fetch(offer)
   const offerMint = subOfferData.offerMint
   const nftMint = offerData.nftMint
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], programId)
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
 
-  let borrowerOfferVault = await checkWalletATA(offerMint.toBase58(), programProvider.connection, borrower)
-  let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), programProvider.connection, borrower)
-  let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), programProvider.connection, lender)
+  let borrowerOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, borrower)
+  let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, borrower)
+  let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, lender)
   const preInstructions: TransactionInstruction[] = []
   const postInstructions: TransactionInstruction[] = []
   if (offerMint.equals(WSOL_MINT)) {
-    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], programId)
+    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
     lenderOfferVault = treasuryVault
     borrowerOfferVault = treasuryVault
   }
@@ -902,9 +900,9 @@ export const repayLoan = async (
   }
 
   const edition = await Edition.getPDA(nftMint);
-  const rewardVault = await pda([REWARD_VAULT_TAG], programId)
+  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   try {
-    const tx = await program.methods.repayLoan()
+    const tx = await loanProgram.methods.repayLoan()
       .accounts({
         borrower,
         lender,
@@ -937,27 +935,27 @@ export const repayLoan = async (
 }
 export const claimLoanCollateral = async (
   subOffer: anchor.web3.PublicKey,
-  signer: anchor.web3.PublicKey = programProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
-  const globalState = await pda([GLOBAL_STATE_TAG], programId)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
   const lender = signer
-  const globalStateData = await program.account.globalState.fetch(globalState)
+  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
   const treasuryWallet = globalStateData.treasuryWallet
-  const subOfferData = await program.account.subOffer.fetch(subOffer)
+  const subOfferData = await loanProgram.account.subOffer.fetch(subOffer)
   const offer = subOfferData.offer
-  const offerData = await program.account.offer.fetch(offer)
+  const offerData = await loanProgram.account.offer.fetch(offer)
   const offerMint = subOfferData.offerMint
   const nftMint = offerData.nftMint
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], programId)
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
 
-  let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), programProvider.connection, offerData.borrower)
-  let lenderNftVault = await checkWalletATA(nftMint.toBase58(), programProvider.connection, lender)
-  let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), programProvider.connection, lender)
+  let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, offerData.borrower)
+  let lenderNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, lender)
+  let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, lender)
   const preInstructions: TransactionInstruction[] = []
   const postInstructions: TransactionInstruction[] = []
   if (offerMint.equals(WSOL_MINT)) {
-    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], programId)
+    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
     lenderOfferVault = treasuryVault
   }
 
@@ -969,10 +967,10 @@ export const claimLoanCollateral = async (
     console.log("lender doesn't have offer token account!", lender.toBase58())
     lenderOfferVault = await addTokenAccountInstruction(offerMint, lender, preInstructions, signer, signers)
   }
-  const rewardVault = await pda([REWARD_VAULT_TAG], programId)
+  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   const edition = await Edition.getPDA(nftMint);
   try {
-    const tx = await program.methods.claimCollateral()
+    const tx = await loanProgram.methods.claimCollateral()
       .accounts({
         lender,
         globalState,
@@ -1025,10 +1023,10 @@ export enum SubOfferState {
 export const getLoanSubOffersKeysByState = async (state: SubOfferState[]) => {
   try {
     const accountName = 'subOffer'
-    const data = await programProvider.connection.getProgramAccounts(programId, {
+    const data = await loanProvider.connection.getProgramAccounts(loanProgramId, {
       dataSlice: { offset: 0, length: 0 }, // Fetch without any data.
       filters: [
-        { memcmp: program.account.subOffer.coder.accounts.memcmp(accountName) },
+        { memcmp: loanProgram.account.subOffer.coder.accounts.memcmp(accountName) },
         { memcmp: { offset: discriminatorLen + 96, bytes: bs58.encode(state) } } // add filters for nftMint, APR, Duration, Amount and this function will be glorious
       ]
     })
@@ -1047,7 +1045,7 @@ export const addTokenAccountInstruction = async (
   rent: number = 0
 ) => {
   const newKeypair = Keypair.generate()
-  const rentForTokenAccount = await Token.getMinBalanceRentForExemptAccount(programProvider.connection)
+  const rentForTokenAccount = await Token.getMinBalanceRentForExemptAccount(loanProvider.connection)
   instructions.push(
     SystemProgram.createAccount({
       fromPubkey: signer,
@@ -1065,8 +1063,8 @@ export const addTokenAccountInstruction = async (
 
 export const checkWalletATA = async (
   mint: string,
-  connection: anchor.web3.Connection = programProvider.connection,
-  walletPubkey: anchor.web3.PublicKey = programProvider.wallet.publicKey
+  connection: anchor.web3.Connection = loanProvider.connection,
+  walletPubkey: anchor.web3.PublicKey = loanProvider.wallet.publicKey
 ) => {
   const parsedTokenAccounts = await connection.getParsedTokenAccountsByOwner(
     walletPubkey,
@@ -1096,11 +1094,11 @@ export const logObject = (title: string, obj: any) => {
 }
 export const getOfferBalance = async (
   subOffer: anchor.web3.PublicKey,
-  connection: anchor.web3.Connection = programProvider.connection,
-  walletPubkey: anchor.web3.PublicKey = programProvider.wallet.publicKey
+  connection: anchor.web3.Connection = loanProvider.connection,
+  walletPubkey: anchor.web3.PublicKey = loanProvider.wallet.publicKey
 ) => {
   try {
-    const tokenAccount = await pda([OFFER_VAULT_TAG, subOffer.toBuffer()], programId)
+    const tokenAccount = await pda([OFFER_VAULT_TAG, subOffer.toBuffer()], loanProgramId)
     const balance = (await connection.getTokenAccountBalance(tokenAccount)).value.uiAmount as number
     return balance
   } catch (e) {
@@ -1124,7 +1122,7 @@ export class MultipleNFT {
         metadataPDAs.push(metadataPDA)
       }
       let i = 0
-      const metaInfos = await Metadata.getInfos(programProvider.connection, metadataPDAs)
+      const metaInfos = await Metadata.getInfos(loanProvider.connection, metadataPDAs)
       metaInfos.forEach((value: anchor.web3.AccountInfo<Buffer>, key: any, map: any) => {
         const metadata = MetadataData.deserialize(value.data)
         const nftMetadata = new NFTMetadata(this.mints[i], metadataPDAs[i], metadata)
@@ -1180,7 +1178,7 @@ export class NFTMetadata implements IMetadata {
   public async getMasterEdition() {
     if (this.arweaveMetadata === null) {
       const masterEditionPDA = await Edition.getPDA(new PublicKey(this.mint))
-      const editionAccountInfo = await programProvider.connection.getAccountInfo(masterEditionPDA)
+      const editionAccountInfo = await loanProvider.connection.getAccountInfo(masterEditionPDA)
 
       if (editionAccountInfo) {
         const key = editionAccountInfo?.data[0]

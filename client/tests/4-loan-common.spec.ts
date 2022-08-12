@@ -17,24 +17,23 @@ import {
   depositRewards,
   claimRewards,
   createLoanSubOfferByStaking,
-  programProvider,
   checkWalletATA,
   acceptLoanOffer,
   setLoanStakingPool,
   setLoanVoting,
   getVotingKeyFromNum
-} from '../src'
+} from '../dist/cjs'
 import * as anchor from '@project-serum/anchor';
 
 import { assert } from 'chai'
-import { UnlocLoan } from '../src/types/unloc_loan';
+import { UnlocLoan } from '../dist/cjs/types/unloc_loan';
 
 import SUPER_OWNER_WALLET from './test-users/super_owner.json'
 import PROPOSER1_WALLET from './test-users/borrower1.json'
 import LOANER1_WALLET from './test-users/lender1.json'
 import TREASURY from './test-users/treasury.json'
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { STAKING_PID, TOKEN_META_PID, UNLOC_MINT, USDC_MINT, VOTING_PID } from '../src';
+import { STAKING_PID, TOKEN_META_PID, UNLOC_MINT, USDC_MINT, VOTING_PID } from '../dist/cjs';
 import { Collection, CreateMasterEditionV3, CreateMetadataV2, DataV2, Edition, Metadata } from '@metaplex-foundation/mpl-token-metadata';
 import { mintAndCreateMetadata, mintAndCreateMetadataV2 } from '@metaplex-foundation/mpl-token-metadata/dist/test/actions';
 import { Keypair } from '@solana/web3.js';
@@ -61,7 +60,6 @@ describe('loan-common', () => {
   const programId = program.programId
 
   initLoanProgram((program.provider as any).wallet, program.provider.connection, programId)
-
   const systemProgram = anchor.web3.SystemProgram.programId
   const tokenProgram = TOKEN_PROGRAM_ID
   const rent = anchor.web3.SYSVAR_RENT_PUBKEY
@@ -226,6 +224,7 @@ describe('loan-common', () => {
       rewardMint,
       treasury,
       superOwner,
+      superOwner,
       signers
     )
 
@@ -276,7 +275,7 @@ describe('loan-common', () => {
     assert(offerData.state == OfferState.Proposed, "state")
 
     // Check nft status
-    const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), programProvider.connection, borrower);
+    const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), provider.connection, borrower);
     const tokenInfo = await nftMint.getAccountInfo(borrowerNftATA);
     assert(offer.equals(tokenInfo.delegate as any), "nft delegate")
     assert.equal((tokenInfo.amount as any).toNumber(), 1, "nft balance")
@@ -294,7 +293,7 @@ describe('loan-common', () => {
     assert(offerData.state == OfferState.Canceled, "state")
 
     // Check nft status    
-    const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), programProvider.connection, borrower);
+    const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), provider.connection, borrower);
     const tokenInfo = await nftMint.getAccountInfo(borrowerNftATA);
     assert.equal(tokenInfo.isFrozen, false, "nft thaw")
     assert.equal(tokenInfo.delegate, null, "nft delegate")
@@ -396,7 +395,7 @@ describe('loan-common', () => {
   });
 
   it('Repay loan', async () => {
-    const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), programProvider.connection, borrower);
+    const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), provider.connection, borrower);
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const offerDataBefore = await program.account.offer.fetch(offer)
     const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))
@@ -498,11 +497,11 @@ describe('loan-common', () => {
       signers
     )
 
-    const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), programProvider.connection, borrower);
+    const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), provider.connection, borrower);
     const borrowerNftInfo = await nftMint.getAccountInfo(borrowerNftATA);
     assert.equal((borrowerNftInfo.amount as any).toNumber(), 0, "borrwer nft balance")
 
-    const lenderNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), programProvider.connection, lender1);
+    const lenderNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), provider.connection, lender1);
     const lenderNftInfo = await nftMint.getAccountInfo(lenderNftATA);
     assert.equal((lenderNftInfo.amount as any).toNumber(), 1, "lender nft balance")
   });

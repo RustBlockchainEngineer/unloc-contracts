@@ -1,9 +1,9 @@
 
-import { createVoting, getLastVoting, getLastVotingKey, getVoting, getVotingGlobalState, getVotingItem, getVotingItemKey, getVotingUser, initVotingProgram, setVoting, setVotingGlobalState, setVotingItem, vote } from '../src'
+import { createVoting, getLastVoting, getLastVotingKey, getVoting, getVotingGlobalState, getVotingItem, getVotingItemKey, getVotingUser, initVotingProgram, setVoting, setVotingGlobalState, setVotingItem, vote } from '../dist/cjs'
 import * as anchor from '@project-serum/anchor';
 
 import { assert} from 'chai'  
-import { UnlocVoting } from '../src/types/unloc_voting';
+import { UnlocVoting } from '../dist/cjs/types/unloc_voting';
 
 import SUPER_OWNER_WALLET from './test-users/super_owner.json'
 import BORROWER1_KEYPAIR from './test-users/borrower1.json'
