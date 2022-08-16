@@ -4,7 +4,7 @@ use std::mem::size_of;
 
 use crate::{utils::*, states::*};
 
-pub fn create_user(ctx: Context<CreatePoolUser>) -> Result<()> {
+pub fn handle(ctx: Context<CreatePoolUser>) -> Result<()> {
     let user = &mut ctx.accounts.user;
     user.authority = ctx.accounts.authority.key();
     user.bump = *ctx.bumps.get("user").unwrap();

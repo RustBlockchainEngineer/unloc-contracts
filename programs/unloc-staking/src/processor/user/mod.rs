@@ -6,3 +6,6 @@ pub use process_stake::*;
 
 pub mod process_harvest;
 pub use process_harvest::*;
+
+pub mod process_unstake;
+pub use process_unstake::*;

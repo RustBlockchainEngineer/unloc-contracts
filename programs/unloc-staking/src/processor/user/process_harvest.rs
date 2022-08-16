@@ -4,7 +4,7 @@ use std::convert::TryInto;
 
 use crate::{utils::*, states::*};
 
-pub fn harvest(ctx: Context<Harvest>) -> Result<()> {
+pub fn handle(ctx: Context<Harvest>) -> Result<()> {
     let extra_account = &mut ctx.accounts.extra_reward_account;
     let state = &ctx.accounts.state;
     let pool = &mut ctx.accounts.pool;

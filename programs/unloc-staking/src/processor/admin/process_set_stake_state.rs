@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use crate::{error::*, states::*, utils::*};
 
-pub fn create_state(
+pub fn handle(
     ctx: Context<CreateState>,
     token_per_second: u64,
     early_unlock_fee: u64,
@@ -35,28 +35,6 @@ pub fn create_state(
     Ok(())
 }
 
-pub fn create_extra_reward_configs(
-    ctx: Context<CreateExtraRewardsConfigs>,
-    configs: Vec<DurationExtraRewardConfig>,
-) -> Result<()> {
-    let extra_account = &mut ctx.accounts.extra_reward_account;
-    extra_account.authority = ctx.accounts.authority.key();
-    extra_account.bump = *ctx.bumps.get("extra_reward_account").unwrap();
-    extra_account.configs = configs;
-    extra_account.validate()?;
-    Ok(())
-}
-
-pub fn set_extra_reward_configs(
-    ctx: Context<SetExtraRewardsConfigs>,
-    configs: Vec<DurationExtraRewardConfig>,
-) -> Result<()> {
-    let extra_account = &mut ctx.accounts.extra_reward_account;
-    extra_account.configs = configs;
-    extra_account.validate()?;
-    Ok(())
-}
-
 #[derive(Accounts)]
 #[instruction()]
 pub struct CreateState<'info> {
@@ -80,31 +58,4 @@ pub struct CreateState<'info> {
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
-}
-
-#[derive(Accounts)]
-#[instruction()]
-pub struct CreateExtraRewardsConfigs<'info> {
-    #[account(mut,
-        seeds = [b"state".as_ref()],
-        bump = state.bump,
-        has_one = authority
-    )]
-    pub state: Account<'info, StateAccount>,
-    #[account(init,
-        seeds = [b"extra".as_ref()], bump, payer = authority, space = 8 + 37 + MAX_LEVEL * 16)]
-    pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
-    #[account(mut)]
-    pub authority: Signer<'info>,
-    pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
-pub struct SetExtraRewardsConfigs<'info> {
-    #[account(mut,
-        seeds = [b"extra".as_ref()], bump = extra_reward_account.bump, has_one = authority)]
-    pub extra_reward_account: Box<Account<'info, ExtraRewardsAccount>>,
-    #[account(mut)]
-    pub authority: Signer<'info>,
-    pub system_program: Program<'info, System>,
 }

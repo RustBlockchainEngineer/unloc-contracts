@@ -19,7 +19,7 @@ pub mod unloc_staking {
         early_unlock_fee: u64,
         profile_levels: Vec<u128>,
     ) -> Result<()> {
-        process_set_stake_state::create_state(
+        process_set_stake_state::handle(
             ctx,
             token_per_second,
             early_unlock_fee,
@@ -31,14 +31,14 @@ pub mod unloc_staking {
         ctx: Context<CreateExtraRewardsConfigs>,
         configs: Vec<DurationExtraRewardConfig>,
     ) -> Result<()> {
-        process_set_stake_state::create_extra_reward_configs(ctx, configs)
+        process_create_extra_reward_configs::handle(ctx, configs)
     }
 
     pub fn set_extra_reward_configs(
         ctx: Context<SetExtraRewardsConfigs>,
         configs: Vec<DurationExtraRewardConfig>,
     ) -> Result <()> {
-        process_set_stake_state::set_extra_reward_configs(ctx, configs)
+        process_set_extra_reward_configs::handle(ctx, configs)
     }
 
     pub fn fund_reward_token(
@@ -106,7 +106,7 @@ pub mod unloc_staking {
     pub fn create_user(
         ctx: Context<CreatePoolUser>
     ) -> Result<()> {
-        process_create_user::create_user(ctx)
+        process_create_user::handle(ctx)
     }
 
     pub fn stake(
@@ -114,19 +114,19 @@ pub mod unloc_staking {
         amount: u64,
         lock_duration: i64
     ) -> Result<()> {
-        process_stake::stake(ctx, amount, lock_duration)
+        process_stake::handle(ctx, amount, lock_duration)
     }
 
     pub fn unstake(
         ctx: Context<Stake>,
         amount: u64
     ) -> Result<()> {
-        process_stake::unstake(ctx, amount)
+        process_unstake::handle(ctx, amount)
     }
 
     pub fn harvest(
         ctx: Context<Harvest>
     ) -> Result<()> {
-        process_harvest::harvest(ctx)
+        process_harvest::handle(ctx)
     }
 }
