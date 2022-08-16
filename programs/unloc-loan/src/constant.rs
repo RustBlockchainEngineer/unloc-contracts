@@ -42,7 +42,7 @@ pub const USDC_MINT: &str = if DEVNET_MODE {
 pub const UNLOC_MINT: &str = if DEVNET_MODE {
     "Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67D4s3kRmut"
 } else {
-    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+    "ExW7Yek3vsRJcapsdRKcxF9XRRS8zigLZ8nqqdqnWgQi"
 };
 #[constant]
 pub const SUB_OFFER_COUNT_PER_LEVEL: u64 = 5;
