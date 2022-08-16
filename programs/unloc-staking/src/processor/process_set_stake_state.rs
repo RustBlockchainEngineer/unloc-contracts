@@ -3,7 +3,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount};
 use std::mem::size_of;
 use std::str::FromStr;
 
-use crate::{error::*, states::*, constant::*};
+use crate::{error::*, states::*, utils::*};
 
 pub fn create_state(
     ctx: Context<CreateState>,

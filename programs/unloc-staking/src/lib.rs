@@ -4,8 +4,6 @@ pub mod error;
 pub mod utils;
 pub mod states;
 pub mod processor;
-pub mod constant;
-pub mod events;
 
 use crate::{states::*, processor::*};
 

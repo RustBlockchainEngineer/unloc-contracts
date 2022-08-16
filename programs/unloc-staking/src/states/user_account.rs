@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::{utils::*, constant::*, farmpool_account::*, extra_rewards_account::*, state_account::*};
+use crate::{utils::*, farmpool_account::*, extra_rewards_account::*, state_account::*};
 
 #[account]
 #[derive(Default)]

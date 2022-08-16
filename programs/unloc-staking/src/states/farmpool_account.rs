@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use std::convert::TryFrom;
-use crate::{utils::*, constant::*, state_account::*};
+use crate::{utils::*, state_account::*};
 
 #[account]
 #[derive(Default)]
