@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-use crate::{error::*, utils::*, states::*, constant::*};
+use crate::{error::*, states::*, constant::*, events::*};
 
 pub fn fund_reward_token(ctx: Context<Fund>, amount: u64) -> Result<()> {
     let cpi_accounts = Transfer {

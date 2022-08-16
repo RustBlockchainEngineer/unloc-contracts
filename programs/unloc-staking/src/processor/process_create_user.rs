@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token};
 use std::mem::size_of;
 
-use crate::{utils::*, states::*};
+use crate::{utils::*, states::*, events::*};
 
 pub fn create_user(ctx: Context<CreatePoolUser>) -> Result<()> {
     let user = &mut ctx.accounts.user;

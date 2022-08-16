@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use std::convert::TryInto;
 
-use crate::{utils::*, states::*};
+use crate::{utils::*, states::*, events::*};
 
 pub fn harvest(ctx: Context<Harvest>) -> Result<()> {
     let extra_account = &mut ctx.accounts.extra_reward_account;

@@ -3,7 +3,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use std::convert::TryInto;
 use std::str::FromStr;
 
-use crate::{error::*, utils::*, states::*, constant::*};
+use crate::{error::*, utils::*, states::*, constant::*, events::*};
 
 pub fn stake(ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()> {
     require_keys_eq!(ctx.accounts.user_vault.owner, ctx.accounts.authority.key());
