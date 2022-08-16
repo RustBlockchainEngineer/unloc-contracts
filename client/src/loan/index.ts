@@ -544,9 +544,9 @@ export const createLoanSubOffer = async (
   const offerData = await loanProgram.account.offer.fetch(offer)
   const subOfferNumer = offerData.subOfferCount
   const subOffer = await pda([SUB_OFFER_TAG, offer.toBuffer(), subOfferNumer.toArrayLike(Buffer, 'be', 8)], loanProgramId)
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
   const globalStateData = await loanProgram.account.globalState.fetch(globalState)
   const treasuryWallet = globalStateData.treasuryWallet
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer(), treasuryWallet.toBuffer()], loanProgramId)
   try {
     const tx = await loanProgram.methods.setSubOffer(offerAmount, subOfferNumer, loanDuration, aprNumerator)
       .accounts({
@@ -587,10 +587,10 @@ export const createLoanSubOfferByStaking = async (
   const offerData = await loanProgram.account.offer.fetch(offer)
   const subOfferNumer = offerData.subOfferCount
   const subOffer = await pda([SUB_OFFER_TAG, offer.toBuffer(), subOfferNumer.toArrayLike(Buffer, 'be', 8)], loanProgramId)
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
   const globalStateData = await loanProgram.account.globalState.fetch(globalState)
   const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], STAKING_PID)
   const treasuryWallet = globalStateData.treasuryWallet
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer(), treasuryWallet.toBuffer()], loanProgramId)
   try {
     const tx = await loanProgram.methods
       .setSubOffer(offerAmount, subOfferNumer, loanDuration, aprNumerator)
@@ -632,10 +632,9 @@ export const updateLoanSubOffer = async (
   const offer = await pda([OFFER_TAG, borrower.toBuffer(), subOfferData.nftMint.toBuffer()], loanProgramId)
   const subOfferNumer = subOfferData.subOfferNumber
   const offerMint = subOfferData.offerMint
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, subOfferData.offerMint.toBuffer()], loanProgramId)
   const globalStateData = await loanProgram.account.globalState.fetch(globalState)
-
   const treasuryWallet = globalStateData.treasuryWallet
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, subOfferData.offerMint.toBuffer(), treasuryWallet.toBuffer()], loanProgramId)
   try {
     const tx = await loanProgram.methods.setSubOffer(offerAmount, subOfferNumer, loanDuration, aprNumerator)
       .accounts({
@@ -676,11 +675,12 @@ export const updateLoanSubOfferByStaking = async (
   const offer = await pda([OFFER_TAG, borrower.toBuffer(), subOfferData.nftMint.toBuffer()], loanProgramId)
   const subOfferNumer = subOfferData.subOfferNumber
   const offerMint = subOfferData.offerMint
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, subOfferData.offerMint.toBuffer()], loanProgramId)
+  
   const globalStateData = await loanProgram.account.globalState.fetch(globalState)
   const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], globalStateData.unlocStakingPid)
 
   const treasuryWallet = globalStateData.treasuryWallet
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, subOfferData.offerMint.toBuffer(), treasuryWallet.toBuffer()], loanProgramId)
   try {
     const tx = await loanProgram.methods.setSubOfferByStaking(offerAmount, subOfferNumer, loanDuration, minRepaidNumerator, aprNumerator)
       .accounts({
@@ -744,12 +744,17 @@ export const acceptLoanOffer = async (
   const offerMint = subOfferData.offerMint
   const offerData = await loanProgram.account.offer.fetch(subOfferData.offer)
   const borrower = offerData.borrower
+
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
+  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
+  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
+
   let borrowerOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, borrower)
   let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, lender)
   const preInstructions: TransactionInstruction[] = []
   const postInstructions: TransactionInstruction[] = []
   if (offerMint.equals(WSOL_MINT)) {
-    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
+    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer(), globalStateData.treasuryWallet.toBuffer()], loanProgramId)
     lenderOfferVault = treasuryVault
     borrowerOfferVault = treasuryVault
   } else {
@@ -762,8 +767,7 @@ export const acceptLoanOffer = async (
       return
     }
   }
-  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
-  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
+  
   try {
     const tx = await loanProgram.methods.acceptOffer()
       .accounts({
@@ -802,12 +806,16 @@ export const acceptLoanOfferByVoting = async (
   const offerMint = subOfferData.offerMint
   const offerData = await loanProgram.account.offer.fetch(subOfferData.offer)
   const borrower = offerData.borrower
+
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
+  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
+
   let borrowerOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, borrower)
   let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, lender)
   const preInstructions: TransactionInstruction[] = []
   const postInstructions: TransactionInstruction[] = []
   if (offerMint.equals(WSOL_MINT)) {
-    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
+    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer(), globalStateData.treasuryWallet.toBuffer()], loanProgramId)
     lenderOfferVault = treasuryVault
     borrowerOfferVault = treasuryVault
   } else {
@@ -820,8 +828,7 @@ export const acceptLoanOfferByVoting = async (
       return
     }
   }
-  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
-  const globalStateData = await loanProgram.account.globalState.fetch(globalState)
+  
   const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   const votingPid = VOTING_PID;
   const currentVotingKey = await getCurrentVotingKey();
@@ -873,7 +880,7 @@ export const repayLoan = async (
   const offerData = await loanProgram.account.offer.fetch(offer)
   const offerMint = subOfferData.offerMint
   const nftMint = offerData.nftMint
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer(), globalStateData.treasuryWallet.toBuffer()], loanProgramId)
 
   let borrowerOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, borrower)
   let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, borrower)
@@ -881,7 +888,6 @@ export const repayLoan = async (
   const preInstructions: TransactionInstruction[] = []
   const postInstructions: TransactionInstruction[] = []
   if (offerMint.equals(WSOL_MINT)) {
-    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
     lenderOfferVault = treasuryVault
     borrowerOfferVault = treasuryVault
   }
@@ -947,7 +953,7 @@ export const claimLoanCollateral = async (
   const offerData = await loanProgram.account.offer.fetch(offer)
   const offerMint = subOfferData.offerMint
   const nftMint = offerData.nftMint
-  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
+  const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer(), treasuryWallet.toBuffer()], loanProgramId)
 
   let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, offerData.borrower)
   let lenderNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, lender)
@@ -955,7 +961,6 @@ export const claimLoanCollateral = async (
   const preInstructions: TransactionInstruction[] = []
   const postInstructions: TransactionInstruction[] = []
   if (offerMint.equals(WSOL_MINT)) {
-    const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer()], loanProgramId)
     lenderOfferVault = treasuryVault
   }
 

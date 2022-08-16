@@ -194,7 +194,7 @@ pub struct ClaimCollateral<'info> {
     pub lender_offer_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(mut,
-        seeds = [TREASURY_VAULT_TAG, sub_offer.offer_mint.as_ref()],
+        seeds = [TREASURY_VAULT_TAG, sub_offer.offer_mint.as_ref(), treasury_wallet.key().as_ref()],
         bump
     )]
     pub treasury_vault: Box<Account<'info, TokenAccount>>,
