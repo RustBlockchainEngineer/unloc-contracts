@@ -3,7 +3,7 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 
 use crate::{constant::*, states::*, utils::*};
 use std::str::FromStr;
-use unloc_staking::FarmPoolUserAccount;
+use unloc_staking::states::FarmPoolUserAccount;
 
 pub fn handle(
     ctx: Context<SetSubOffer>,

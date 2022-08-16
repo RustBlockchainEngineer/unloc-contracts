@@ -1,5 +1,6 @@
 use crate::error::*;
 use anchor_lang::prelude::*;
+use std::convert::TryInto;
 
 pub trait SafeCalc<T> {
     fn safe_add(&self, num: T) -> Result<T>;
@@ -127,4 +128,16 @@ impl SafeCalc<i64> for i64 {
         }
         Ok(result.unwrap())
     }
+}
+
+pub fn calc_fee(total: u64, fee_percent: u64, denominator: u64) -> Result<u64> {
+    let _total: u128 = total as u128;
+    let _fee_percent: u128 = fee_percent as u128;
+    let _denominator: u128 = denominator as u128;
+
+    if _denominator == 0 {
+        return Err(error!(StakingError::InvalidDenominator));
+    }
+    let result = _total.safe_mul(_fee_percent)?.safe_div(_denominator)?;
+    Ok(result.try_into().unwrap())
 }
