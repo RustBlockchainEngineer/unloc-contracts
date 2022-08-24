@@ -12,3 +12,6 @@ pub use process_cancel_offer::*;
 
 pub mod process_cancel_sub_offer;
 pub use process_cancel_sub_offer::*;
+
+pub mod process_claim_borrower_rewards;
+pub use process_claim_borrower_rewards::*;

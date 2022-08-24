@@ -103,8 +103,13 @@ pub mod unloc_loan {
         process_claim_collateral::handle(ctx)
     }
 
+    // borrower
+    pub fn claim_borrower_rewards(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
+        process_claim_borrower_rewards::handle(ctx)
+    }
+
     // borrower & lender
-    pub fn claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
-        process_claim_rewards::handle(ctx)
+    pub fn claim_lender_rewards(ctx: Context<ClaimLenderRewards>) -> Result<()> {
+        process_claim_lender_rewards::handle(ctx)
     }
 }
