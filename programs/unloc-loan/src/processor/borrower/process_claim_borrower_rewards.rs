@@ -28,7 +28,7 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
     require(ctx.accounts.borrower_reward_vault.owner == ctx.accounts.sub_offer.borrower, "borrower_reward_vault.owner")?;
 
     let is_borrower = ctx.accounts.sub_offer.borrower == ctx.accounts.authority.key();
-    require(is_borrower, "is_borrower")?;
+    authorize_account(is_borrower, "is_borrower")?;
 
     let total_point = ctx.accounts.sub_offer.total_point;
     let collection_point = ctx.accounts.sub_offer.collection_point;
@@ -48,16 +48,6 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
     let global_bump = ctx.accounts.global_state.bump;
     let signer_seeds = &[GLOBAL_STATE_TAG, &[global_bump]];
     let signer = &[&signer_seeds[..]];
-
-    // transfer to lender
-    // let cpi_accounts1 = Transfer {
-    //     from: ctx.accounts.reward_vault.to_account_info(),
-    //     to: ctx.accounts.lender_reward_vault.to_account_info(),
-    //     authority: ctx.accounts.global_state.to_account_info(),
-    // };
-    // let cpi_program1 = ctx.accounts.token_program.to_account_info();
-    // let cpi_ctx1 = CpiContext::new_with_signer(cpi_program1, cpi_accounts1, signer);
-    // token::transfer(cpi_ctx1, lender_rewards_amount)?;
 
     // transfer to borrower
     let cpi_accounts2 = Transfer {

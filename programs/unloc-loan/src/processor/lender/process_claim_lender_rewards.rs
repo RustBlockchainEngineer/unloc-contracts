@@ -28,7 +28,7 @@ pub fn handle(ctx: Context<ClaimLenderRewards>) -> Result<()> {
     require(ctx.accounts.lender_reward_vault.owner == ctx.accounts.sub_offer.lender, "lender_reward_vault.owner")?;
 
     let is_lender = ctx.accounts.sub_offer.lender == ctx.accounts.authority.key();
-    require(is_lender, "is_lender")?;
+    authorize_account(is_lender, "is_lender")?;
 
     let total_point = ctx.accounts.sub_offer.total_point;
     let collection_point = ctx.accounts.sub_offer.collection_point;
@@ -43,7 +43,6 @@ pub fn handle(ctx: Context<ClaimLenderRewards>) -> Result<()> {
     let denominator = ctx.accounts.global_state.denominator;
     let lender_rewards_percentage = ctx.accounts.global_state.lender_rewards_percentage;
     let lender_rewards_amount = calc_fee(reward_amount, lender_rewards_percentage, denominator)?;
-    // let borrower_rewards_amount = reward_amount.safe_sub(lender_rewards_amount)?;
 
     let global_bump = ctx.accounts.global_state.bump;
     let signer_seeds = &[GLOBAL_STATE_TAG, &[global_bump]];

@@ -5,13 +5,13 @@ import _ from 'lodash';
 import assert from 'assert';
 import { assertError, wrapError } from './staking-utils';
 
-import { UnlocStaking } from '../dist/cjs/types/unloc_staking'
+import { UnlocStaking } from '../src/types/unloc_staking'
 import { Connection, Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
-import { changeStakingTokenPerSecond, createStakingState, createStakingUser, harvest, initStakingProgram, stake as unlocStake, unstake as unlocUnstake } from '../dist/cjs';
+import { changeStakingTokenPerSecond, createStakingState, createStakingUser, harvest, initStakingProgram, stake as unlocStake, unstake as unlocUnstake } from '../src';
 
 import SUPER_OWNER_WALLET from './test-users/super_owner.json'
 import BORROWER1_KEYPAIR from './test-users/borrower1.json'
-import { UNLOC_MINT } from '../dist/cjs/global-config';
+import { UNLOC_MINT } from '../src/global-config';
 
 let stateSigner = Keypair.generate().publicKey
 let stateBump = 255
