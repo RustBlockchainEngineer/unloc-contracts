@@ -44,12 +44,6 @@ pub fn handle(ctx: Context<ClaimLenderRewards>) -> Result<()> {
     let lender_rewards_percentage = ctx.accounts.global_state.lender_rewards_percentage;
     let lender_rewards_amount = calc_fee(reward_amount, lender_rewards_percentage, denominator)?;
 
-    msg!("Total point: {}", total_point);
-    msg!("Reward amount: {}", reward_amount);
-    msg!("Denominator: {}", denominator);
-    msg!("Lender rewards percentage: {}", lender_rewards_percentage);
-    msg!("Lender rewards amount: {}", lender_rewards_amount);
-
     let global_bump = ctx.accounts.global_state.bump;
     let signer_seeds = &[GLOBAL_STATE_TAG, &[global_bump]];
     let signer = &[&signer_seeds[..]];
