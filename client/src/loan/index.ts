@@ -1,6 +1,6 @@
 import * as anchor from '@project-serum/anchor'
 import { bool, publicKey, struct, u32, u64, u8 } from '@project-serum/borsh'
-import { NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { IDL as idl, UnlocLoan } from '../types/unloc_loan'
 import { chainlinkIds, defaults, discriminatorLen, NFT_LOAN_PID, STAKING_PID, TOKEN_META_PID, UNLOC_MINT, VOTING_PID } from '../global-config'
 import {
@@ -414,9 +414,10 @@ export const claimExpiredCollateral = async (
 }
 
 
-export const claimRewards = async (
+export const claimLenderRewards = async (
   subOffer: anchor.web3.PublicKey,
   signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
+  newKeypair: anchor.web3.Keypair,
   signers: anchor.web3.Keypair[] = []
 ) => {
   const subOfferData = await loanProgram.account.subOffer.fetch(subOffer)
@@ -424,32 +425,75 @@ export const claimRewards = async (
   const rewardMint = UNLOC_MINT
   const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   const authority = signer
-  let lenderRewardVault = await checkWalletATA(rewardMint.toBase58(), loanProvider.connection, subOfferData.lender)
+  //let lenderRewardVault = await checkWalletATA(rewardMint.toBase58(), loanProvider.connection, subOfferData.lender)
   const preInstructions: TransactionInstruction[] = []
-  if (!lenderRewardVault) {
-    lenderRewardVault = await addTokenAccountInstruction(rewardMint, subOfferData.lender, preInstructions, signer, signers)
-  }
-  let borrowerRewardVault = await checkWalletATA(rewardMint.toBase58(), loanProvider.connection, subOfferData.borrower)
-  if (!borrowerRewardVault) {
-    borrowerRewardVault = await addTokenAccountInstruction(rewardMint, subOfferData.borrower, preInstructions, signer, signers)
-  }
-  const tx = await loanProgram.methods.claimRewards()
-    .accounts({
-      authority,
-      globalState,
-      rewardVault,
-      subOffer,
-      ...chainlinkIds,
-      lenderRewardVault,
-      borrowerRewardVault,
-      ...defaults
-    })
-    .preInstructions(preInstructions)
-    .signers(signers)
-    .rpc()
+  //if (!lenderRewardVault) {
+  let lenderRewardVault = await addTokenAccountFromKeypairInstruction(rewardMint, subOfferData.lender, newKeypair, preInstructions, signer, signers)
+  //}
 
-  // eslint-disable-next-line no-console
-  console.log('claim rewards tx = ', tx)
+  try {
+    const lenderTx = await loanProgram.methods.claimLenderRewards()
+      .accounts({
+        authority,
+        globalState,
+        rewardVault,
+        subOffer,
+        ...chainlinkIds,
+        lenderRewardVault,
+        ...defaults
+      })
+      .preInstructions(preInstructions)
+      .signers(signers)
+      .rpc()
+
+      console.log('claim lender rewards tx = ', lenderTx)
+      return lenderTx
+  } catch (e) {
+    console.log(e)
+  }
+  return ''
+}
+
+
+export const claimBorrowerRewards = async (
+  subOffer: anchor.web3.PublicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
+  newKeypair: anchor.web3.Keypair,
+  signers: anchor.web3.Keypair[] = []
+) => {
+  const subOfferData = await loanProgram.account.subOffer.fetch(subOffer)
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
+  const rewardMint = UNLOC_MINT
+  const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
+  const authority = signer
+  const preInstructions: TransactionInstruction[] = []
+  //let borrowerRewardVault = await checkWalletATA(rewardMint.toBase58(), loanProvider.connection, subOfferData.borrower)
+  //if (!borrowerRewardVault) {
+  let borrowerRewardVault = await addTokenAccountFromKeypairInstruction(rewardMint, subOfferData.borrower, newKeypair, preInstructions, signer, signers)
+  //}
+
+  try {
+    const borrowerTx = await loanProgram.methods.claimBorrowerRewards()
+      .accounts({
+        authority,
+        globalState,
+        rewardVault,
+        subOffer,
+        ...chainlinkIds,
+        borrowerRewardVault,
+        ...defaults
+      })
+      .preInstructions(preInstructions)
+      .signers(signers)
+      .rpc()
+
+      console.log('claim borrower rewards tx = ', borrowerTx)
+      return borrowerTx
+  } catch (e) {
+    console.log(e)
+  }
+
+  return ''
 }
 
 export const setLoanOffer = async (
@@ -1050,6 +1094,32 @@ export const addTokenAccountInstruction = async (
   rent: number = 0
 ) => {
   const newKeypair = Keypair.generate()
+  const rentForTokenAccount = await Token.getMinBalanceRentForExemptAccount(loanProvider.connection)
+  instructions.push(
+    SystemProgram.createAccount({
+      fromPubkey: signer,
+      newAccountPubkey: newKeypair.publicKey,
+      lamports: rent > 0 ? rent : rentForTokenAccount,
+      space: ACCOUNT_LAYOUT.span,
+      programId: TOKEN_PROGRAM_ID
+    })
+  )
+  const instruction = Token.createInitAccountInstruction(TOKEN_PROGRAM_ID, mint, newKeypair.publicKey, owner)
+  instructions.push(instruction)
+  signers.push(newKeypair)
+  return newKeypair.publicKey
+}
+
+export const addTokenAccountFromKeypairInstruction = async (
+  mint: anchor.web3.PublicKey,
+  owner: anchor.web3.PublicKey,
+  newKeypair: anchor.web3.Keypair,
+  instructions: TransactionInstruction[],
+  signer: anchor.web3.PublicKey,
+  signers: anchor.web3.Keypair[],
+  rent: number = 0
+) => {
+  //const newKeypair = Keypair.generate()
   const rentForTokenAccount = await Token.getMinBalanceRentForExemptAccount(loanProvider.connection)
   instructions.push(
     SystemProgram.createAccount({
