@@ -565,22 +565,11 @@ describe('loan-common', () => {
       [borrowerKeypair]
     )
 
-    const subOfferData = await program.account.subOffer.fetch(subOffer)
-    // const lenderRewardVault = await checkWalletATA(rewardMint.toBase58(), provider.connection, subOfferData.lender)
-    //const borrowerRewardVault = await checkWalletATA(rewardMint.toBase58(), provider.connection, subOfferData.borrower)
-    let lenderBalance = await provider.connection.getTokenAccountBalance(lenderRewardVault.publicKey)
-    let borrowerBalance = await provider.connection.getTokenAccountBalance(borrowerRewardVault.publicKey)
-    console.log("Lender balance: ", lenderBalance)
-    console.log("Borrower balance: ", borrowerBalance)
-    // if (lenderBalance.value.uiAmount !== null && borrowerBalance.value.uiAmount !== null){
-    //   console.log("Lender: ", lenderBalance)
-    //   console.log("Borrower: ", borrowerBalance)
-    //   assert(lenderBalance.value.uiAmount > 0)
-    //   assert(lenderBalance.value.uiAmount > 0)
-    // }
-    // else {
-    //   assert.fail("Either the lender or borrower rewards token account is null")
-    // }
+    // let lenderBalance = await provider.connection.getTokenAccountBalance(lenderRewardVault.publicKey)
+    // let borrowerBalance = await provider.connection.getTokenAccountBalance(borrowerRewardVault.publicKey)
+    // console.log("Lender pubkey: ", lenderBalance)
+    // console.log("Borrower pubkey: ", borrowerBalance)
+
   });
 
 });
