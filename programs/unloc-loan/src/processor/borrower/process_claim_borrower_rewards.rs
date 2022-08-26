@@ -22,8 +22,6 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
     }
 
     let clock = Clock::get().unwrap();
-    msg!("Current time: {}", clock.unix_timestamp);
-    msg!("Borrower last claimed: {}", ctx.accounts.sub_offer.last_borrower_claim);
     if ctx.accounts.sub_offer.borrower_has_claimed_rewards && (clock.unix_timestamp - ctx.accounts.sub_offer.last_borrower_claim) < UNIX_DAY {
         return Err(error!(LoanError::CooldownPeriod));
     }
