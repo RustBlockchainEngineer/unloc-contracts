@@ -38,7 +38,7 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
     let total_point = ctx.accounts.sub_offer.total_point;
     let collection_point = ctx.accounts.sub_offer.collection_point;
 
-    let full_reward_amount = ctx.accounts.sub_offer.pending_rewards()?;
+    let full_reward_amount = ctx.accounts.sub_offer.pending_borrower_rewards()?;
     let reward_amount = if total_point == 0 {
         0
     } else {
@@ -64,7 +64,7 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
     let cpi_ctx2 = CpiContext::new_with_signer(cpi_program2, cpi_accounts2, signer);
     token::transfer(cpi_ctx2, borrower_rewards_amount)?;
 
-    ctx.accounts.sub_offer.update_reward_debt()?;
+    ctx.accounts.sub_offer.update_borrower_reward_debt()?;
     ctx.accounts.sub_offer.last_borrower_claim = clock.unix_timestamp;
     ctx.accounts.sub_offer.borrower_has_claimed_rewards = true;
     Ok(())
