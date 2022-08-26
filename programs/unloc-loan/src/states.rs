@@ -153,6 +153,10 @@ pub struct SubOffer {
     // UNLOC rewards
     pub total_point: u128,
     pub collection_point: u128,
+    pub lender_has_claimed_rewards: bool,
+    pub borrower_has_claimed_rewards: bool,
+    pub last_lender_claim: i64,
+    pub last_borrower_claim: i64,
     pub rps: u128,
     pub reward_debt: u128,
 

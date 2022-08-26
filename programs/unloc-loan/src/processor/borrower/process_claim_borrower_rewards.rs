@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-use crate::{constant::*, states::*, utils::*};
+use crate::{constant::*, states::*, utils::*, error::*};
 use std::str::FromStr;
 
 pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
@@ -19,6 +19,13 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
         ctx.accounts
             .sub_offer
             .update_rps(&ctx.accounts.global_state, &offer_mint)?;
+    }
+
+    let clock = Clock::get().unwrap();
+    msg!("Current time: {}", clock.unix_timestamp);
+    msg!("Borrower last claimed: {}", ctx.accounts.sub_offer.last_borrower_claim);
+    if ctx.accounts.sub_offer.borrower_has_claimed_rewards && (clock.unix_timestamp - ctx.accounts.sub_offer.last_borrower_claim) < UNIX_DAY {
+        return Err(error!(LoanError::CooldownPeriod));
     }
 
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
@@ -60,6 +67,8 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
     token::transfer(cpi_ctx2, borrower_rewards_amount)?;
 
     ctx.accounts.sub_offer.update_reward_debt()?;
+    ctx.accounts.sub_offer.last_borrower_claim = clock.unix_timestamp;
+    ctx.accounts.sub_offer.borrower_has_claimed_rewards = true;
     Ok(())
 }
 

@@ -81,6 +81,8 @@ pub fn set_sub_offer(
     ctx.accounts.sub_offer.sub_offer_number = sub_offer_number;
     ctx.accounts.sub_offer.loan_duration = loan_duration;
     ctx.accounts.sub_offer.apr_numerator = apr_numerator;
+    ctx.accounts.sub_offer.lender_has_claimed_rewards = false;
+    ctx.accounts.sub_offer.borrower_has_claimed_rewards = false;
 
     Ok(())
 }

@@ -572,6 +572,40 @@ describe('loan-common', () => {
 
   });
 
+  it('Lender claims rewards during cooldown', async () => {
+    const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
+    const offerDataBefore = await program.account.offer.fetch(offer)
+    const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))
+    const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
+
+    const tempLenderRewardsKeypair = Keypair.generate()
+    // borrower claims lender's rewards
+    let hash = claimLenderRewards(
+      subOffer,
+      lender1,
+      tempLenderRewardsKeypair,
+      [lender1Keypair]
+    )
+    await assertError(hash, undefined)
+  })
+
+  it('Borrower claims rewards during cooldown', async () => {
+    const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
+    const offerDataBefore = await program.account.offer.fetch(offer)
+    const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))
+    const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
+
+    const tempBorrowerRewardsKeypair = Keypair.generate()
+    // lender claims borrower's rewards
+    let hash = claimBorrowerRewards(
+      subOffer,
+      borrower,
+      tempBorrowerRewardsKeypair,
+      [borrowerKeypair]
+    )
+    await assertError(hash, undefined)
+  })
+
 });
 
 async function safeAirdrop(connection: anchor.web3.Connection, key: anchor.web3.PublicKey, amount: number) {

@@ -24,4 +24,6 @@ pub enum LoanError {
     InvalidAmount,
     #[msg("InvalidDenominator")]
     InvalidDenominator,
+    #[msg("Must wait 24 hours before redeeming liquidity mining rewards again.")]
+    CooldownPeriod,
 }
