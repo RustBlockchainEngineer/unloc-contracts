@@ -37,6 +37,16 @@ export const config = {
     'GH1gUyAw7ems5MD46WGC9JPMHncLVBkHagpXgtYVUyPr',
     '4MwL9T4Kjyq8KuVbJM5hpfQizTKFbZmg7aqBQP9zapBJ',
     'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  ],
+  chainlinkSolFeed: [
+    'CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq',
+    'HgTtcbcmp5BeThax5AU8vg4VwK79qAvAKKFMs8txMLW6',
+    'CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq',
+  ],
+  chainlinkUSDCFeed: [
+    '7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G',
+    '4NmRgDfAZrfBHQBuzstMP5Bu1pgBzVn8u1djSvNrNkrN',
+    '7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G',
   ]
 }
 
@@ -66,8 +76,8 @@ const CHAINLINK_AGGREGATOR_PROGRAM_ID = new anchor.web3.PublicKey(
   "HEvSKofvBgfaexv23kMabbYqxasxU3mQ4ibBMEmJWHny"
 );
 
-export const CHAINLINK_SOL_FEED = new PublicKey("CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq")
-export const CHAINLINK_USDC_FEED = new PublicKey("7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G")
+export const CHAINLINK_SOL_FEED = new PublicKey(config.chainlinkSolFeed[config.cluster])
+export const CHAINLINK_USDC_FEED = new PublicKey(config.chainlinkUSDCFeed[config.cluster])
 export const CHAINLINK_PID = new PublicKey(CHAINLINK_AGGREGATOR_PROGRAM_ID)
 export const chainlinkIds = {
   chainlinkProgram: CHAINLINK_PID,

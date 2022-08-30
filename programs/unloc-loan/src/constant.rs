@@ -56,8 +56,16 @@ pub const PRICE_DECIMALS_AMP: u64 = 100_000_000;
 pub const SHARE_PRECISION: u128 = 1000_000_000_000;
 pub const DIFF_SOL_USDC_DECIMALS: u128 = 1000;
 
-pub const CHAINLINK_SOL_FEED: &str = "CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq";
-pub const CHAINLINK_USDC_FEED: &str = "7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G";
+pub const CHAINLINK_SOL_FEED: &str = if DEVNET_MODE {
+    "HgTtcbcmp5BeThax5AU8vg4VwK79qAvAKKFMs8txMLW6"
+} else {
+    "CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq"
+};
+pub const CHAINLINK_USDC_FEED: &str = if DEVNET_MODE {
+    "4NmRgDfAZrfBHQBuzstMP5Bu1pgBzVn8u1djSvNrNkrN"
+} else {
+    "7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G"
+};
 pub const INITIAL_OWNER: &str = "HV2t9B2oxdtkwbZrWj1vjZ2q3g4SH5rasGw8WohBFbvH";
 
 pub const UNIX_DAY: i64 = 86400;
