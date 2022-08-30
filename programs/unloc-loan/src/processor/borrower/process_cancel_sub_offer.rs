@@ -9,10 +9,6 @@ pub fn handle(ctx: Context<CancelSubOffer>) -> Result<()> {
     )?;
     ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Canceled);
 
-    if ctx.accounts.offer.sub_offer_count > ctx.accounts.offer.start_sub_offer_num {
-        ctx.accounts.offer.sub_offer_count = ctx.accounts.offer.sub_offer_count.safe_sub(1)?;
-    }
-
     Ok(())
 }
 
