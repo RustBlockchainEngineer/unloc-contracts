@@ -15,16 +15,17 @@ import {
   getVotingItem,
   getCurrentVotingKey,
   depositRewards,
-  claimRewards,
+  claimLenderRewards,
   createLoanSubOfferByStaking,
   checkWalletATA,
   acceptLoanOffer,
   setLoanStakingPool,
   setLoanVoting,
-  getVotingKeyFromNum
+  getVotingKeyFromNum,
+  claimBorrowerRewards
 } from '../dist/cjs'
 import * as anchor from '@project-serum/anchor';
-
+import { assertError } from './staking-utils';
 import { assert } from 'chai'
 import { UnlocLoan } from '../dist/cjs/types/unloc_loan';
 
@@ -33,10 +34,10 @@ import PROPOSER1_WALLET from './test-users/borrower1.json'
 import LOANER1_WALLET from './test-users/lender1.json'
 import TREASURY from './test-users/treasury.json'
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { STAKING_PID, TOKEN_META_PID, UNLOC_MINT, USDC_MINT, VOTING_PID } from '../dist/cjs';
+import { initVotingProgram, STAKING_PID, TOKEN_META_PID, UNLOC_MINT, USDC_MINT, VOTING_PID } from '../dist/cjs';
 import { Collection, CreateMasterEditionV3, CreateMetadataV2, DataV2, Edition, Metadata } from '@metaplex-foundation/mpl-token-metadata';
 import { mintAndCreateMetadata, mintAndCreateMetadataV2 } from '@metaplex-foundation/mpl-token-metadata/dist/test/actions';
-import { Keypair } from '@solana/web3.js';
+import { Keypair, Connection } from '@solana/web3.js';
 import { BN } from '@project-serum/anchor';
 
 describe('loan-common', () => {
@@ -60,6 +61,12 @@ describe('loan-common', () => {
   const programId = program.programId
 
   initLoanProgram((program.provider as any).wallet, program.provider.connection, programId)
+
+  let connection = provider.connection
+  const votingConnection = new Connection(connection.rpcEndpoint, { commitment: 'confirmed' })
+
+  initVotingProgram((program.provider as any).wallet, votingConnection, VOTING_PID);
+
   const systemProgram = anchor.web3.SystemProgram.programId
   const tokenProgram = TOKEN_PROGRAM_ID
   const rent = anchor.web3.SYSVAR_RENT_PUBKEY
@@ -505,17 +512,105 @@ describe('loan-common', () => {
     const lenderNftInfo = await nftMint.getAccountInfo(lenderNftATA);
     assert.equal((lenderNftInfo.amount as any).toNumber(), 1, "lender nft balance")
   });
+
+  it('Borrower claim lender rewards (should error)', async () => {
+    const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
+    const offerDataBefore = await program.account.offer.fetch(offer)
+    const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))
+    const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
+
+    const tempLenderRewardsKeypair = Keypair.generate()
+    // borrower claims lender's rewards
+    let hash = claimLenderRewards(
+      subOffer,
+      borrower,
+      tempLenderRewardsKeypair,
+      [borrowerKeypair]
+    )
+    await assertError(hash, undefined)
+  })
+
+  it('Lender claim borrower rewards (should error)', async () => {
+    const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
+    const offerDataBefore = await program.account.offer.fetch(offer)
+    const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))
+    const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
+
+    const tempBorrowerRewardsKeypair = Keypair.generate()
+    // lender claims borrower's rewards
+    let hash = claimBorrowerRewards(
+      subOffer,
+      lender1,
+      tempBorrowerRewardsKeypair,
+      [lender1Keypair]
+    )
+    await assertError(hash, undefined)
+  })
+
   it('Claim rewards', async () => {
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const offerDataBefore = await program.account.offer.fetch(offer)
     const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))
     const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
-    await claimRewards(
+
+    const lenderRewardVault = Keypair.generate() 
+    // lender claims their rewards
+    await claimLenderRewards(
       subOffer,
       lender1,
+      lenderRewardVault,
       [lender1Keypair]
-    );
+    )
+
+    const borrowerRewardVault = Keypair.generate()
+    // borrower claims their rewards
+    await claimBorrowerRewards(
+      subOffer,
+      borrower,
+      borrowerRewardVault,
+      [borrowerKeypair]
+    )
+
+    // let lenderBalance = await provider.connection.getTokenAccountBalance(lenderRewardVault.publicKey)
+    // let borrowerBalance = await provider.connection.getTokenAccountBalance(borrowerRewardVault.publicKey)
+    // console.log("Lender pubkey: ", lenderBalance)
+    // console.log("Borrower pubkey: ", borrowerBalance)
+
   });
+
+  it('Lender claims rewards during cooldown', async () => {
+    const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
+    const offerDataBefore = await program.account.offer.fetch(offer)
+    const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))
+    const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
+
+    const tempLenderRewardsKeypair = Keypair.generate()
+    // borrower claims lender's rewards
+    let hash = claimLenderRewards(
+      subOffer,
+      lender1,
+      tempLenderRewardsKeypair,
+      [lender1Keypair]
+    )
+    await assertError(hash, undefined)
+  })
+
+  it('Borrower claims rewards during cooldown', async () => {
+    const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
+    const offerDataBefore = await program.account.offer.fetch(offer)
+    const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))
+    const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
+
+    const tempBorrowerRewardsKeypair = Keypair.generate()
+    // lender claims borrower's rewards
+    let hash = claimBorrowerRewards(
+      subOffer,
+      borrower,
+      tempBorrowerRewardsKeypair,
+      [borrowerKeypair]
+    )
+    await assertError(hash, undefined)
+  })
 
 });
 

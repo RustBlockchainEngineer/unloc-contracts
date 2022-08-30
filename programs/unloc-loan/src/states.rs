@@ -153,8 +153,16 @@ pub struct SubOffer {
     // UNLOC rewards
     pub total_point: u128,
     pub collection_point: u128,
+    pub lender_has_claimed_rewards: bool,
+    pub borrower_has_claimed_rewards: bool,
+    pub last_lender_claim: i64,
+    pub last_borrower_claim: i64,
     pub rps: u128,
-    pub reward_debt: u128,
+
+    // due to complexity of structure, we use separated reward debt at the moment.
+    // if we use new User account, it will be more structured
+    pub lender_reward_debt: u128,
+    pub borrower_reward_debt: u128,
 
     pub reserved: [u128; 7],
 }
@@ -162,10 +170,18 @@ impl SubOffer {
     pub fn virtual_rewards(&self) -> Result<u128> {
         self.rps.safe_mul(self.offer_amount as u128)
     }
-    pub fn pending_rewards(&self) -> Result<u64> {
+    pub fn pending_lender_rewards(&self) -> Result<u64> {
         let pending = self
             .virtual_rewards()?
-            .safe_sub(self.reward_debt)?
+            .safe_sub(self.lender_reward_debt)?
+            .safe_div(SHARE_PRECISION)?
+            .safe_div(10u128.pow(self.offer_mint_decimals as u32))?;
+        Ok(pending.try_into().unwrap_or(0))
+    }
+    pub fn pending_borrower_rewards(&self) -> Result<u64> {
+        let pending = self
+            .virtual_rewards()?
+            .safe_sub(self.borrower_reward_debt)?
             .safe_div(SHARE_PRECISION)?
             .safe_div(10u128.pow(self.offer_mint_decimals as u32))?;
         Ok(pending.try_into().unwrap_or(0))
@@ -182,8 +198,17 @@ impl SubOffer {
         }
         Ok(())
     }
+    pub fn update_lender_reward_debt(&mut self) -> Result<()> {
+        self.lender_reward_debt = self.virtual_rewards()?;
+        Ok(())
+    }
+    pub fn update_borrower_reward_debt(&mut self) -> Result<()> {
+        self.borrower_reward_debt = self.virtual_rewards()?;
+        Ok(())
+    }
     pub fn update_reward_debt(&mut self) -> Result<()> {
-        self.reward_debt = self.virtual_rewards()?;
+        self.update_lender_reward_debt()?;
+        self.update_borrower_reward_debt()?;
         Ok(())
     }
 }

@@ -1,15 +1,16 @@
 
-import { createVoting, getLastVoting, getLastVotingKey, getVoting, getVotingGlobalState, getVotingItem, getVotingItemKey, getVotingUser, initVotingProgram, setVoting, setVotingGlobalState, setVotingItem, vote } from '../dist/cjs'
+import { createVoting, getLastVoting, getLastVotingKey, getVoting, getVotingGlobalState, getVotingItem, getVotingItemKey, getVotingUser, initStakingProgram, initVotingProgram, setVoting, setVotingGlobalState, setVotingItem, vote } from '../dist/cjs'
 import * as anchor from '@project-serum/anchor';
 
 import { assert} from 'chai'  
 import { UnlocVoting } from '../dist/cjs/types/unloc_voting';
+import { UnlocStaking } from '../dist/cjs/types/unloc_staking';
 
 import SUPER_OWNER_WALLET from './test-users/super_owner.json'
 import BORROWER1_KEYPAIR from './test-users/borrower1.json'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { BN } from '@project-serum/anchor';
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, Connection } from '@solana/web3.js';
 
 describe('voting-common', () => {
 
@@ -23,10 +24,16 @@ describe('voting-common', () => {
 
 
   const program = anchor.workspace.UnlocVoting as anchor.Program<UnlocVoting>;
+  const stakingProgram = anchor.workspace.UnlocStaking as anchor.Program<UnlocStaking>;
   
   const programId = program.programId
 
   initVotingProgram((program.provider as any).wallet,program.provider.connection, programId)
+  
+  let connection = provider.connection
+  const stakingConnection = new Connection(connection.rpcEndpoint, { commitment: 'confirmed' })
+
+  initStakingProgram(stakingConnection, new anchor.Wallet(superOwnerKeypair));
 
   const systemProgram = anchor.web3.SystemProgram.programId
   const tokenProgram = TOKEN_PROGRAM_ID

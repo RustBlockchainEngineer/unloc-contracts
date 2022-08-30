@@ -30,6 +30,14 @@ pub fn require(flag: bool, msg: &str) -> Result<()> {
     Ok(())
 }
 
+pub fn authorize_account(flag: bool, msg: &str) -> Result<()> {
+    if !flag {
+        msg!("error: {}", msg);
+        return Err(error!(LoanError::Unauthorized));
+    }
+    Ok(())
+}
+
 pub fn bump(seeds: &[&[u8]], program_id: &Pubkey) -> u8 {
     let (_found_key, bump) = Pubkey::find_program_address(seeds, program_id);
     bump
