@@ -11,17 +11,17 @@ import * as web3 from '@solana/web3.js'
 
 /**
  * @category Instructions
- * @category ClaimRewards
+ * @category ClaimBorrowerRewards
  * @category generated
  */
-export const claimRewardsStruct = new beet.BeetArgsStruct<{
+export const claimBorrowerRewardsStruct = new beet.BeetArgsStruct<{
   instructionDiscriminator: number[] /* size: 8 */
 }>(
   [['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)]],
-  'ClaimRewardsInstructionArgs'
+  'ClaimBorrowerRewardsInstructionArgs'
 )
 /**
- * Accounts required by the _claimRewards_ instruction
+ * Accounts required by the _claimBorrowerRewards_ instruction
  *
  * @property [_writable_, **signer**] authority
  * @property [] globalState
@@ -30,14 +30,13 @@ export const claimRewardsStruct = new beet.BeetArgsStruct<{
  * @property [] chainlinkProgram
  * @property [] solFeed
  * @property [] usdcFeed
- * @property [_writable_] lenderRewardVault
  * @property [_writable_] borrowerRewardVault
  * @property [] clock
  * @category Instructions
- * @category ClaimRewards
+ * @category ClaimBorrowerRewards
  * @category generated
  */
-export type ClaimRewardsInstructionAccounts = {
+export type ClaimBorrowerRewardsInstructionAccounts = {
   authority: web3.PublicKey
   globalState: web3.PublicKey
   subOffer: web3.PublicKey
@@ -45,30 +44,29 @@ export type ClaimRewardsInstructionAccounts = {
   chainlinkProgram: web3.PublicKey
   solFeed: web3.PublicKey
   usdcFeed: web3.PublicKey
-  lenderRewardVault: web3.PublicKey
   borrowerRewardVault: web3.PublicKey
   tokenProgram?: web3.PublicKey
   clock: web3.PublicKey
 }
 
-export const claimRewardsInstructionDiscriminator = [
-  4, 144, 132, 71, 116, 23, 151, 80,
+export const claimBorrowerRewardsInstructionDiscriminator = [
+  7, 235, 76, 84, 43, 189, 103, 106,
 ]
 
 /**
- * Creates a _ClaimRewards_ instruction.
+ * Creates a _ClaimBorrowerRewards_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @category Instructions
- * @category ClaimRewards
+ * @category ClaimBorrowerRewards
  * @category generated
  */
-export function createClaimRewardsInstruction(
-  accounts: ClaimRewardsInstructionAccounts,
+export function createClaimBorrowerRewardsInstruction(
+  accounts: ClaimBorrowerRewardsInstructionAccounts,
   programId = new web3.PublicKey('6oVXrGCdtnTUR6xCvn2Z3f2CYaiboAGar1DKxzeX8QYh')
 ) {
-  const [data] = claimRewardsStruct.serialize({
-    instructionDiscriminator: claimRewardsInstructionDiscriminator,
+  const [data] = claimBorrowerRewardsStruct.serialize({
+    instructionDiscriminator: claimBorrowerRewardsInstructionDiscriminator,
   })
   const keys: web3.AccountMeta[] = [
     {
@@ -104,11 +102,6 @@ export function createClaimRewardsInstruction(
     {
       pubkey: accounts.usdcFeed,
       isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.lenderRewardVault,
-      isWritable: true,
       isSigner: false,
     },
     {

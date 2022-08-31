@@ -36,8 +36,13 @@ export type SubOfferArgs = {
   creationDate: beet.bignum
   totalPoint: beet.bignum
   collectionPoint: beet.bignum
+  lenderHasClaimedRewards: boolean
+  borrowerHasClaimedRewards: boolean
+  lastLenderClaim: beet.bignum
+  lastBorrowerClaim: beet.bignum
   rps: beet.bignum
-  rewardDebt: beet.bignum
+  lenderRewardDebt: beet.bignum
+  borrowerRewardDebt: beet.bignum
   reserved: beet.bignum[] /* size: 7 */
 }
 
@@ -72,8 +77,13 @@ export class SubOffer implements SubOfferArgs {
     readonly creationDate: beet.bignum,
     readonly totalPoint: beet.bignum,
     readonly collectionPoint: beet.bignum,
+    readonly lenderHasClaimedRewards: boolean,
+    readonly borrowerHasClaimedRewards: boolean,
+    readonly lastLenderClaim: beet.bignum,
+    readonly lastBorrowerClaim: beet.bignum,
     readonly rps: beet.bignum,
-    readonly rewardDebt: beet.bignum,
+    readonly lenderRewardDebt: beet.bignum,
+    readonly borrowerRewardDebt: beet.bignum,
     readonly reserved: beet.bignum[] /* size: 7 */
   ) {}
 
@@ -103,8 +113,13 @@ export class SubOffer implements SubOfferArgs {
       args.creationDate,
       args.totalPoint,
       args.collectionPoint,
+      args.lenderHasClaimedRewards,
+      args.borrowerHasClaimedRewards,
+      args.lastLenderClaim,
+      args.lastBorrowerClaim,
       args.rps,
-      args.rewardDebt,
+      args.lenderRewardDebt,
+      args.borrowerRewardDebt,
       args.reserved
     )
   }
@@ -335,6 +350,30 @@ export class SubOffer implements SubOfferArgs {
         }
         return x
       })(),
+      lenderHasClaimedRewards: this.lenderHasClaimedRewards,
+      borrowerHasClaimedRewards: this.borrowerHasClaimedRewards,
+      lastLenderClaim: (() => {
+        const x = <{ toNumber: () => number }>this.lastLenderClaim
+        if (typeof x.toNumber === 'function') {
+          try {
+            return x.toNumber()
+          } catch (_) {
+            return x
+          }
+        }
+        return x
+      })(),
+      lastBorrowerClaim: (() => {
+        const x = <{ toNumber: () => number }>this.lastBorrowerClaim
+        if (typeof x.toNumber === 'function') {
+          try {
+            return x.toNumber()
+          } catch (_) {
+            return x
+          }
+        }
+        return x
+      })(),
       rps: (() => {
         const x = <{ toNumber: () => number }>this.rps
         if (typeof x.toNumber === 'function') {
@@ -346,8 +385,19 @@ export class SubOffer implements SubOfferArgs {
         }
         return x
       })(),
-      rewardDebt: (() => {
-        const x = <{ toNumber: () => number }>this.rewardDebt
+      lenderRewardDebt: (() => {
+        const x = <{ toNumber: () => number }>this.lenderRewardDebt
+        if (typeof x.toNumber === 'function') {
+          try {
+            return x.toNumber()
+          } catch (_) {
+            return x
+          }
+        }
+        return x
+      })(),
+      borrowerRewardDebt: (() => {
+        const x = <{ toNumber: () => number }>this.borrowerRewardDebt
         if (typeof x.toNumber === 'function') {
           try {
             return x.toNumber()
@@ -395,8 +445,13 @@ export const subOfferBeet = new beet.BeetStruct<
     ['creationDate', beet.u64],
     ['totalPoint', beet.u128],
     ['collectionPoint', beet.u128],
+    ['lenderHasClaimedRewards', beet.bool],
+    ['borrowerHasClaimedRewards', beet.bool],
+    ['lastLenderClaim', beet.i64],
+    ['lastBorrowerClaim', beet.i64],
     ['rps', beet.u128],
-    ['rewardDebt', beet.u128],
+    ['lenderRewardDebt', beet.u128],
+    ['borrowerRewardDebt', beet.u128],
     ['reserved', beet.uniformFixedSizeArray(beet.u128, 7)],
   ],
   SubOffer.fromArgs,

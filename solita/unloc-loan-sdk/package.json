@@ -1,6 +1,6 @@
 {
   "name": "@unloc-dev/unloc-loan-solita",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "UNLOC-loan auto-generated SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
