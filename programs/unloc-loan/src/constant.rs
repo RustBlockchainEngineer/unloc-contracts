@@ -61,3 +61,6 @@ pub const CHAINLINK_USDC_FEED: &str = "7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2
 pub const INITIAL_OWNER: &str = "HV2t9B2oxdtkwbZrWj1vjZ2q3g4SH5rasGw8WohBFbvH";
 
 pub const UNIX_DAY: i64 = 86400;
+
+// Hour liquidity mining redemptions will be reset in UTC
+pub const REDEMPTION_RESET: i64 = 5;
