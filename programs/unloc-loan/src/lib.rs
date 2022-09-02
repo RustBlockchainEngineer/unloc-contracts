@@ -67,17 +67,32 @@ pub mod unloc_loan {
     }
 
     // borrower
-    pub fn set_offer(ctx: Context<SetOffer>) -> Result<()> {
-        process_set_offer::handle(ctx)
+    pub fn create_offer(ctx: Context<CreateOffer>) -> Result<()> {
+        process_create_offer::handle(ctx)
     }
-    pub fn set_sub_offer(
-        ctx: Context<SetSubOffer>,
+    pub fn create_sub_offer(
+        ctx: Context<CreateSubOffer>,
         offer_amount: u64,
         sub_offer_number: u64,
         loan_duration: u64,
         apr_numerator: u64,
     ) -> Result<()> {
-        process_set_sub_offer::handle(
+        process_create_sub_offer::handle(
+            ctx,
+            offer_amount,
+            sub_offer_number,
+            loan_duration,
+            apr_numerator,
+        )
+    }
+    pub fn update_sub_offer(
+        ctx: Context<UpdateSubOffer>,
+        offer_amount: u64,
+        sub_offer_number: u64,
+        loan_duration: u64,
+        apr_numerator: u64,
+    ) -> Result<()> {
+        process_update_sub_offer::handle(
             ctx,
             offer_amount,
             sub_offer_number,
@@ -88,11 +103,11 @@ pub mod unloc_loan {
     pub fn repay_loan(ctx: Context<RepayLoan>) -> Result<()> {
         process_repay_loan::handle(ctx)
     }
-    pub fn cancel_offer(ctx: Context<CancelOffer>) -> Result<()> {
-        process_cancel_offer::handle(ctx)
+    pub fn delete_offer(ctx: Context<DeleteOffer>) -> Result<()> {
+        process_delete_offer::handle(ctx)
     }
-    pub fn cancel_sub_offer(ctx: Context<CancelSubOffer>) -> Result<()> {
-        process_cancel_sub_offer::handle(ctx)
+    pub fn delete_sub_offer(ctx: Context<DeleteSubOffer>) -> Result<()> {
+        process_delete_sub_offer::handle(ctx)
     }
 
     // lender

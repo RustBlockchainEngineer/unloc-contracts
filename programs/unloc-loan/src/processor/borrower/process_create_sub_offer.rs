@@ -6,7 +6,7 @@ use std::str::FromStr;
 use unloc_staking::states::FarmPoolUserAccount;
 
 pub fn handle(
-    ctx: Context<SetSubOffer>,
+    ctx: Context<CreateSubOffer>,
     offer_amount: u64,
     sub_offer_number: u64,
     loan_duration: u64,
@@ -40,7 +40,7 @@ pub fn handle(
     )
 }
 pub fn set_sub_offer(
-    ctx: Context<SetSubOffer>,
+    ctx: Context<CreateSubOffer>,
     offer_amount: u64,
     sub_offer_number: u64,
     loan_duration: u64,
@@ -56,15 +56,13 @@ pub fn set_sub_offer(
         .safe_sub(ctx.accounts.offer.start_sub_offer_num)?;
     require(cur_available_sub_offer_count < available_sub_offer_count, "cur_available_sub_offer_count")?;
 
-    if is_zero_account(&ctx.accounts.sub_offer.to_account_info()) {
-        ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Proposed);
-        ctx.accounts.offer.sub_offer_count = ctx.accounts.offer.sub_offer_count.safe_add(1)?;
-        ctx.accounts.sub_offer.offer = ctx.accounts.offer.key();
-        ctx.accounts.sub_offer.nft_mint = ctx.accounts.offer.nft_mint;
-        ctx.accounts.sub_offer.borrower = ctx.accounts.offer.borrower;
-        ctx.accounts.sub_offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
-        ctx.accounts.sub_offer.bump = *ctx.bumps.get("sub_offer").unwrap();
-    }
+    ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Proposed);
+    ctx.accounts.offer.sub_offer_count = ctx.accounts.offer.sub_offer_count.safe_add(1)?;
+    ctx.accounts.sub_offer.offer = ctx.accounts.offer.key();
+    ctx.accounts.sub_offer.nft_mint = ctx.accounts.offer.nft_mint;
+    ctx.accounts.sub_offer.borrower = ctx.accounts.offer.borrower;
+    ctx.accounts.sub_offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
+    ctx.accounts.sub_offer.bump = *ctx.bumps.get("sub_offer").unwrap();
 
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
@@ -93,7 +91,7 @@ pub fn set_sub_offer(
     loan_duration: u64,
     apr_numerator: u64
 )]
-pub struct SetSubOffer<'info> {
+pub struct CreateSubOffer<'info> {
     #[account(mut)]
     pub borrower: Signer<'info>,
     #[account(mut)]
@@ -113,7 +111,7 @@ pub struct SetSubOffer<'info> {
 
     // init_if_needed is safe above solana-program v1.10.29
     #[account(
-    init_if_needed,
+    init,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer_number.to_be_bytes()],
     bump,
     payer = payer,

@@ -1,20 +1,21 @@
 use crate::{constant::*, states::*, utils::*};
 use anchor_lang::prelude::*;
 
-pub fn handle(ctx: Context<CancelSubOffer>) -> Result<()> {
+pub fn handle(ctx: Context<DeleteSubOffer>) -> Result<()> {
     require(
         ctx.accounts.sub_offer.state == SubOfferState::get_state(SubOfferState::Proposed)
             || ctx.accounts.sub_offer.state == SubOfferState::get_state(SubOfferState::NFTClaimed),
         "ctx.accounts.sub_offer.state"
     )?;
-    ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Canceled);
 
+    // delete sub offer account
+    ctx.accounts.sub_offer.close(ctx.accounts.borrower.to_account_info());
     Ok(())
 }
 
 #[derive(Accounts)]
 #[instruction()]
-pub struct CancelSubOffer<'info> {
+pub struct DeleteSubOffer<'info> {
     #[account(mut)]
     pub borrower: Signer<'info>,
 

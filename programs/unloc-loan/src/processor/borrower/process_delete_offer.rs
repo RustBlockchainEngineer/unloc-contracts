@@ -4,7 +4,7 @@ use anchor_lang::solana_program::program::invoke_signed;
 use anchor_spl::token::{self, Mint, Revoke, Token, TokenAccount};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 
-pub fn handle(ctx: Context<CancelOffer>) -> Result<()> {
+pub fn handle(ctx: Context<DeleteOffer>) -> Result<()> {
     require(
         ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed)
             || ctx.accounts.offer.state == OfferState::get_state(OfferState::NFTClaimed),
@@ -46,14 +46,14 @@ pub fn handle(ctx: Context<CancelOffer>) -> Result<()> {
     // Revoke with offer PDA
     token::revoke(ctx.accounts.into_revoke_context())?;
 
-    ctx.accounts.offer.state = OfferState::get_state(OfferState::Canceled);
-
+    // delete offer account
+    ctx.accounts.offer.close(ctx.accounts.borrower.to_account_info());
     Ok(())
 }
 
 #[derive(Accounts)]
 #[instruction()]
-pub struct CancelOffer<'info> {
+pub struct DeleteOffer<'info> {
     #[account(mut)]
     pub borrower: Signer<'info>,
 
@@ -81,7 +81,7 @@ pub struct CancelOffer<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
 }
-impl<'info> CancelOffer<'info> {
+impl<'info> DeleteOffer<'info> {
     fn into_revoke_context(&self) -> CpiContext<'_, '_, '_, 'info, Revoke<'info>> {
         let cpi_accounts = Revoke {
             source: self.user_vault.to_account_info().clone(),
