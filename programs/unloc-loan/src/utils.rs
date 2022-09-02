@@ -209,7 +209,7 @@ pub fn convert_unix_to_utc(mut unix_time: i64) -> Result<UtcTime> {
 
      /* Unix time starts in 1970 on a Thursday */
     let mut year: i64 = 1970;
-    let mut day_of_week: i64 = 4;
+    //let mut day_of_week: i64 = 4;
     let mut month: i64 = 0;
     let mut days_in_current_month: i64 = 0;
 
@@ -219,17 +219,17 @@ pub fn convert_unix_to_utc(mut unix_time: i64) -> Result<UtcTime> {
         if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) { leap_year = true };
         if leap_year { days_in_year = 366 } else { days_in_year = 365 };
         if days >= days_in_year {
-            if leap_year { day_of_week += 2 } else { day_of_week += 1 };
+            //if leap_year { day_of_week += 2 } else { day_of_week += 1 };
             days -= days_in_year;
-            if day_of_week >= 7 {
-                day_of_week -= 7;
-            }
+            // if day_of_week >= 7 {
+            //     day_of_week -= 7;
+            // }
             year += 1;
         }
         else {
             //tm->tm_yday = days;
-            day_of_week += days;
-            day_of_week %= 7;
+            //day_of_week += days;
+            //day_of_week %= 7;
 
             /* calculate the month and day */
             let days_in_month = vec![31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -318,10 +318,6 @@ pub fn validate_redeem_time(last_redemption: i64, current_unix: i64) -> Result<b
     else if last_redemption_utc.day == current_utc.day && last_redemption_utc.hr < REDEMPTION_RESET && current_utc.hr >= REDEMPTION_RESET {
         is_valid_redemption = true;
     }
-    // // TEST !!!
-    // else if last_redemption_utc.hr == current_utc.hr && last_redemption_utc.min < current_utc.min {
-    //     is_valid_redemption = true;
-    // }
     else {
         is_valid_redemption = false;
     }
