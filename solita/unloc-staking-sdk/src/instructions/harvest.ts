@@ -48,6 +48,7 @@ export type HarvestInstructionAccounts = {
   systemProgram?: web3.PublicKey
   tokenProgram?: web3.PublicKey
   clock: web3.PublicKey
+  anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
 export const harvestInstructionDiscriminator = [
@@ -126,6 +127,12 @@ export function createHarvestInstruction(
       isSigner: false,
     },
   ]
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc)
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,

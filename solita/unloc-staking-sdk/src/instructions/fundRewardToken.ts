@@ -50,6 +50,7 @@ export type FundRewardTokenInstructionAccounts = {
   rewardVault: web3.PublicKey
   userVault: web3.PublicKey
   tokenProgram?: web3.PublicKey
+  anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
 export const fundRewardTokenInstructionDiscriminator = [
@@ -102,6 +103,12 @@ export function createFundRewardTokenInstruction(
       isSigner: false,
     },
   ]
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc)
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,

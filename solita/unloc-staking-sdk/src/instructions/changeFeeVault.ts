@@ -33,6 +33,7 @@ export type ChangeFeeVaultInstructionAccounts = {
   state: web3.PublicKey
   feeVault: web3.PublicKey
   authority: web3.PublicKey
+  anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
 export const changeFeeVaultInstructionDiscriminator = [
@@ -71,6 +72,12 @@ export function createChangeFeeVaultInstruction(
       isSigner: true,
     },
   ]
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc)
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,

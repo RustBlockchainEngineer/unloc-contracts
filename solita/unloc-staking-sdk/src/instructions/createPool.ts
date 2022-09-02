@@ -15,7 +15,6 @@ import * as web3 from '@solana/web3.js'
  * @category generated
  */
 export type CreatePoolInstructionArgs = {
-  bump: number
   point: beet.bignum
   amountMultipler: beet.bignum
 }
@@ -31,7 +30,6 @@ export const createPoolStruct = new beet.BeetArgsStruct<
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['bump', beet.u8],
     ['point', beet.u64],
     ['amountMultipler', beet.u64],
   ],
@@ -61,6 +59,7 @@ export type CreatePoolInstructionAccounts = {
   systemProgram?: web3.PublicKey
   tokenProgram?: web3.PublicKey
   clock: web3.PublicKey
+  anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
 export const createPoolInstructionDiscriminator = [
@@ -133,6 +132,12 @@ export function createCreatePoolInstruction(
       isSigner: false,
     },
   ]
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc)
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,

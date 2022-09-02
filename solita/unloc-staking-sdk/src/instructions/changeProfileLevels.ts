@@ -44,6 +44,7 @@ export const changeProfileLevelsStruct = new beet.FixableBeetArgsStruct<
 export type ChangeProfileLevelsInstructionAccounts = {
   state: web3.PublicKey
   authority: web3.PublicKey
+  anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
 export const changeProfileLevelsInstructionDiscriminator = [
@@ -81,6 +82,12 @@ export function createChangeProfileLevelsInstruction(
       isSigner: true,
     },
   ]
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc)
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,

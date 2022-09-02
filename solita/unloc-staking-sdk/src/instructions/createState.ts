@@ -15,7 +15,6 @@ import * as web3 from '@solana/web3.js'
  * @category generated
  */
 export type CreateStateInstructionArgs = {
-  bump: number
   tokenPerSecond: beet.bignum
   earlyUnlockFee: beet.bignum
   profileLevels: beet.bignum[]
@@ -32,7 +31,6 @@ export const createStateStruct = new beet.FixableBeetArgsStruct<
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['bump', beet.u8],
     ['tokenPerSecond', beet.u64],
     ['earlyUnlockFee', beet.u64],
     ['profileLevels', beet.array(beet.u128)],
@@ -63,6 +61,7 @@ export type CreateStateInstructionAccounts = {
   systemProgram?: web3.PublicKey
   tokenProgram?: web3.PublicKey
   clock: web3.PublicKey
+  anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
 export const createStateInstructionDiscriminator = [
@@ -135,6 +134,12 @@ export function createCreateStateInstruction(
       isSigner: false,
     },
   ]
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc)
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,

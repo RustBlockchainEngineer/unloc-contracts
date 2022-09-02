@@ -53,10 +53,6 @@
       ],
       "args": [
         {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
           "name": "tokenPerSecond",
           "type": "u64"
         },
@@ -76,6 +72,11 @@
       "name": "createExtraRewardConfigs",
       "accounts": [
         {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "extraRewardAccount",
           "isMut": true,
           "isSigner": false
@@ -92,10 +93,6 @@
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
         {
           "name": "configs",
           "type": {
@@ -314,10 +311,6 @@
       ],
       "args": [
         {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
           "name": "point",
           "type": "u64"
         },
@@ -459,12 +452,7 @@
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "stake",
@@ -676,56 +664,6 @@
   ],
   "accounts": [
     {
-      "name": "StateAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "authority",
-            "type": "publicKey"
-          },
-          {
-            "name": "rewardMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "rewardVault",
-            "type": "publicKey"
-          },
-          {
-            "name": "feeVault",
-            "type": "publicKey"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "totalPoint",
-            "type": "u64"
-          },
-          {
-            "name": "startTime",
-            "type": "i64"
-          },
-          {
-            "name": "tokenPerSecond",
-            "type": "u64"
-          },
-          {
-            "name": "earlyUnlockFee",
-            "type": "u64"
-          },
-          {
-            "name": "profileLevels",
-            "type": {
-              "vec": "u128"
-            }
-          }
-        ]
-      }
-    },
-    {
       "name": "ExtraRewardsAccount",
       "type": {
         "kind": "struct",
@@ -793,6 +731,56 @@
           {
             "name": "totalUser",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StateAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "feeVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "totalPoint",
+            "type": "u64"
+          },
+          {
+            "name": "startTime",
+            "type": "i64"
+          },
+          {
+            "name": "tokenPerSecond",
+            "type": "u64"
+          },
+          {
+            "name": "earlyUnlockFee",
+            "type": "u64"
+          },
+          {
+            "name": "profileLevels",
+            "type": {
+              "vec": "u128"
+            }
           }
         ]
       }

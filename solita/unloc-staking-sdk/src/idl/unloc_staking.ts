@@ -53,10 +53,6 @@ export type UnlocStaking = {
       ],
       "args": [
         {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
           "name": "tokenPerSecond",
           "type": "u64"
         },
@@ -76,6 +72,11 @@ export type UnlocStaking = {
       "name": "createExtraRewardConfigs",
       "accounts": [
         {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "extraRewardAccount",
           "isMut": true,
           "isSigner": false
@@ -92,10 +93,6 @@ export type UnlocStaking = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
         {
           "name": "configs",
           "type": {
@@ -314,10 +311,6 @@ export type UnlocStaking = {
       ],
       "args": [
         {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
           "name": "point",
           "type": "u64"
         },
@@ -459,12 +452,7 @@ export type UnlocStaking = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "stake",
@@ -676,56 +664,6 @@ export type UnlocStaking = {
   ],
   "accounts": [
     {
-      "name": "stateAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "authority",
-            "type": "publicKey"
-          },
-          {
-            "name": "rewardMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "rewardVault",
-            "type": "publicKey"
-          },
-          {
-            "name": "feeVault",
-            "type": "publicKey"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "totalPoint",
-            "type": "u64"
-          },
-          {
-            "name": "startTime",
-            "type": "i64"
-          },
-          {
-            "name": "tokenPerSecond",
-            "type": "u64"
-          },
-          {
-            "name": "earlyUnlockFee",
-            "type": "u64"
-          },
-          {
-            "name": "profileLevels",
-            "type": {
-              "vec": "u128"
-            }
-          }
-        ]
-      }
-    },
-    {
       "name": "extraRewardsAccount",
       "type": {
         "kind": "struct",
@@ -793,6 +731,56 @@ export type UnlocStaking = {
           {
             "name": "totalUser",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "stateAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "feeVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "totalPoint",
+            "type": "u64"
+          },
+          {
+            "name": "startTime",
+            "type": "i64"
+          },
+          {
+            "name": "tokenPerSecond",
+            "type": "u64"
+          },
+          {
+            "name": "earlyUnlockFee",
+            "type": "u64"
+          },
+          {
+            "name": "profileLevels",
+            "type": {
+              "vec": "u128"
+            }
           }
         ]
       }
@@ -1171,10 +1159,6 @@ export const IDL: UnlocStaking = {
       ],
       "args": [
         {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
           "name": "tokenPerSecond",
           "type": "u64"
         },
@@ -1194,6 +1178,11 @@ export const IDL: UnlocStaking = {
       "name": "createExtraRewardConfigs",
       "accounts": [
         {
+          "name": "state",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "extraRewardAccount",
           "isMut": true,
           "isSigner": false
@@ -1210,10 +1199,6 @@ export const IDL: UnlocStaking = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
         {
           "name": "configs",
           "type": {
@@ -1432,10 +1417,6 @@ export const IDL: UnlocStaking = {
       ],
       "args": [
         {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
           "name": "point",
           "type": "u64"
         },
@@ -1577,12 +1558,7 @@ export const IDL: UnlocStaking = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "stake",
@@ -1794,56 +1770,6 @@ export const IDL: UnlocStaking = {
   ],
   "accounts": [
     {
-      "name": "stateAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "authority",
-            "type": "publicKey"
-          },
-          {
-            "name": "rewardMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "rewardVault",
-            "type": "publicKey"
-          },
-          {
-            "name": "feeVault",
-            "type": "publicKey"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "totalPoint",
-            "type": "u64"
-          },
-          {
-            "name": "startTime",
-            "type": "i64"
-          },
-          {
-            "name": "tokenPerSecond",
-            "type": "u64"
-          },
-          {
-            "name": "earlyUnlockFee",
-            "type": "u64"
-          },
-          {
-            "name": "profileLevels",
-            "type": {
-              "vec": "u128"
-            }
-          }
-        ]
-      }
-    },
-    {
       "name": "extraRewardsAccount",
       "type": {
         "kind": "struct",
@@ -1911,6 +1837,56 @@ export const IDL: UnlocStaking = {
           {
             "name": "totalUser",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "stateAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "rewardVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "feeVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "totalPoint",
+            "type": "u64"
+          },
+          {
+            "name": "startTime",
+            "type": "i64"
+          },
+          {
+            "name": "tokenPerSecond",
+            "type": "u64"
+          },
+          {
+            "name": "earlyUnlockFee",
+            "type": "u64"
+          },
+          {
+            "name": "profileLevels",
+            "type": {
+              "vec": "u128"
+            }
           }
         ]
       }

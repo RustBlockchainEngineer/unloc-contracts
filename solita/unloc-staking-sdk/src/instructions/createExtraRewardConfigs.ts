@@ -18,7 +18,6 @@ import {
  * @category generated
  */
 export type CreateExtraRewardConfigsInstructionArgs = {
-  bump: number
   configs: DurationExtraRewardConfig[]
 }
 /**
@@ -33,7 +32,6 @@ export const createExtraRewardConfigsStruct = new beet.FixableBeetArgsStruct<
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['bump', beet.u8],
     ['configs', beet.array(durationExtraRewardConfigBeet)],
   ],
   'CreateExtraRewardConfigsInstructionArgs'
@@ -41,6 +39,7 @@ export const createExtraRewardConfigsStruct = new beet.FixableBeetArgsStruct<
 /**
  * Accounts required by the _createExtraRewardConfigs_ instruction
  *
+ * @property [_writable_] state
  * @property [_writable_] extraRewardAccount
  * @property [_writable_, **signer**] authority
  * @category Instructions
@@ -48,9 +47,11 @@ export const createExtraRewardConfigsStruct = new beet.FixableBeetArgsStruct<
  * @category generated
  */
 export type CreateExtraRewardConfigsInstructionAccounts = {
+  state: web3.PublicKey
   extraRewardAccount: web3.PublicKey
   authority: web3.PublicKey
   systemProgram?: web3.PublicKey
+  anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
 export const createExtraRewardConfigsInstructionDiscriminator = [
@@ -78,6 +79,11 @@ export function createCreateExtraRewardConfigsInstruction(
   })
   const keys: web3.AccountMeta[] = [
     {
+      pubkey: accounts.state,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
       pubkey: accounts.extraRewardAccount,
       isWritable: true,
       isSigner: false,
@@ -93,6 +99,12 @@ export function createCreateExtraRewardConfigsInstruction(
       isSigner: false,
     },
   ]
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc)
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,
