@@ -35,6 +35,9 @@ pub struct GlobalState {
     pub voting: Pubkey,
 
     pub reserved: [u128; 15],
+
+    // redemption reset hour
+    pub redemption_reset: i64,
 }
 impl GlobalState {
     pub fn distribute<'info>(

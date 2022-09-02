@@ -49,6 +49,7 @@ pub fn handle(
     ctx.accounts.global_state.reward_rate = reward_rate;
     ctx.accounts.global_state.expire_loan_duration = expire_loan_duration;
     ctx.accounts.global_state.lender_rewards_percentage = lender_rewards_percentage;
+    ctx.accounts.global_state.redemption_reset = 5;
 
     Ok(())
 }

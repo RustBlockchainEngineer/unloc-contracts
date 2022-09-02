@@ -1,4 +1,4 @@
-use crate::{error::*, states::*, constant::{REDEMPTION_RESET}};
+use crate::{error::*, states::*};
 use anchor_lang::prelude::*;
 use chainlink_solana as chainlink;
 use std::convert::TryInto;
@@ -256,8 +256,8 @@ pub fn convert_unix_to_utc(mut unix_time: i64) -> Result<UtcTime> {
 
     let current_time = UtcTime {
         days_in_month: days_in_current_month,
-        sec: unix_time,
-        min: minutes,
+        _sec: unix_time,
+        _min: minutes,
         hr: hours,
         day: days + 1,
         month: month,
@@ -267,17 +267,18 @@ pub fn convert_unix_to_utc(mut unix_time: i64) -> Result<UtcTime> {
     Ok(current_time)
 }
 
-pub fn validate_redeem_time(last_redemption: i64, current_unix: i64) -> Result<bool> {
+pub fn validate_redeem_time(last_redemption: i64, current_unix: i64, redemption_reset: i64) -> Result<bool> {
     let is_valid_redemption: bool;
     let last_redemption_utc = convert_unix_to_utc(last_redemption).unwrap();
     let current_utc = convert_unix_to_utc(current_unix).unwrap();
 
     msg!("Last redemption utc: {:?}", last_redemption_utc);
     msg!("Current time utc: {:?}", current_utc);
+    msg!("Redemption Reset hr: {}", redemption_reset);
     if last_redemption_utc.year < current_utc.year {
         if current_utc.month == 1 && last_redemption_utc.month == 12 {
             if current_utc.day == 1 && last_redemption_utc.day == last_redemption_utc.days_in_month {
-                if last_redemption_utc.hr < REDEMPTION_RESET || current_utc.hr >= REDEMPTION_RESET {
+                if last_redemption_utc.hr < redemption_reset || current_utc.hr >= redemption_reset {
                     is_valid_redemption = true;
                 } else {
                     is_valid_redemption = false;
@@ -292,7 +293,7 @@ pub fn validate_redeem_time(last_redemption: i64, current_unix: i64) -> Result<b
     else if last_redemption_utc.year == current_utc.year && last_redemption_utc.month < current_utc.month {
         if current_utc.month - last_redemption_utc.month == 1 {
             if current_utc.day == 1 && last_redemption_utc.day == last_redemption_utc.days_in_month {
-                if last_redemption_utc.hr < REDEMPTION_RESET || current_utc.hr >= REDEMPTION_RESET {
+                if last_redemption_utc.hr < redemption_reset || current_utc.hr >= redemption_reset {
                     is_valid_redemption = true;
                 } else {
                     is_valid_redemption = false;
@@ -306,7 +307,7 @@ pub fn validate_redeem_time(last_redemption: i64, current_unix: i64) -> Result<b
     }
     else if last_redemption_utc.month == current_utc.month && last_redemption_utc.day < current_utc.day {
         if current_utc.day - last_redemption_utc.day == 1 {
-            if last_redemption_utc.hr < REDEMPTION_RESET || current_utc.hr >= REDEMPTION_RESET {
+            if last_redemption_utc.hr < redemption_reset || current_utc.hr >= redemption_reset {
                 is_valid_redemption = true;
             } else {
                 is_valid_redemption = false;
@@ -315,7 +316,7 @@ pub fn validate_redeem_time(last_redemption: i64, current_unix: i64) -> Result<b
             is_valid_redemption = true;
         }
     }
-    else if last_redemption_utc.day == current_utc.day && last_redemption_utc.hr < REDEMPTION_RESET && current_utc.hr >= REDEMPTION_RESET {
+    else if last_redemption_utc.day == current_utc.day && last_redemption_utc.hr < redemption_reset && current_utc.hr >= redemption_reset {
         is_valid_redemption = true;
     }
     else {
@@ -329,8 +330,8 @@ pub fn validate_redeem_time(last_redemption: i64, current_unix: i64) -> Result<b
 #[derive(Debug)]
 pub struct UtcTime {
     days_in_month: i64,
-    sec: i64,
-    min: i64,
+    _sec: i64,
+    _min: i64,
     hr: i64,
     day: i64,
     month: i64,

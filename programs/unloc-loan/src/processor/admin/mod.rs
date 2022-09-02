@@ -15,3 +15,6 @@ pub use process_withdraw_rewards::*;
 
 pub mod process_claim_expired_collateral;
 pub use process_claim_expired_collateral::*;
+
+pub mod process_set_global_redeem_reset;
+pub use process_set_global_redeem_reset::*;
