@@ -1,5 +1,6 @@
 use crate::{constant::*, states::*, utils::*};
 use anchor_lang::prelude::*;
+use anchor_lang::AccountsClose;
 
 pub fn handle(ctx: Context<DeleteSubOffer>) -> Result<()> {
     require(
@@ -10,6 +11,7 @@ pub fn handle(ctx: Context<DeleteSubOffer>) -> Result<()> {
 
     // delete sub offer account
     ctx.accounts.sub_offer.close(ctx.accounts.borrower.to_account_info());
+    ctx.accounts.offer.deleted_sub_offer_count.safe_add(1)?;
     Ok(())
 }
 

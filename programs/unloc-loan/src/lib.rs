@@ -73,14 +73,12 @@ pub mod unloc_loan {
     pub fn create_sub_offer(
         ctx: Context<CreateSubOffer>,
         offer_amount: u64,
-        sub_offer_number: u64,
         loan_duration: u64,
         apr_numerator: u64,
     ) -> Result<()> {
         process_create_sub_offer::handle(
             ctx,
             offer_amount,
-            sub_offer_number,
             loan_duration,
             apr_numerator,
         )
@@ -88,14 +86,12 @@ pub mod unloc_loan {
     pub fn update_sub_offer(
         ctx: Context<UpdateSubOffer>,
         offer_amount: u64,
-        sub_offer_number: u64,
         loan_duration: u64,
         apr_numerator: u64,
     ) -> Result<()> {
         process_update_sub_offer::handle(
             ctx,
             offer_amount,
-            sub_offer_number,
             loan_duration,
             apr_numerator,
         )

@@ -17,6 +17,7 @@ pub fn handle(ctx: Context<CreateOffer>) -> Result<()> {
 
     ctx.accounts.offer.state = OfferState::get_state(OfferState::Proposed);
     ctx.accounts.offer.sub_offer_count = 0;
+    ctx.accounts.offer.deleted_sub_offer_count = 0;
     ctx.accounts.offer.borrower = borrower_key.clone();
     ctx.accounts.offer.nft_mint = nft_mint_key.clone();
     ctx.accounts.offer.collection = collection_key;

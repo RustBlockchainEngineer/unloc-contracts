@@ -120,8 +120,10 @@ pub struct Offer {
     pub nft_mint: Pubkey,
     pub collection: Pubkey,
     pub state: u8,
+    // once if sub offer is created, sub_offer_count will be increased
+    // when sub offer is deleted, sub_offer_count will not be decreased
     pub sub_offer_count: u64,
-    pub start_sub_offer_num: u64,
+    pub deleted_sub_offer_count: u64,
     pub creation_date: u64,
 
     pub reserved: [u128; 7],
