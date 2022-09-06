@@ -10,7 +10,7 @@ pub fn handle(ctx: Context<DeleteSubOffer>) -> Result<()> {
     )?;
 
     // delete sub offer account
-    ctx.accounts.sub_offer.close(ctx.accounts.borrower.to_account_info());
+    ctx.accounts.sub_offer.close(ctx.accounts.borrower.to_account_info())?;
     ctx.accounts.offer.deleted_sub_offer_count.safe_add(1)?;
     Ok(())
 }

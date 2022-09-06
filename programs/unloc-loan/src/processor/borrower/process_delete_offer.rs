@@ -48,7 +48,7 @@ pub fn handle(ctx: Context<DeleteOffer>) -> Result<()> {
     token::revoke(ctx.accounts.into_revoke_context())?;
 
     // delete offer account
-    ctx.accounts.offer.close(ctx.accounts.borrower.to_account_info());
+    ctx.accounts.offer.close(ctx.accounts.borrower.to_account_info())?;
     Ok(())
 }
 
