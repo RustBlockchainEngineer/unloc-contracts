@@ -23,7 +23,7 @@ import {
   setLoanVoting,
   getVotingKeyFromNum,
   claimBorrowerRewards
-} from '../src'
+} from '../dist/cjs'
 import * as anchor from '@project-serum/anchor';
 import { assertError } from './staking-utils';
 import { assert } from 'chai'
