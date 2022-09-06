@@ -393,7 +393,7 @@ export type UnlocLoan = {
       "args": []
     },
     {
-      "name": "setOffer",
+      "name": "createOffer",
       "accounts": [
         {
           "name": "borrower",
@@ -459,7 +459,7 @@ export type UnlocLoan = {
       "args": []
     },
     {
-      "name": "setSubOffer",
+      "name": "createSubOffer",
       "accounts": [
         {
           "name": "borrower",
@@ -492,16 +492,6 @@ export type UnlocLoan = {
           "isSigner": false
         },
         {
-          "name": "treasuryWallet",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -528,7 +518,42 @@ export type UnlocLoan = {
           "type": "u64"
         },
         {
-          "name": "subOfferNumber",
+          "name": "loanDuration",
+          "type": "u64"
+        },
+        {
+          "name": "aprNumerator",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "updateSubOffer",
+      "accounts": [
+        {
+          "name": "borrower",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "offer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "subOffer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offerMint",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "offerAmount",
           "type": "u64"
         },
         {
@@ -546,6 +571,11 @@ export type UnlocLoan = {
       "accounts": [
         {
           "name": "borrower",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -595,6 +625,11 @@ export type UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "offerMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "treasuryVault",
           "isMut": true,
           "isSigner": false
@@ -640,6 +675,11 @@ export type UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "clock",
           "isMut": false,
           "isSigner": false
@@ -648,7 +688,7 @@ export type UnlocLoan = {
       "args": []
     },
     {
-      "name": "cancelOffer",
+      "name": "deleteOffer",
       "accounts": [
         {
           "name": "borrower",
@@ -694,7 +734,7 @@ export type UnlocLoan = {
       "args": []
     },
     {
-      "name": "cancelSubOffer",
+      "name": "deleteSubOffer",
       "accounts": [
         {
           "name": "borrower",
@@ -809,6 +849,11 @@ export type UnlocLoan = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "globalState",
           "isMut": false,
           "isSigner": false
@@ -846,6 +891,11 @@ export type UnlocLoan = {
         {
           "name": "lenderOfferVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offerMint",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -890,6 +940,11 @@ export type UnlocLoan = {
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
           "isMut": false,
           "isSigner": false
         },
@@ -1146,7 +1201,7 @@ export type UnlocLoan = {
             "type": "u64"
           },
           {
-            "name": "startSubOfferNum",
+            "name": "deletedSubOfferCount",
             "type": "u64"
           },
           {
@@ -1837,7 +1892,7 @@ export const IDL: UnlocLoan = {
       "args": []
     },
     {
-      "name": "setOffer",
+      "name": "createOffer",
       "accounts": [
         {
           "name": "borrower",
@@ -1903,7 +1958,7 @@ export const IDL: UnlocLoan = {
       "args": []
     },
     {
-      "name": "setSubOffer",
+      "name": "createSubOffer",
       "accounts": [
         {
           "name": "borrower",
@@ -1936,16 +1991,6 @@ export const IDL: UnlocLoan = {
           "isSigner": false
         },
         {
-          "name": "treasuryWallet",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "treasuryVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1972,7 +2017,42 @@ export const IDL: UnlocLoan = {
           "type": "u64"
         },
         {
-          "name": "subOfferNumber",
+          "name": "loanDuration",
+          "type": "u64"
+        },
+        {
+          "name": "aprNumerator",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "updateSubOffer",
+      "accounts": [
+        {
+          "name": "borrower",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "offer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "subOffer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offerMint",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "offerAmount",
           "type": "u64"
         },
         {
@@ -1990,6 +2070,11 @@ export const IDL: UnlocLoan = {
       "accounts": [
         {
           "name": "borrower",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -2039,6 +2124,11 @@ export const IDL: UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "offerMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "treasuryVault",
           "isMut": true,
           "isSigner": false
@@ -2084,6 +2174,11 @@ export const IDL: UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "clock",
           "isMut": false,
           "isSigner": false
@@ -2092,7 +2187,7 @@ export const IDL: UnlocLoan = {
       "args": []
     },
     {
-      "name": "cancelOffer",
+      "name": "deleteOffer",
       "accounts": [
         {
           "name": "borrower",
@@ -2138,7 +2233,7 @@ export const IDL: UnlocLoan = {
       "args": []
     },
     {
-      "name": "cancelSubOffer",
+      "name": "deleteSubOffer",
       "accounts": [
         {
           "name": "borrower",
@@ -2253,6 +2348,11 @@ export const IDL: UnlocLoan = {
           "isSigner": true
         },
         {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "globalState",
           "isMut": false,
           "isSigner": false
@@ -2290,6 +2390,11 @@ export const IDL: UnlocLoan = {
         {
           "name": "lenderOfferVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "offerMint",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2334,6 +2439,11 @@ export const IDL: UnlocLoan = {
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
           "isMut": false,
           "isSigner": false
         },
@@ -2590,7 +2700,7 @@ export const IDL: UnlocLoan = {
             "type": "u64"
           },
           {
-            "name": "startSubOfferNum",
+            "name": "deletedSubOfferCount",
             "type": "u64"
           },
           {

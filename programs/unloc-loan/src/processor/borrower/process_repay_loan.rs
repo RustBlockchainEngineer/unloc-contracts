@@ -193,6 +193,8 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
 pub struct RepayLoan<'info> {
     #[account(mut)]
     pub borrower: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
 
     /// CHECK: we use this account for owner
     #[account(mut)]
@@ -235,11 +237,16 @@ pub struct RepayLoan<'info> {
     pub lender_offer_vault: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
     pub borrower_offer_vault: Box<Account<'info, TokenAccount>>,
-
-    #[account(mut,
-        seeds = [TREASURY_VAULT_TAG, sub_offer.offer_mint.as_ref(), treasury_wallet.key().as_ref()],
-        bump
+    #[account(
+        address = sub_offer.offer_mint
     )]
+    pub offer_mint: Box<Account<'info, Mint>>,
+    #[account(init_if_needed,
+        token::mint = offer_mint,
+        token::authority = treasury_wallet,
+        seeds = [TREASURY_VAULT_TAG, sub_offer.offer_mint.as_ref(), treasury_wallet.key().as_ref()],
+        bump,
+        payer = payer)]
     pub treasury_vault: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: Safe
@@ -263,6 +270,7 @@ pub struct RepayLoan<'info> {
     pub metadata_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
     pub clock: Sysvar<'info, Clock>,
 }
 impl<'info> RepayLoan<'info> {

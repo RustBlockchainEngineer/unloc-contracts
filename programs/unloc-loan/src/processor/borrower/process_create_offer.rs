@@ -6,7 +6,7 @@ use mpl_token_metadata::{id as metadata_id, instruction::freeze_delegated_accoun
 use crate::{constant::*, error::*, states::*, utils::*};
 use mpl_token_metadata::state::Metadata;
 
-pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
+pub fn handle(ctx: Context<CreateOffer>) -> Result<()> {
     let metadata = Metadata::from_account_info(&ctx.accounts.nft_metadata.to_account_info())?;
     let collection = metadata.collection.unwrap();
     let collection_key = collection.key;
@@ -15,15 +15,15 @@ pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
     let borrower_key = ctx.accounts.borrower.key();
     let nft_mint_key = ctx.accounts.nft_mint.key();
 
-    if is_zero_account(&ctx.accounts.offer.to_account_info()) {
-        ctx.accounts.offer.state = OfferState::get_state(OfferState::Proposed);
-        ctx.accounts.offer.sub_offer_count = 0;
-        ctx.accounts.offer.borrower = borrower_key.clone();
-        ctx.accounts.offer.nft_mint = nft_mint_key.clone();
-        ctx.accounts.offer.collection = collection_key;
-        ctx.accounts.offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
-        ctx.accounts.offer.bump = *ctx.bumps.get("offer").unwrap();
-    }
+    ctx.accounts.offer.state = OfferState::get_state(OfferState::Proposed);
+    ctx.accounts.offer.sub_offer_count = 0;
+    ctx.accounts.offer.deleted_sub_offer_count = 0;
+    ctx.accounts.offer.borrower = borrower_key.clone();
+    ctx.accounts.offer.nft_mint = nft_mint_key.clone();
+    ctx.accounts.offer.collection = collection_key;
+    ctx.accounts.offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
+    ctx.accounts.offer.bump = *ctx.bumps.get("offer").unwrap();
+
     if ctx.accounts.user_vault.amount > 0 {
         let offer_bump = *ctx.bumps.get("offer").unwrap();
         let offer_seeds = &[
@@ -58,7 +58,6 @@ pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
         )?;
 
         ctx.accounts.offer.state = OfferState::get_state(OfferState::Proposed);
-        ctx.accounts.offer.start_sub_offer_num = ctx.accounts.offer.sub_offer_count;
     } else {
         return Err(error!(LoanError::InvalidAmount));
     }
@@ -67,14 +66,13 @@ pub fn handle(ctx: Context<SetOffer>) -> Result<()> {
 
 #[derive(Accounts)]
 #[instruction()]
-pub struct SetOffer<'info> {
+pub struct CreateOffer<'info> {
     #[account(mut)]
     pub borrower: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
-    // init_if_needed is used safely. not possible to reinitialization
     #[account(
-    init_if_needed,
+    init,
     seeds = [OFFER_TAG, borrower.key().as_ref(), nft_mint.key().as_ref()],
     bump,
     payer = payer,
@@ -113,7 +111,7 @@ pub struct SetOffer<'info> {
     pub rent: Sysvar<'info, Rent>,
     pub clock: Sysvar<'info, Clock>,
 }
-impl<'info> SetOffer<'info> {
+impl<'info> CreateOffer<'info> {
     fn into_approve_context(&self) -> CpiContext<'_, '_, '_, 'info, Approve<'info>> {
         let cpi_accounts = Approve {
             to: self.user_vault.to_account_info().clone(),

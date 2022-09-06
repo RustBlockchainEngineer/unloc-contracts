@@ -1,14 +1,13 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount};
+use anchor_spl::token::{Mint, Token};
 
 use crate::{constant::*, states::*, utils::*};
 use std::str::FromStr;
 use unloc_staking::states::FarmPoolUserAccount;
 
 pub fn handle(
-    ctx: Context<SetSubOffer>,
+    ctx: Context<CreateSubOffer>,
     offer_amount: u64,
-    sub_offer_number: u64,
     loan_duration: u64,
     apr_numerator: u64,
 ) -> Result<()> {
@@ -30,19 +29,17 @@ pub fn handle(
         profile_level = staking_user.profile_level;
     }
 
-    set_sub_offer(
+    create_sub_offer(
         ctx,
         offer_amount,
-        sub_offer_number,
         loan_duration,
         apr_numerator,
         profile_level,
     )
 }
-pub fn set_sub_offer(
-    ctx: Context<SetSubOffer>,
+pub fn create_sub_offer(
+    ctx: Context<CreateSubOffer>,
     offer_amount: u64,
-    sub_offer_number: u64,
     loan_duration: u64,
     apr_numerator: u64,
     profile_level: u64,
@@ -53,18 +50,17 @@ pub fn set_sub_offer(
         .accounts
         .offer
         .sub_offer_count
-        .safe_sub(ctx.accounts.offer.start_sub_offer_num)?;
+        .safe_sub(ctx.accounts.offer.deleted_sub_offer_count)?;
     require(cur_available_sub_offer_count < available_sub_offer_count, "cur_available_sub_offer_count")?;
 
-    if is_zero_account(&ctx.accounts.sub_offer.to_account_info()) {
-        ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Proposed);
-        ctx.accounts.offer.sub_offer_count = ctx.accounts.offer.sub_offer_count.safe_add(1)?;
-        ctx.accounts.sub_offer.offer = ctx.accounts.offer.key();
-        ctx.accounts.sub_offer.nft_mint = ctx.accounts.offer.nft_mint;
-        ctx.accounts.sub_offer.borrower = ctx.accounts.offer.borrower;
-        ctx.accounts.sub_offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
-        ctx.accounts.sub_offer.bump = *ctx.bumps.get("sub_offer").unwrap();
-    }
+    ctx.accounts.sub_offer.state = SubOfferState::get_state(SubOfferState::Proposed);
+    ctx.accounts.sub_offer.sub_offer_number = ctx.accounts.offer.sub_offer_count;
+    ctx.accounts.offer.sub_offer_count = ctx.accounts.offer.sub_offer_count.safe_add(1)?;
+    ctx.accounts.sub_offer.offer = ctx.accounts.offer.key();
+    ctx.accounts.sub_offer.nft_mint = ctx.accounts.offer.nft_mint;
+    ctx.accounts.sub_offer.borrower = ctx.accounts.offer.borrower;
+    ctx.accounts.sub_offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
+    ctx.accounts.sub_offer.bump = *ctx.bumps.get("sub_offer").unwrap();
 
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
@@ -78,7 +74,6 @@ pub fn set_sub_offer(
     ctx.accounts.sub_offer.offer_mint = ctx.accounts.offer_mint.key();
     ctx.accounts.sub_offer.offer_mint_decimals = ctx.accounts.offer_mint.decimals;
     ctx.accounts.sub_offer.offer_amount = offer_amount;
-    ctx.accounts.sub_offer.sub_offer_number = sub_offer_number;
     ctx.accounts.sub_offer.loan_duration = loan_duration;
     ctx.accounts.sub_offer.apr_numerator = apr_numerator;
     ctx.accounts.sub_offer.lender_has_claimed_rewards = false;
@@ -89,11 +84,10 @@ pub fn set_sub_offer(
 #[derive(Accounts)]
 #[instruction(
     offer_amount: u64,
-    sub_offer_number: u64,
     loan_duration: u64,
     apr_numerator: u64
 )]
-pub struct SetSubOffer<'info> {
+pub struct CreateSubOffer<'info> {
     #[account(mut)]
     pub borrower: Signer<'info>,
     #[account(mut)]
@@ -111,31 +105,16 @@ pub struct SetSubOffer<'info> {
     )]
     pub offer: Box<Account<'info, Offer>>,
 
-    // init_if_needed is safe above solana-program v1.10.29
     #[account(
-    init_if_needed,
-    seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer_number.to_be_bytes()],
+    init,
+    seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &offer.sub_offer_count.to_be_bytes()],
     bump,
     payer = payer,
-    constraint = sub_offer_number <= offer.sub_offer_count,
     space = std::mem::size_of::<SubOffer>() + 8
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
 
     pub offer_mint: Box<Account<'info, Mint>>,
-    /// CHECK: key only is used
-    #[account(mut,
-        constraint = global_state.treasury_wallet == treasury_wallet.key()
-    )]
-    pub treasury_wallet: AccountInfo<'info>,
-
-    #[account(init_if_needed,
-        token::mint = offer_mint,
-        token::authority = treasury_wallet,
-        seeds = [TREASURY_VAULT_TAG, offer_mint.key().as_ref(), treasury_wallet.key().as_ref()],
-        bump,
-        payer = payer)]
-    pub treasury_vault: Box<Account<'info, TokenAccount>>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

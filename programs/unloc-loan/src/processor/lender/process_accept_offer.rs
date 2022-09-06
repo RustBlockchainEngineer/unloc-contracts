@@ -65,8 +65,6 @@ pub fn accept_offer(
         .sub_offer
         .update_rps(&ctx.accounts.global_state, &offer_mint)?;
 
-    require(ctx.accounts.sub_offer.sub_offer_number >= ctx.accounts.offer.start_sub_offer_num, "sub_offer.sub_offer_number")?;
-
     require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed), "offer.state")?;
     require(ctx.accounts.sub_offer.state != SubOfferState::get_state(SubOfferState::Canceled), "sub_offer.state")?;
 
