@@ -1,6 +1,6 @@
 {
   "name": "@unloc-dev/unloc-loan-solita",
-  "version": "2.0.0",
+  "version": "3.0.1",
   "description": "UNLOC-loan auto-generated SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,7 +24,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "devDependencies": {
-    "@metaplex-foundation/solita": "^0.11.0",
+    "@metaplex-foundation/solita": "^0.15.1",
     "typescript": "^4.7.4"
   },
   "dependencies": {

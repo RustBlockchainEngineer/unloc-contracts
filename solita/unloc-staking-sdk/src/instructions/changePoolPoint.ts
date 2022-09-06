@@ -48,6 +48,7 @@ export type ChangePoolPointInstructionAccounts = {
   pool: web3.PublicKey
   authority: web3.PublicKey
   clock: web3.PublicKey
+  anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
 export const changePoolPointInstructionDiscriminator = [
@@ -95,6 +96,12 @@ export function createChangePoolPointInstruction(
       isSigner: false,
     },
   ]
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc)
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,

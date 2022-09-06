@@ -14,23 +14,10 @@ import * as web3 from '@solana/web3.js'
  * @category CreateUser
  * @category generated
  */
-export type CreateUserInstructionArgs = {
-  bump: number
-}
-/**
- * @category Instructions
- * @category CreateUser
- * @category generated
- */
-export const createUserStruct = new beet.BeetArgsStruct<
-  CreateUserInstructionArgs & {
-    instructionDiscriminator: number[] /* size: 8 */
-  }
->(
-  [
-    ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['bump', beet.u8],
-  ],
+export const createUserStruct = new beet.BeetArgsStruct<{
+  instructionDiscriminator: number[] /* size: 8 */
+}>(
+  [['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)]],
   'CreateUserInstructionArgs'
 )
 /**
@@ -53,6 +40,7 @@ export type CreateUserInstructionAccounts = {
   payer: web3.PublicKey
   systemProgram?: web3.PublicKey
   tokenProgram?: web3.PublicKey
+  anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
 export const createUserInstructionDiscriminator = [
@@ -63,20 +51,16 @@ export const createUserInstructionDiscriminator = [
  * Creates a _CreateUser_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
- * @param args to provide as instruction data to the program
- *
  * @category Instructions
  * @category CreateUser
  * @category generated
  */
 export function createCreateUserInstruction(
   accounts: CreateUserInstructionAccounts,
-  args: CreateUserInstructionArgs,
   programId = new web3.PublicKey('EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU')
 ) {
   const [data] = createUserStruct.serialize({
     instructionDiscriminator: createUserInstructionDiscriminator,
-    ...args,
   })
   const keys: web3.AccountMeta[] = [
     {
@@ -115,6 +99,12 @@ export function createCreateUserInstruction(
       isSigner: false,
     },
   ]
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc)
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,

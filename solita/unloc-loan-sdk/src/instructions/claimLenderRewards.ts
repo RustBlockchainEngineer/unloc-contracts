@@ -11,94 +11,77 @@ import * as web3 from '@solana/web3.js'
 
 /**
  * @category Instructions
- * @category Harvest
+ * @category ClaimLenderRewards
  * @category generated
  */
-export const harvestStruct = new beet.BeetArgsStruct<{
+export const claimLenderRewardsStruct = new beet.BeetArgsStruct<{
   instructionDiscriminator: number[] /* size: 8 */
 }>(
   [['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)]],
-  'HarvestInstructionArgs'
+  'ClaimLenderRewardsInstructionArgs'
 )
 /**
- * Accounts required by the _harvest_ instruction
+ * Accounts required by the _claimLenderRewards_ instruction
  *
- * @property [_writable_] user
- * @property [_writable_] state
- * @property [] extraRewardAccount
- * @property [_writable_] pool
  * @property [_writable_, **signer**] authority
- * @property [] mint
+ * @property [] globalState
+ * @property [_writable_] subOffer
  * @property [_writable_] rewardVault
- * @property [_writable_] userVault
+ * @property [] chainlinkProgram
+ * @property [] solFeed
+ * @property [] usdcFeed
+ * @property [_writable_] lenderRewardVault
  * @property [] clock
  * @category Instructions
- * @category Harvest
+ * @category ClaimLenderRewards
  * @category generated
  */
-export type HarvestInstructionAccounts = {
-  user: web3.PublicKey
-  state: web3.PublicKey
-  extraRewardAccount: web3.PublicKey
-  pool: web3.PublicKey
+export type ClaimLenderRewardsInstructionAccounts = {
   authority: web3.PublicKey
-  mint: web3.PublicKey
+  globalState: web3.PublicKey
+  subOffer: web3.PublicKey
   rewardVault: web3.PublicKey
-  userVault: web3.PublicKey
-  systemProgram?: web3.PublicKey
+  chainlinkProgram: web3.PublicKey
+  solFeed: web3.PublicKey
+  usdcFeed: web3.PublicKey
+  lenderRewardVault: web3.PublicKey
   tokenProgram?: web3.PublicKey
   clock: web3.PublicKey
-  anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const harvestInstructionDiscriminator = [
-  228, 241, 31, 182, 53, 169, 59, 199,
+export const claimLenderRewardsInstructionDiscriminator = [
+  28, 22, 29, 40, 230, 221, 198, 86,
 ]
 
 /**
- * Creates a _Harvest_ instruction.
+ * Creates a _ClaimLenderRewards_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @category Instructions
- * @category Harvest
+ * @category ClaimLenderRewards
  * @category generated
  */
-export function createHarvestInstruction(
-  accounts: HarvestInstructionAccounts,
-  programId = new web3.PublicKey('EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU')
+export function createClaimLenderRewardsInstruction(
+  accounts: ClaimLenderRewardsInstructionAccounts,
+  programId = new web3.PublicKey('6oVXrGCdtnTUR6xCvn2Z3f2CYaiboAGar1DKxzeX8QYh')
 ) {
-  const [data] = harvestStruct.serialize({
-    instructionDiscriminator: harvestInstructionDiscriminator,
+  const [data] = claimLenderRewardsStruct.serialize({
+    instructionDiscriminator: claimLenderRewardsInstructionDiscriminator,
   })
   const keys: web3.AccountMeta[] = [
-    {
-      pubkey: accounts.user,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.state,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.extraRewardAccount,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.pool,
-      isWritable: true,
-      isSigner: false,
-    },
     {
       pubkey: accounts.authority,
       isWritable: true,
       isSigner: true,
     },
     {
-      pubkey: accounts.mint,
+      pubkey: accounts.globalState,
       isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.subOffer,
+      isWritable: true,
       isSigner: false,
     },
     {
@@ -107,13 +90,23 @@ export function createHarvestInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.userVault,
-      isWritable: true,
+      pubkey: accounts.chainlinkProgram,
+      isWritable: false,
       isSigner: false,
     },
     {
-      pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,
+      pubkey: accounts.solFeed,
       isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.usdcFeed,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.lenderRewardVault,
+      isWritable: true,
       isSigner: false,
     },
     {
@@ -127,12 +120,6 @@ export function createHarvestInstruction(
       isSigner: false,
     },
   ]
-
-  if (accounts.anchorRemainingAccounts != null) {
-    for (const acc of accounts.anchorRemainingAccounts) {
-      keys.push(acc)
-    }
-  }
 
   const ix = new web3.TransactionInstruction({
     programId,

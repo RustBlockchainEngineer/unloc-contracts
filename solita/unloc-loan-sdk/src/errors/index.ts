@@ -241,6 +241,26 @@ createErrorFromNameLookup.set(
 )
 
 /**
+ * CooldownPeriod: 'Must wait 24 hours before redeeming liquidity mining rewards again.'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class CooldownPeriodError extends Error {
+  readonly code: number = 0x177b
+  readonly name: string = 'CooldownPeriod'
+  constructor() {
+    super('Must wait 24 hours before redeeming liquidity mining rewards again.')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, CooldownPeriodError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x177b, () => new CooldownPeriodError())
+createErrorFromNameLookup.set('CooldownPeriod', () => new CooldownPeriodError())
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated

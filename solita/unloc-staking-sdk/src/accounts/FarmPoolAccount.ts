@@ -96,6 +96,20 @@ export class FarmPoolAccount implements FarmPoolAccountArgs {
   }
 
   /**
+   * Provides a {@link web3.Connection.getProgramAccounts} config builder,
+   * to fetch accounts matching filters that can be specified via that builder.
+   *
+   * @param programId - the program that owns the accounts we are filtering
+   */
+  static gpaBuilder(
+    programId: web3.PublicKey = new web3.PublicKey(
+      'EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU'
+    )
+  ) {
+    return beetSolana.GpaBuilder.fromStruct(programId, farmPoolAccountBeet)
+  }
+
+  /**
    * Deserializes the {@link FarmPoolAccount} from the provided data Buffer.
    * @returns a tuple of the account data and the offset up to which the buffer was read to obtain it.
    */

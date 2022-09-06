@@ -902,7 +902,63 @@
       "args": []
     },
     {
-      "name": "claimRewards",
+      "name": "claimBorrowerRewards",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "subOffer",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "chainlinkProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "usdcFeed",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "borrowerRewardVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "claimLenderRewards",
       "accounts": [
         {
           "name": "authority",
@@ -941,11 +997,6 @@
         },
         {
           "name": "lenderRewardVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "borrowerRewardVault",
           "isMut": true,
           "isSigner": false
         },
@@ -1204,11 +1255,31 @@
             "type": "u128"
           },
           {
+            "name": "lenderHasClaimedRewards",
+            "type": "bool"
+          },
+          {
+            "name": "borrowerHasClaimedRewards",
+            "type": "bool"
+          },
+          {
+            "name": "lastLenderClaim",
+            "type": "i64"
+          },
+          {
+            "name": "lastBorrowerClaim",
+            "type": "i64"
+          },
+          {
             "name": "rps",
             "type": "u128"
           },
           {
-            "name": "rewardDebt",
+            "name": "lenderRewardDebt",
+            "type": "u128"
+          },
+          {
+            "name": "borrowerRewardDebt",
             "type": "u128"
           },
           {
@@ -1362,6 +1433,11 @@
       "code": 6010,
       "name": "InvalidDenominator",
       "msg": "InvalidDenominator"
+    },
+    {
+      "code": 6011,
+      "name": "CooldownPeriod",
+      "msg": "Must wait 24 hours before redeeming liquidity mining rewards again."
     }
   ],
   "metadata": {
