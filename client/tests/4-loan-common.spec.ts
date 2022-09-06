@@ -1,12 +1,12 @@
 
 import {
   acceptLoanOfferByVoting,
-  cancelLoanOffer,
-  cancelLoanSubOffer,
+  deleteLoanOffer,
+  deleteLoanSubOffer,
   initLoanProgram,
   repayLoan,
   setLoanGlobalState,
-  setLoanOffer,
+  createLoanOffer,
   createLoanSubOffer,
   claimLoanCollateral,
   getLastVotingKey,
@@ -270,10 +270,10 @@ describe('loan-common', () => {
     );
   });
 
-  it('Set offer', async () => {
+  it('Create offer', async () => {
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const signers = [borrowerKeypair]
-    await setLoanOffer(nftMint.publicKey, borrower, signers)
+    await createLoanOffer(nftMint.publicKey, borrower, signers)
 
     //assert
     const offerData = await program.account.offer.fetch(offer)
@@ -289,15 +289,13 @@ describe('loan-common', () => {
     assert.equal(tokenInfo.isFrozen, true, "nft frozen")
   });
 
-  it('Cancel offer', async () => {
+  it('Delete & Create offer 1', async () => {
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const signers = [borrowerKeypair]
-    await cancelLoanOffer(nftMint.publicKey, borrower, signers)
+    await deleteLoanOffer(nftMint.publicKey, borrower, signers)
     //assert
-    const offerData = await program.account.offer.fetch(offer)
-    assert(offerData.borrower.equals(borrower), "borrower")
-    assert(offerData.nftMint.equals(nftMint.publicKey), "nftMint")
-    assert(offerData.state == OfferState.Canceled, "state")
+    const offerData = await program.account.offer.fetchNullable(offer)
+    assert(offerData == null, "deleting is fail")
 
     // Check nft status    
     const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), provider.connection, borrower);
@@ -306,12 +304,12 @@ describe('loan-common', () => {
     assert.equal(tokenInfo.delegate, null, "nft delegate")
     assert.equal((tokenInfo.amount as any).toNumber(), 1, "nft balance")
 
-    // Call set offer for continue test
-    await setLoanOffer(nftMint.publicKey, borrower, [borrowerKeypair])
+    // Call create offer for continue test
+    await createLoanOffer(nftMint.publicKey, borrower, [borrowerKeypair])
   });
 
   let loanDuration = new anchor.BN(10) //10s
-  it('Set sub offer 1', async () => {
+  it('Create sub offer 1', async () => {
 
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const offerDataBefore = await program.account.offer.fetch(offer)
@@ -339,24 +337,24 @@ describe('loan-common', () => {
     assert(subOfferData.aprNumerator.toNumber() == aprNumerator.toNumber(), "aprNumerator")
   });
 
-  it('Cancel sub offer', async () => {
+  it('Delete sub offer 1', async () => {
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const offerDataBefore = await program.account.offer.fetch(offer)
     const subOfferNumer = offerDataBefore.subOfferCount.sub(new anchor.BN(1))
     const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
 
     const signers = [borrowerKeypair]
-    await cancelLoanSubOffer(
+    await deleteLoanSubOffer(
       subOffer,
       borrower,
       signers
     )
     //assert
-    const subOfferData = await program.account.subOffer.fetch(subOffer)
-    assert(subOfferData.state == SubOfferState.Canceled, "state")
+    const subOfferData = await program.account.subOffer.fetchNullable(subOffer)
+    assert(subOfferData == null, "deleting is fail")
   });
 
-  it('Set sub offer 2', async () => {
+  it('Create sub offer 2', async () => {
 
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const offerDataBefore = await program.account.offer.fetch(offer)
@@ -425,13 +423,29 @@ describe('loan-common', () => {
     assert.equal(tokenInfo.isFrozen, false, "nft not frozen")
     assert.equal(tokenInfo.delegate, null, "nft delegate")
     assert.equal((tokenInfo.amount as any).toNumber(), 1, "nft balance")
+  });
 
-    // Call set offer for continue test
-    await setLoanOffer(nftMint.publicKey, borrower, [borrowerKeypair])
+  it('Delete & Create offer 2', async () => {
+    const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
+    const signers = [borrowerKeypair]
+    await deleteLoanOffer(nftMint.publicKey, borrower, signers)
+    //assert
+    const offerData = await program.account.offer.fetchNullable(offer)
+    assert(offerData == null, "deleting is fail")
+
+    // Check nft status    
+    const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), provider.connection, borrower);
+    const tokenInfo = await nftMint.getAccountInfo(borrowerNftATA);
+    assert.equal(tokenInfo.isFrozen, false, "nft thaw")
+    assert.equal(tokenInfo.delegate, null, "nft delegate")
+    assert.equal((tokenInfo.amount as any).toNumber(), 1, "nft balance")
+
+    // Call create offer for continue test
+    await createLoanOffer(nftMint.publicKey, borrower, [borrowerKeypair])
   });
 
   loanDuration = new anchor.BN(1) //10s
-  it('Set sub offer 3', async () => {
+  it('Create sub offer 3', async () => {
 
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)
     const offerDataBefore = await program.account.offer.fetch(offer)
