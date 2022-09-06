@@ -49,9 +49,6 @@ pub fn handle(ctx: Context<DeleteOffer>) -> Result<()> {
         // Revoke with offer PDA
         token::revoke(ctx.accounts.into_revoke_context())?;
     }
-
-    // delete offer account
-    ctx.accounts.offer.close(ctx.accounts.borrower.to_account_info())?;
     Ok(())
 }
 
@@ -64,6 +61,7 @@ pub struct DeleteOffer<'info> {
     #[account(mut,
     seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
     bump = offer.bump,
+    close = borrower
     )]
     pub offer: Box<Account<'info, Offer>>,
 

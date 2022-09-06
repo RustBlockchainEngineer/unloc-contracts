@@ -9,8 +9,6 @@ pub fn handle(ctx: Context<DeleteSubOffer>) -> Result<()> {
         "ctx.accounts.sub_offer.state"
     )?;
 
-    // delete sub offer account
-    ctx.accounts.sub_offer.close(ctx.accounts.borrower.to_account_info())?;
     ctx.accounts.offer.deleted_sub_offer_count.safe_add(1)?;
     Ok(())
 }
@@ -30,6 +28,7 @@ pub struct DeleteSubOffer<'info> {
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
     bump = sub_offer.bump,
+    close = borrower
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
 }
