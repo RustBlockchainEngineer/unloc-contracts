@@ -6,46 +6,49 @@ use anchor_spl::token::{self, Mint, Revoke, Token, TokenAccount};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 
 pub fn handle(ctx: Context<DeleteOffer>) -> Result<()> {
+    let proposed = ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed);
+    let nft_claimed = ctx.accounts.offer.state == OfferState::get_state(OfferState::NFTClaimed);
     require(
-        ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed)
-            || ctx.accounts.offer.state == OfferState::get_state(OfferState::NFTClaimed),
+        proposed || nft_claimed,
         "ctx.accounts.offer.state"
     )?;
 
-    let borrower_key = ctx.accounts.borrower.key();
-    let nft_mint_key = ctx.accounts.nft_mint.key();
-
-    // Thaw with Offer PDA
-    let offer_bump = ctx.accounts.offer.bump;
-    let signer_seeds = &[
-        OFFER_TAG.as_ref(),
-        borrower_key.as_ref(),
-        nft_mint_key.as_ref(),
-        &[offer_bump],
-    ];
-
-    invoke_signed(
-        &thaw_delegated_account(
-            metadata_id(),
-            ctx.accounts.offer.key(),
-            ctx.accounts.user_vault.key(),
-            ctx.accounts.edition.key(),
-            ctx.accounts.nft_mint.key(),
-        ),
-        &[
-            ctx.accounts.offer.to_account_info(),
-            ctx.accounts.user_vault.to_account_info(),
-            ctx.accounts.edition.to_account_info(),
-            ctx.accounts.nft_mint.to_account_info(),
-            ctx.accounts.metadata_program.to_account_info(),
-            ctx.accounts.token_program.to_account_info(),
-            ctx.accounts.system_program.to_account_info(),
-        ],
-        &[signer_seeds],
-    )?;
-
-    // Revoke with offer PDA
-    token::revoke(ctx.accounts.into_revoke_context())?;
+    if proposed {
+        let borrower_key = ctx.accounts.borrower.key();
+        let nft_mint_key = ctx.accounts.nft_mint.key();
+    
+        // Thaw with Offer PDA
+        let offer_bump = ctx.accounts.offer.bump;
+        let signer_seeds = &[
+            OFFER_TAG.as_ref(),
+            borrower_key.as_ref(),
+            nft_mint_key.as_ref(),
+            &[offer_bump],
+        ];
+    
+        invoke_signed(
+            &thaw_delegated_account(
+                metadata_id(),
+                ctx.accounts.offer.key(),
+                ctx.accounts.user_vault.key(),
+                ctx.accounts.edition.key(),
+                ctx.accounts.nft_mint.key(),
+            ),
+            &[
+                ctx.accounts.offer.to_account_info(),
+                ctx.accounts.user_vault.to_account_info(),
+                ctx.accounts.edition.to_account_info(),
+                ctx.accounts.nft_mint.to_account_info(),
+                ctx.accounts.metadata_program.to_account_info(),
+                ctx.accounts.token_program.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+            ],
+            &[signer_seeds],
+        )?;
+    
+        // Revoke with offer PDA
+        token::revoke(ctx.accounts.into_revoke_context())?;
+    }
 
     // delete offer account
     ctx.accounts.offer.close(ctx.accounts.borrower.to_account_info())?;
