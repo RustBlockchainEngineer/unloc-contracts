@@ -193,6 +193,8 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
 pub struct RepayLoan<'info> {
     #[account(mut)]
     pub borrower: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
 
     /// CHECK: we use this account for owner
     #[account(mut)]
@@ -236,10 +238,12 @@ pub struct RepayLoan<'info> {
     #[account(mut)]
     pub borrower_offer_vault: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut,
-        seeds = [TREASURY_VAULT_TAG, sub_offer.offer_mint.as_ref(), treasury_wallet.key().as_ref()],
-        bump
-    )]
+    #[account(init_if_needed,
+        token::mint = offer_mint,
+        token::authority = treasury_wallet,
+        seeds = [TREASURY_VAULT_TAG, sub_offer.offer_mint.key().as_ref(), treasury_wallet.key().as_ref()],
+        bump,
+        payer = payer)]
     pub treasury_vault: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: Safe

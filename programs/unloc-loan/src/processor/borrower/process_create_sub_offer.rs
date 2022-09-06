@@ -115,19 +115,6 @@ pub struct CreateSubOffer<'info> {
     pub sub_offer: Box<Account<'info, SubOffer>>,
 
     pub offer_mint: Box<Account<'info, Mint>>,
-    /// CHECK: key only is used
-    #[account(mut,
-        constraint = global_state.treasury_wallet == treasury_wallet.key()
-    )]
-    pub treasury_wallet: AccountInfo<'info>,
-
-    #[account(init_if_needed,
-        token::mint = offer_mint,
-        token::authority = treasury_wallet,
-        seeds = [TREASURY_VAULT_TAG, offer_mint.key().as_ref(), treasury_wallet.key().as_ref()],
-        bump,
-        payer = payer)]
-    pub treasury_vault: Box<Account<'info, TokenAccount>>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

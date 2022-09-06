@@ -151,6 +151,8 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
 pub struct ClaimCollateral<'info> {
     #[account(mut)]
     pub lender: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
     #[account(
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
@@ -193,10 +195,12 @@ pub struct ClaimCollateral<'info> {
     #[account(mut)]
     pub lender_offer_vault: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut,
-        seeds = [TREASURY_VAULT_TAG, sub_offer.offer_mint.as_ref(), treasury_wallet.key().as_ref()],
-        bump
-    )]
+    #[account(init_if_needed,
+        token::mint = offer_mint,
+        token::authority = treasury_wallet,
+        seeds = [TREASURY_VAULT_TAG, sub_offer.offer_mint.key().as_ref(), treasury_wallet.key().as_ref()],
+        bump,
+        payer = payer)]
     pub treasury_vault: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: metaplex edition account
