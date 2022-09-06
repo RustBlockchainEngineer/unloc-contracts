@@ -23,18 +23,18 @@ import {
   setLoanVoting,
   getVotingKeyFromNum,
   claimBorrowerRewards
-} from '../dist/cjs'
+} from '../src'
 import * as anchor from '@project-serum/anchor';
 import { assertError } from './staking-utils';
 import { assert } from 'chai'
-import { UnlocLoan } from '../src/types/unloc_loan';
+import { UnlocLoan } from '../dist/cjs/types/unloc_loan';
 
 import SUPER_OWNER_WALLET from './test-users/super_owner.json'
 import PROPOSER1_WALLET from './test-users/borrower1.json'
 import LOANER1_WALLET from './test-users/lender1.json'
 import TREASURY from './test-users/treasury.json'
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { initVotingProgram, STAKING_PID, TOKEN_META_PID, UNLOC_MINT, USDC_MINT, VOTING_PID } from '../src';
+import { initVotingProgram, STAKING_PID, TOKEN_META_PID, UNLOC_MINT, USDC_MINT, VOTING_PID } from '../dist/cjs';
 import { Collection, CreateMasterEditionV3, CreateMetadataV2, DataV2, Edition, Metadata } from '@metaplex-foundation/mpl-token-metadata';
 import { mintAndCreateMetadata, mintAndCreateMetadataV2 } from '@metaplex-foundation/mpl-token-metadata/dist/test/actions';
 import { Keypair, Connection } from '@solana/web3.js';
