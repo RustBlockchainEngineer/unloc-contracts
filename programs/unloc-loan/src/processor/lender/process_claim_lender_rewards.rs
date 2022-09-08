@@ -1,6 +1,9 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
-
+use unloc_staking::{
+    cpi::accounts::{CreatePoolUser, Stake},
+    program::UnlocStaking,
+};
 use crate::{constant::*, states::*, utils::*, error::*};
 use std::str::FromStr;
 
@@ -59,15 +62,13 @@ pub fn handle(ctx: Context<ClaimLenderRewards>) -> Result<()> {
     let signer_seeds = &[GLOBAL_STATE_TAG, &[global_bump]];
     let signer = &[&signer_seeds[..]];
 
-    // transfer to lender
-    let cpi_accounts1 = Transfer {
-        from: ctx.accounts.reward_vault.to_account_info(),
-        to: ctx.accounts.lender_reward_vault.to_account_info(),
-        authority: ctx.accounts.global_state.to_account_info(),
-    };
-    let cpi_program1 = ctx.accounts.token_program.to_account_info();
-    let cpi_ctx1 = CpiContext::new_with_signer(cpi_program1, cpi_accounts1, signer);
-    token::transfer(cpi_ctx1, lender_rewards_amount)?;
+    // create user staking account if not created yet
+    if ctx.accounts.stake_user.data_is_empty() {
+        unloc_staking::cpi::create_user(ctx.accounts.create_user_ctx().with_signer(signer))?;
+    }
+
+    // stake rewards
+    unloc_staking::cpi::stake(ctx.accounts.stake_ctx().with_signer(signer), lender_rewards_amount, 1)?;
 
     ctx.accounts.sub_offer.update_lender_reward_debt()?;
     ctx.accounts.sub_offer.last_lender_claim = clock.unix_timestamp;
@@ -81,6 +82,7 @@ pub struct ClaimLenderRewards<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
+        mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
     )]
@@ -90,25 +92,83 @@ pub struct ClaimLenderRewards<'info> {
         bump = sub_offer.bump,
         )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
-
     #[account(
         mut,
         seeds = [REWARD_VAULT_TAG],
         bump = global_state.reward_vault_bump,
     )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
-
     /// CHECK: Safe
     pub chainlink_program: AccountInfo<'info>,
-
     /// CHECK: Safe
     pub sol_feed: AccountInfo<'info>,
-
     /// CHECK: Safe
     pub usdc_feed: AccountInfo<'info>,
-
     #[account(mut)]
     pub lender_reward_vault: Box<Account<'info, TokenAccount>>,
+
+    /// CHECK: Safe
+    #[account(mut)]
+    pub stake_user: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub stake_state: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub stake_pool: AccountInfo<'info>,
+    
+    /// CHECK: Safe
+    #[account(owner = *unloc_staking_program.key)]
+    pub extra_reward_account: AccountInfo<'info>,
+    /// CHECK: Safe
+    pub stake_mint: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub stake_pool_vault: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub fee_vault: AccountInfo<'info>,
+
+    pub unloc_staking_program: Program<'info, UnlocStaking>,
+    pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
+}
+
+impl<'info> ClaimLenderRewards<'info> {
+
+    pub fn create_user_ctx(&self) -> CpiContext<'_, '_, '_, 'info, CreatePoolUser<'info>> {
+        let unloc_staking_program = self.unloc_staking_program.to_account_info();
+        let create_user_accts = CreatePoolUser {
+            user: self.stake_user.to_account_info(),
+            state: self.stake_state.to_account_info(),
+            pool: self.stake_pool.to_account_info(),
+            authority: self.global_state.to_account_info(),
+            payer: self.authority.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            token_program: self.token_program.to_account_info()
+        };
+
+        CpiContext::new(unloc_staking_program, create_user_accts)
+    }
+
+    pub fn stake_ctx(&self) -> CpiContext<'_, '_, '_, 'info, Stake<'info>> {
+        let unloc_staking_program = self.unloc_staking_program.to_account_info();
+        let stake_accts = Stake {
+            user: self.stake_user.to_account_info(),
+            state: self.stake_state.to_account_info(),
+            extra_reward_account: self.extra_reward_account.to_account_info(),
+            pool: self.stake_pool.to_account_info(),
+            authority: self.global_state.to_account_info(),
+            mint: self.stake_mint.to_account_info(),
+            pool_vault: self.stake_pool_vault.to_account_info(),
+            user_vault: self.reward_vault.to_account_info(),
+            fee_vault: self.fee_vault.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            token_program: self.token_program.to_account_info(),
+            clock: self.clock.to_account_info()
+        };
+
+        CpiContext::new(unloc_staking_program, stake_accts)
+    }
 }

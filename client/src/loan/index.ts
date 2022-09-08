@@ -417,6 +417,19 @@ export const claimLenderRewards = async (
   let lenderRewardVault = await addTokenAccountFromKeypairInstruction(rewardMint, subOfferData.lender, newKeypair, preInstructions, signer, signers)
   //}
 
+  const [poolSigner, poolBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [rewardMint.toBuffer()],
+    STAKING_PID
+  )
+
+  const [userAccount, bump1] = await PublicKey.findProgramAddress([
+    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer()
+  ], STAKING_PID)
+
+  const stateSigner = await getStakingStateAddress()
+  const extraRewardSigner = await getStakingExtraRewardAddress()
+  const state = await getStakingState()
+
   try {
     const lenderTx = await loanProgram.methods.claimLenderRewards()
       .accounts({
@@ -426,6 +439,15 @@ export const claimLenderRewards = async (
         subOffer,
         ...chainlinkIds,
         lenderRewardVault,
+        stakeUser: userAccount,
+        stakeState: stateSigner,
+        stakePool: poolSigner,
+        extraRewardAccount: extraRewardSigner,
+        stakeMint: rewardMint,
+        stakePoolVault: poolVault,
+        feeVault: state.feeVault,
+        unlocStakingProgram:STAKING_PID,
+        systemProgram: SystemProgram.programId,
         ...defaults
       })
       .preInstructions(preInstructions)

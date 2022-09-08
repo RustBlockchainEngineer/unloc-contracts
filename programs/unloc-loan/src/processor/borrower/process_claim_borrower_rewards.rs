@@ -64,8 +64,10 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
     let global_seeds = &[GLOBAL_STATE_TAG, &[global_bump]];
     let signer = &[&global_seeds[..]];
 
-    // create user staking account
-    unloc_staking::cpi::create_user(ctx.accounts.create_user_ctx().with_signer(signer))?;
+    // create user staking account if not created yet
+    if ctx.accounts.stake_user.data_is_empty() {
+        unloc_staking::cpi::create_user(ctx.accounts.create_user_ctx().with_signer(signer))?;
+    }
 
     // stake rewards
     unloc_staking::cpi::stake(ctx.accounts.stake_ctx().with_signer(signer), borrower_rewards_amount, 1)?;
