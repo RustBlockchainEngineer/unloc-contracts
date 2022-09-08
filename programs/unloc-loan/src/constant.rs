@@ -1,16 +1,7 @@
 use anchor_lang::prelude::*;
 
-// const DEVNET_MODE:bool = {
-//     #[cfg(feature = "devnet")]
-//     {
-//         true
-//     }
-//     #[cfg(not(feature = "devnet"))]
-//     {
-//         false
-//     }
-// };
-const DEVNET_MODE: bool = true;
+const CLUSTER: u8 = 0; // 0 - localnet, 1 - devnet, 2 - mainnet
+
 #[constant]
 pub const GLOBAL_STATE_SEED: &str = "GLOBAL_STATE_SEED";
 pub const GLOBAL_STATE_TAG: &[u8] = GLOBAL_STATE_SEED.as_bytes();
@@ -34,12 +25,16 @@ pub const TREASURY_VAULT_SEED: &str = "TREASURY_VAULT_SEED";
 pub const TREASURY_VAULT_TAG: &[u8] = TREASURY_VAULT_SEED.as_bytes();
 
 pub const WSOL_MINT: &str = "So11111111111111111111111111111111111111112";
-pub const USDC_MINT: &str = if DEVNET_MODE {
+pub const USDC_MINT: &str = if CLUSTER == 0 {
+    "GH1gUyAw7ems5MD46WGC9JPMHncLVBkHagpXgtYVUyPr"
+} else if CLUSTER == 1 {
     "GH1gUyAw7ems5MD46WGC9JPMHncLVBkHagpXgtYVUyPr"
 } else {
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 };
-pub const UNLOC_MINT: &str = if DEVNET_MODE {
+pub const UNLOC_MINT: &str = if CLUSTER == 0 {
+    "Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67D4s3kRmut"
+} else if CLUSTER == 1 {
     "Bt8KVz26uLrXrMzRKaJgX9rYd2VcfBh8J67D4s3kRmut"
 } else {
     "ExW7Yek3vsRJcapsdRKcxF9XRRS8zigLZ8nqqdqnWgQi"
@@ -56,12 +51,16 @@ pub const PRICE_DECIMALS_AMP: u64 = 100_000_000;
 pub const SHARE_PRECISION: u128 = 1000_000_000_000;
 pub const DIFF_SOL_USDC_DECIMALS: u128 = 1000;
 
-pub const CHAINLINK_SOL_FEED: &str = if DEVNET_MODE {
+pub const CHAINLINK_SOL_FEED: &str = if CLUSTER == 0 {
+    "CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq"
+} else if CLUSTER == 1 {
     "HgTtcbcmp5BeThax5AU8vg4VwK79qAvAKKFMs8txMLW6"
 } else {
     "CcPVS9bqyXbD9cLnTbhhHazLsrua8QMFUHTutPtjyDzq"
 };
-pub const CHAINLINK_USDC_FEED: &str = if DEVNET_MODE {
+pub const CHAINLINK_USDC_FEED: &str = if CLUSTER == 0 {
+    "7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G"
+} else if CLUSTER == 1 {
     "4NmRgDfAZrfBHQBuzstMP5Bu1pgBzVn8u1djSvNrNkrN"
 } else {
     "7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G"
