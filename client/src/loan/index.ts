@@ -17,7 +17,8 @@ import axios from 'axios'
 import { ArweaveMetadata, IMasterEdition, IMetadata, OnChainMetadata } from './IOfferData'
 import { VOTING_ITEM_TAG } from './../voting'
 import { pda, SOLANA_CONNECTION } from './../utils'
-
+import { getStakingStateAddress, getStakingExtraRewardAddress, getStakingState } from './../staking'
+import { poolVault } from './../../tests/2-staking-common.spec'
 
 export let loanProgram: anchor.Program<UnlocLoan> = null as unknown as anchor.Program<UnlocLoan>
 export let loanProvider: anchor.AnchorProvider = null as unknown as anchor.AnchorProvider
@@ -457,6 +458,19 @@ export const claimBorrowerRewards = async (
   let borrowerRewardVault = await addTokenAccountFromKeypairInstruction(rewardMint, subOfferData.borrower, newKeypair, preInstructions, signer, signers)
   //}
 
+  const [poolSigner, poolBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [rewardMint.toBuffer()],
+    STAKING_PID
+  )
+
+  const [userAccount, bump1] = await PublicKey.findProgramAddress([
+    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer()
+  ], STAKING_PID)
+
+  const stateSigner = await getStakingStateAddress()
+  const extraRewardSigner = await getStakingExtraRewardAddress()
+  const state = await getStakingState()
+
   try {
     const borrowerTx = await loanProgram.methods.claimBorrowerRewards()
       .accounts({
@@ -466,6 +480,16 @@ export const claimBorrowerRewards = async (
         subOffer,
         ...chainlinkIds,
         borrowerRewardVault,
+        stakeUser: userAccount,
+        stakeState: stateSigner,
+        stakePool: poolSigner,
+        extraRewardAccount: extraRewardSigner,
+        stakeMint: rewardMint,
+        stakePoolVault: poolVault,
+        feeVault: state.feeVault,
+        unlocStakingProgram:STAKING_PID,
+        systemProgram: SystemProgram.programId,
+
         ...defaults
       })
       .preInstructions(preInstructions)

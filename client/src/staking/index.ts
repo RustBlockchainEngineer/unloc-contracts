@@ -51,7 +51,7 @@ export async function getStakingStateAddress() {
   return stateSigner
 }
 
-async function getStakingExtraRewardAddress() {
+export async function getStakingExtraRewardAddress() {
   const [stateSigner, stateBump] = await anchor.web3.PublicKey.findProgramAddress(
     [utf8.encode('extra')],
     StakingProgram.programId

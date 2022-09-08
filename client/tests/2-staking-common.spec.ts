@@ -22,7 +22,7 @@ let extraRewardBump = 255
 
 let rewardMint: Token = null as any
 let poolSigner = Keypair.generate().publicKey
-let poolVault = Keypair.generate().publicKey
+export let poolVault = Keypair.generate().publicKey
 let poolBump = 255
 
 let lpMint: Token = null as any
