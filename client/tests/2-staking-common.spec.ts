@@ -152,7 +152,7 @@ describe('staking-common', () => {
     await program.methods.setExtraRewardConfigs([
       { duration: new BN(0), extraPercentage: getNumber(0) },
       { duration: new BN(1), extraPercentage: getNumber(50) },
-      { duration: new BN(2), extraPercentage: getNumber(100) },
+      { duration: new BN(5184000), extraPercentage: getNumber(100) },
     ])
       .accounts({
         extraRewardAccount: extraRewardSigner,

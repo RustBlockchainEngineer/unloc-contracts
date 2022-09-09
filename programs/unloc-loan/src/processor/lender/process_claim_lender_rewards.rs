@@ -68,7 +68,7 @@ pub fn handle(ctx: Context<ClaimLenderRewards>) -> Result<()> {
     }
 
     // stake rewards
-    unloc_staking::cpi::stake(ctx.accounts.stake_ctx().with_signer(signer), lender_rewards_amount, 1)?;
+    unloc_staking::cpi::stake(ctx.accounts.stake_ctx().with_signer(signer), lender_rewards_amount, DEFAULT_STAKE_DURATION)?;
 
     ctx.accounts.sub_offer.update_lender_reward_debt()?;
     ctx.accounts.sub_offer.last_lender_claim = clock.unix_timestamp;

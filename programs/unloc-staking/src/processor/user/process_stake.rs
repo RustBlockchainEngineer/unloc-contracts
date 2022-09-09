@@ -14,6 +14,7 @@ pub fn handle(ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()
     let user = &mut ctx.accounts.user;
     let pool = &mut ctx.accounts.pool;
 
+    msg!("Lock duration: {}", lock_duration);
     extra_account.validate_lock_duration(&lock_duration)?;
     require!(
         lock_duration >= user.lock_duration,
