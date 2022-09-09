@@ -22,7 +22,14 @@ pub fn handle(ctx: Context<ClaimLenderRewards>) -> Result<()> {
     }
 
     let clock = Clock::get().unwrap();
-    if ctx.accounts.sub_offer.lender_has_claimed_rewards && (clock.unix_timestamp - ctx.accounts.sub_offer.last_lender_claim) < UNIX_DAY {
+    let is_valid_redemption = validate_redeem_time(
+            ctx.accounts.sub_offer.last_lender_claim,
+            clock.unix_timestamp,
+            ctx.accounts.global_state.redemption_reset
+        ).unwrap();
+
+    msg!("Is valid redemption based on last redemption time: {}", is_valid_redemption);
+    if ctx.accounts.sub_offer.lender_has_claimed_rewards && !is_valid_redemption {
         return Err(error!(LoanError::CooldownPeriod));
     }
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();

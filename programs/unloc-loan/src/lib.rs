@@ -56,6 +56,9 @@ pub mod unloc_loan {
     pub fn set_voting(ctx: Context<SetVoting>, voting: Pubkey) -> Result<()> {
         process_set_voting::handle(ctx, voting)
     }
+    pub fn set_redeem_reset(ctx: Context<SetRedeemReset>, new_redeem_reset: i64) -> Result<()> {
+        process_set_global_redeem_reset::handle(ctx, new_redeem_reset)
+    }
     pub fn deposit_rewards(ctx: Context<DepositRewards>, amount: u64) -> Result<()> {
         process_deposit_rewards::handle(ctx, amount)
     }

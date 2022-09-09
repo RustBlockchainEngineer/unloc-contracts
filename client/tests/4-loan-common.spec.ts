@@ -626,6 +626,23 @@ describe('loan-common', () => {
     await assertError(hash, undefined)
   })
 
+  it('Update redemption reset time', async () => {
+    const globalState = await pda([GLOBAL_STATE_SEED], programId)
+    let newRedeemTime = new anchor.BN(4);
+    try {
+      let txid = await program.methods.setRedeemReset(newRedeemTime)
+        .accounts({
+          superOwner: superOwner,
+          globalState: globalState
+        })
+        .signers([superOwnerKeypair])
+        .rpc()
+      console.log('tx = ', txid)
+    } catch (e) {
+      console.log(e)
+      assert.fail()
+    }
+  })
 });
 
 async function safeAirdrop(connection: anchor.web3.Connection, key: anchor.web3.PublicKey, amount: number) {

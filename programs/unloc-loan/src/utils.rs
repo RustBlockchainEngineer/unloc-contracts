@@ -195,3 +195,139 @@ impl SafeCalc<u128> for u128 {
         Ok(result.unwrap())
     }
 }
+
+pub fn convert_unix_to_utc(mut unix_time: i64) -> Result<UtcTime> {
+    /* calculate minutes */
+    let mut minutes = unix_time / 60;
+    unix_time -= minutes * 60;
+    /* calculate hours */
+    let mut hours = minutes / 60;
+    minutes -= hours * 60;
+    /* calculate days */
+    let mut days = hours / 24;
+    hours -= days * 24;
+
+     /* Unix time starts in 1970 on a Thursday */
+    let mut year: i64 = 1970;
+    let mut month: i64 = 0;
+    let mut days_in_current_month: i64 = 0;
+
+    loop {
+        let mut leap_year: bool = false;
+        let days_in_year: i64;
+        if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) { leap_year = true };
+        if leap_year { days_in_year = 366 } else { days_in_year = 365 };
+        if days >= days_in_year {
+            days -= days_in_year;
+            year += 1;
+        }
+        else {
+            /* calculate the month and day */
+            let days_in_month = vec![31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            for i in 0..12 {
+                let mut dim = days_in_month[i];
+                /* add a day to feburary if this is a leap year */
+                if i == 1 && leap_year {
+                    dim += 1;
+                }
+
+                if days >= dim {
+                    days -= dim;
+                }
+                else {
+                    month = i as i64;
+                    days_in_current_month = dim as i64;
+                    month += 1;
+                    break;
+                }
+            }
+            break;
+        }
+    }
+
+    let current_time = UtcTime {
+        days_in_month: days_in_current_month,
+        _sec: unix_time,
+        _min: minutes,
+        hr: hours,
+        day: days + 1,
+        month: month,
+        year: year
+    };
+
+    Ok(current_time)
+}
+
+pub fn validate_redeem_time(last_redemption: i64, current_unix: i64, redemption_reset: i64) -> Result<bool> {
+    let is_valid_redemption: bool;
+    let last_redemption_utc = convert_unix_to_utc(last_redemption).unwrap();
+    let current_utc = convert_unix_to_utc(current_unix).unwrap();
+
+    msg!("Last redemption utc: {:?}", last_redemption_utc);
+    msg!("Current time utc: {:?}", current_utc);
+    msg!("Redemption Reset hr: {}", redemption_reset);
+    if last_redemption_utc.year < current_utc.year {
+        // if it's Jan 1 and last redeem was Dec 31 of prev year, need to verify this is a valid redemption
+        if current_utc.month == 1 && last_redemption_utc.month == 12 {
+            if current_utc.day == 1 && last_redemption_utc.day == last_redemption_utc.days_in_month {
+                if last_redemption_utc.hr < redemption_reset || current_utc.hr >= redemption_reset {
+                    is_valid_redemption = true;
+                } else {
+                    is_valid_redemption = false;
+                }
+            } else {
+                is_valid_redemption = true;
+            }
+        } else {
+            is_valid_redemption = true;
+        }
+    }
+    else if last_redemption_utc.year == current_utc.year && last_redemption_utc.month < current_utc.month {
+        // if it's 1st of the month and last redeem was last day of previous month, need to verify this is a valid redemption
+        if current_utc.month - last_redemption_utc.month == 1 {
+            if current_utc.day == 1 && last_redemption_utc.day == last_redemption_utc.days_in_month {
+                if last_redemption_utc.hr < redemption_reset || current_utc.hr >= redemption_reset {
+                    is_valid_redemption = true;
+                } else {
+                    is_valid_redemption = false;
+                }
+            } else {
+                is_valid_redemption = true;
+            }
+        } else {
+            is_valid_redemption = true;
+        }
+    }
+    else if last_redemption_utc.month == current_utc.month && last_redemption_utc.day < current_utc.day {
+        // if last redemption was yesterday, need to verify this is a valid redemption
+        if current_utc.day - last_redemption_utc.day == 1 {
+            if last_redemption_utc.hr < redemption_reset || current_utc.hr >= redemption_reset {
+                is_valid_redemption = true;
+            } else {
+                is_valid_redemption = false;
+            }
+        } else {
+            is_valid_redemption = true;
+        }
+    }
+    else if last_redemption_utc.day == current_utc.day && last_redemption_utc.hr < redemption_reset && current_utc.hr >= redemption_reset {
+        is_valid_redemption = true;
+    }
+    else {
+        is_valid_redemption = false;
+    }
+
+    Ok(is_valid_redemption)
+    
+}
+
+#[derive(Debug)]
+pub struct UtcTime {
+    days_in_month: i64,
+    _sec: i64,
+    _min: i64,
+    hr: i64,
+    day: i64,
+    month: i64,
+    year: i64
+}

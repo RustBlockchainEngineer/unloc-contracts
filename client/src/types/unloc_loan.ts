@@ -210,6 +210,27 @@ export type UnlocLoan = {
       ]
     },
     {
+      "name": "setRedeemReset",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "newRedeemReset",
+          "type": "i64"
+        }
+      ]
+    },
+    {
       "name": "depositRewards",
       "accounts": [
         {
@@ -1167,6 +1188,10 @@ export type UnlocLoan = {
                 15
               ]
             }
+          },
+          {
+            "name": "redemptionReset",
+            "type": "i64"
           }
         ]
       }
@@ -1492,7 +1517,7 @@ export type UnlocLoan = {
     {
       "code": 6011,
       "name": "CooldownPeriod",
-      "msg": "Must wait 24 hours before redeeming liquidity mining rewards again."
+      "msg": "Must wait until current cooldown period resets before redeeming liquidity mining rewards again."
     }
   ]
 };
@@ -1709,6 +1734,27 @@ export const IDL: UnlocLoan = {
       ]
     },
     {
+      "name": "setRedeemReset",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "newRedeemReset",
+          "type": "i64"
+        }
+      ]
+    },
+    {
       "name": "depositRewards",
       "accounts": [
         {
@@ -2666,6 +2712,10 @@ export const IDL: UnlocLoan = {
                 15
               ]
             }
+          },
+          {
+            "name": "redemptionReset",
+            "type": "i64"
           }
         ]
       }
@@ -2991,7 +3041,7 @@ export const IDL: UnlocLoan = {
     {
       "code": 6011,
       "name": "CooldownPeriod",
-      "msg": "Must wait 24 hours before redeeming liquidity mining rewards again."
+      "msg": "Must wait until current cooldown period resets before redeeming liquidity mining rewards again."
     }
   ]
 };
