@@ -2,6 +2,7 @@ use amm_anchor::{Amm as RaydiumSwap, SwapBaseIn};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, accessor::amount, Burn, Mint, Token, TokenAccount};
 use std::str::FromStr;
+use crate::program::UnlocBurn;
 
 declare_id!("2v8ZEC4QzHVf9ogZBvwtgasJsiNJfR3EtKqgtH39bTsw");
 
@@ -26,14 +27,11 @@ pub const UNLOC_MINT: &str = if DEVNET_MODE {
 } else {
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 };
-pub const INITIAL_OWNER: &str = "HV2t9B2oxdtkwbZrWj1vjZ2q3g4SH5rasGw8WohBFbvH";
-
 #[program]
 pub mod unloc_burn {
     use super::*;
-    pub fn set_global_state(
-        ctx: Context<SetGlobalState>,
-        new_authority: Pubkey,
+    pub fn create_global_state(
+        ctx: Context<CreateGlobalState>,
         new_burner: Pubkey,
     ) -> Result<()> {
         let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
@@ -47,21 +45,11 @@ pub mod unloc_burn {
         require(ctx.accounts.usdc_mint.key() == usdc_mint, "wrong usdc_mint")?;
         require(ctx.accounts.wsol_mint.key() == wsol_mint, "wrong wsol_mint")?;
 
-        if is_zero_account(&ctx.accounts.global_state.to_account_info()) {
-            let initial_owner = Pubkey::from_str(INITIAL_OWNER).unwrap();
-            require_keys_eq!(initial_owner, ctx.accounts.authority.key());
-            ctx.accounts.global_state.authority = ctx.accounts.authority.key();
-            ctx.accounts.global_state.bump = *ctx.bumps.get("global_state").unwrap();
-            ctx.accounts.global_state.unloc_vault_bump = *ctx.bumps.get("unloc_vault").unwrap();
-            ctx.accounts.global_state.usdc_vault_bump = *ctx.bumps.get("usdc_vault").unwrap();
-            ctx.accounts.global_state.wsol_vault_bump = *ctx.bumps.get("wsol_vault").unwrap();
-        }
-        require(
-            ctx.accounts.global_state.authority == ctx.accounts.authority.key(),
-            "wrong authority of global state",
-        )?;
-
-        ctx.accounts.global_state.authority = new_authority;
+        ctx.accounts.global_state.authority = ctx.accounts.authority.key();
+        ctx.accounts.global_state.bump = *ctx.bumps.get("global_state").unwrap();
+        ctx.accounts.global_state.unloc_vault_bump = *ctx.bumps.get("unloc_vault").unwrap();
+        ctx.accounts.global_state.usdc_vault_bump = *ctx.bumps.get("usdc_vault").unwrap();
+        ctx.accounts.global_state.wsol_vault_bump = *ctx.bumps.get("wsol_vault").unwrap();
 
         ctx.accounts.global_state.amm = ctx.accounts.amm.key();
         ctx.accounts.global_state.serum_program = ctx.accounts.serum_program.key();
@@ -69,6 +57,19 @@ pub mod unloc_burn {
         ctx.accounts.global_state.unloc_vault = ctx.accounts.unloc_vault.key();
         ctx.accounts.global_state.usdc_vault = ctx.accounts.usdc_vault.key();
         ctx.accounts.global_state.wsol_vault = ctx.accounts.wsol_vault.key();
+        ctx.accounts.global_state.burner = new_burner;
+
+        Ok(())
+    }
+    pub fn update_global_state(
+        ctx: Context<UpdateGlobalState>,
+        new_authority: Pubkey,
+        new_burner: Pubkey,
+    ) -> Result<()> {
+        ctx.accounts.global_state.authority = new_authority;
+        ctx.accounts.global_state.amm = ctx.accounts.amm.key();
+        ctx.accounts.global_state.serum_program = ctx.accounts.serum_program.key();
+        ctx.accounts.global_state.serum_market = ctx.accounts.serum_market.key();
         ctx.accounts.global_state.burner = new_burner;
 
         Ok(())
@@ -111,14 +112,14 @@ pub mod unloc_burn {
 
 #[derive(Accounts)]
 #[instruction()]
-pub struct SetGlobalState<'info> {
+pub struct CreateGlobalState<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
 
     #[account(
-        init_if_needed,
+        init,
         seeds = [GLOBAL_STATE_SEED],
         bump,
         payer = payer,
@@ -128,7 +129,7 @@ pub struct SetGlobalState<'info> {
 
     pub unloc_mint: Box<Account<'info, Mint>>,
     #[account(
-        init_if_needed,
+        init,
         token::mint = unloc_mint,
         token::authority = global_state,
         seeds = [UNLOC_VAULT_SEED],
@@ -138,7 +139,7 @@ pub struct SetGlobalState<'info> {
     pub unloc_vault: Box<Account<'info, TokenAccount>>,
     pub usdc_mint: Box<Account<'info, Mint>>,
     #[account(
-        init_if_needed,
+        init,
         token::mint = usdc_mint,
         token::authority = global_state,
         seeds = [USDC_VAULT_SEED],
@@ -149,7 +150,7 @@ pub struct SetGlobalState<'info> {
 
     pub wsol_mint: Box<Account<'info, Mint>>,
     #[account(
-        init_if_needed,
+        init,
         token::mint = wsol_mint,
         token::authority = global_state,
         seeds = [WSOL_VAULT_SEED],
@@ -157,6 +158,48 @@ pub struct SetGlobalState<'info> {
         payer = payer,
     )]
     pub wsol_vault: Box<Account<'info, TokenAccount>>,
+
+    pub amm_program: Program<'info, RaydiumSwap>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub amm: AccountInfo<'info>,
+    /// CHECK: Safe
+    pub serum_program: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub serum_market: AccountInfo<'info>,
+    
+    /// The unloc buyback-burn program.
+    ///
+    /// Provided here to check the upgrade authority.
+    #[account(constraint = burn_program.programdata_address()?.as_ref() == Some(&program_data.key()) @ ErrorCode::InvalidProgramData)]
+    pub burn_program: Program<'info, UnlocBurn>,
+    /// The program data account for the unloc buyback-burn program.
+    ///
+    /// Provided to check the upgrade authority.
+    #[account(constraint = program_data.upgrade_authority_address.as_ref() == Some(&authority.key()) @ ErrorCode::InvalidProgramUpgradeAuthority)]
+    pub program_data: Account<'info, ProgramData>,
+    /// CHECK: Safe
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+#[instruction()]
+pub struct UpdateGlobalState<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [GLOBAL_STATE_SEED],
+        bump = global_state.bump,
+        has_one = authority
+    )]
+    pub global_state: Box<Account<'info, GlobalState>>,
 
     pub amm_program: Program<'info, RaydiumSwap>,
     /// CHECK: Safe
@@ -330,6 +373,10 @@ pub enum ErrorCode {
     InvalidAmount,
     #[msg("InvalidDenominator")]
     InvalidDenominator,
+    #[msg("The provided program data is incorrect.")]
+    InvalidProgramData,
+    #[msg("The provided program upgrade authority is incorrect.")]
+    InvalidProgramUpgradeAuthority,
 }
 pub fn require(flag: bool, msg: &str) -> Result<()> {
     if !flag {
