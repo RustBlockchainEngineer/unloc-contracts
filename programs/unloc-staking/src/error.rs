@@ -22,4 +22,8 @@ pub enum StakingError {
     InvalidMint,
     #[msg("Math operation overflow")]
     MathOverflow,
+    #[msg("The provided program data is incorrect.")]
+    InvalidProgramData,
+    #[msg("The provided program upgrade authority is incorrect.")]
+    InvalidProgramUpgradeAuthority,
 }
