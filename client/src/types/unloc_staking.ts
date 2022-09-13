@@ -36,6 +36,16 @@ export type UnlocStaking = {
           "isSigner": true
         },
         {
+          "name": "stakingProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1100,6 +1110,16 @@ export type UnlocStaking = {
       "code": 6009,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidProgramData",
+      "msg": "The provided program data is incorrect."
+    },
+    {
+      "code": 6011,
+      "name": "InvalidProgramUpgradeAuthority",
+      "msg": "The provided program upgrade authority is incorrect."
     }
   ]
 };
@@ -1142,6 +1162,16 @@ export const IDL: UnlocStaking = {
           "isSigner": true
         },
         {
+          "name": "stakingProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -2206,6 +2236,16 @@ export const IDL: UnlocStaking = {
       "code": 6009,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidProgramData",
+      "msg": "The provided program data is incorrect."
+    },
+    {
+      "code": 6011,
+      "name": "InvalidProgramUpgradeAuthority",
+      "msg": "The provided program upgrade authority is incorrect."
     }
   ]
 };

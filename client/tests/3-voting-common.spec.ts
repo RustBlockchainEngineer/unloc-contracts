@@ -1,5 +1,5 @@
 
-import { createVoting, getLastVoting, getLastVotingKey, getVoting, getVotingGlobalState, getVotingItem, getVotingItemKey, getVotingUser, initStakingProgram, initVotingProgram, setVoting, setVotingGlobalState, setVotingItem, vote } from '../dist/cjs'
+import { createVoting, getLastVoting, getLastVotingKey, getVoting, getVotingGlobalState, getVotingItem, getVotingItemKey, getVotingUser, initStakingProgram, initVotingProgram, setVoting, createVotingGlobalState, setVotingItem, vote } from '../dist/cjs'
 import * as anchor from '@project-serum/anchor';
 
 import { assert} from 'chai'  
@@ -54,9 +54,7 @@ describe('voting-common', () => {
   })
   
   it('Set global state', async () => {
-    await setVotingGlobalState(
-      superOwner
-    )
+    await createVotingGlobalState()
     // assert
     const globalStateData = await getVotingGlobalState()
     assert.ok(globalStateData.superOwner.equals(superOwner))

@@ -33,7 +33,7 @@ export type UnlocBurn = {
   ],
   "instructions": [
     {
-      "name": "setGlobalState",
+      "name": "createGlobalState",
       "accounts": [
         {
           "name": "authority",
@@ -77,6 +77,77 @@ export type UnlocBurn = {
         },
         {
           "name": "wsolVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ammProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "amm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "serumProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "serumMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "burnProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "newBurner",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "updateGlobalState",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
           "isMut": true,
           "isSigner": false
         },
@@ -378,6 +449,16 @@ export type UnlocBurn = {
       "code": 6010,
       "name": "InvalidDenominator",
       "msg": "InvalidDenominator"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidProgramData",
+      "msg": "The provided program data is incorrect."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidProgramUpgradeAuthority",
+      "msg": "The provided program upgrade authority is incorrect."
     }
   ]
 };
@@ -417,7 +498,7 @@ export const IDL: UnlocBurn = {
   ],
   "instructions": [
     {
-      "name": "setGlobalState",
+      "name": "createGlobalState",
       "accounts": [
         {
           "name": "authority",
@@ -461,6 +542,77 @@ export const IDL: UnlocBurn = {
         },
         {
           "name": "wsolVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "ammProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "amm",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "serumProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "serumMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "burnProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "newBurner",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "updateGlobalState",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
           "isMut": true,
           "isSigner": false
         },
@@ -762,6 +914,16 @@ export const IDL: UnlocBurn = {
       "code": 6010,
       "name": "InvalidDenominator",
       "msg": "InvalidDenominator"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidProgramData",
+      "msg": "The provided program data is incorrect."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidProgramUpgradeAuthority",
+      "msg": "The provided program upgrade authority is incorrect."
     }
   ]
 };

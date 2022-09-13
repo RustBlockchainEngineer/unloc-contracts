@@ -2,7 +2,7 @@ import * as anchor from '@project-serum/anchor'
 import { bool, publicKey, struct, u32, u64, u8 } from '@project-serum/borsh'
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { IDL as idl, UnlocLoan } from '../types/unloc_loan'
-import { chainlinkIds, defaults, discriminatorLen, NFT_LOAN_PID, STAKING_PID, TOKEN_META_PID, UNLOC_MINT, VOTING_PID } from '../global-config'
+import { chainlinkIds, defaults, discriminatorLen, NFT_LOAN_PDATA, NFT_LOAN_PID, STAKING_PID, TOKEN_META_PID, UNLOC_MINT, VOTING_PID } from '../global-config'
 import {
   Connection,
   Keypair,
@@ -200,7 +200,7 @@ export const getLoanSubOfferMultiple = async (keys: anchor.web3.PublicKey[], off
   return result
 }
 
-export const setLoanGlobalState = async (
+export const createLoanGlobalState = async (
   accruedInterestNumerator: anchor.BN,
   denominator: anchor.BN,
   minRepaidNumerator: anchor.BN,
@@ -210,7 +210,6 @@ export const setLoanGlobalState = async (
   lenderRewardsPercentage: anchor.BN,
   rewardMint: anchor.web3.PublicKey,
   treasury: anchor.web3.PublicKey,
-  newSuperOwner: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
 ) => {
@@ -220,7 +219,55 @@ export const setLoanGlobalState = async (
 
   try {
 
-    const tx = await loanProgram.methods.setGlobalState(
+    const tx = await loanProgram.methods.createGlobalState(
+      accruedInterestNumerator, 
+      denominator, 
+      minRepaidNumerator, 
+      aprNumerator, 
+      expireLoanDuration, 
+      rewardRate, 
+      lenderRewardsPercentage,
+      treasury,
+      )
+      .accounts({
+        superOwner,
+        globalState,
+        rewardMint,
+        rewardVault,
+        loanProgram: NFT_LOAN_PID,
+        programData: NFT_LOAN_PDATA,
+        ...defaults
+      })
+      .signers(signers)
+      .rpc()
+
+    // eslint-disable-next-line no-console
+    console.log('createGlobalState tx = ', tx)
+  } catch (e) {
+    console.log(e);
+  }
+
+}
+
+export const updateLoanGlobalState = async (
+  accruedInterestNumerator: anchor.BN,
+  denominator: anchor.BN,
+  minRepaidNumerator: anchor.BN,
+  aprNumerator: anchor.BN,
+  expireLoanDuration: anchor.BN,
+  rewardRate: anchor.BN,
+  lenderRewardsPercentage: anchor.BN,
+  treasury: anchor.web3.PublicKey,
+  newSuperOwner: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
+  signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
+  signers: anchor.web3.Keypair[] = []
+) => {
+  const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
+  const superOwner = signer
+
+  try {
+
+    const tx = await loanProgram.methods.updateGlobalState(
       accruedInterestNumerator, 
       denominator, 
       minRepaidNumerator, 
@@ -234,15 +281,13 @@ export const setLoanGlobalState = async (
       .accounts({
         superOwner,
         globalState,
-        rewardMint,
-        rewardVault,
         ...defaults
       })
       .signers(signers)
       .rpc()
 
     // eslint-disable-next-line no-console
-    console.log('setGlobalState tx = ', tx)
+    console.log('updateGlobalState tx = ', tx)
   } catch (e) {
     console.log(e);
   }

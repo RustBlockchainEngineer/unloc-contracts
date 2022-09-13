@@ -5,7 +5,7 @@ import {
   deleteLoanSubOffer,
   initLoanProgram,
   repayLoan,
-  setLoanGlobalState,
+  createLoanGlobalState,
   createLoanOffer,
   createLoanSubOffer,
   claimLoanCollateral,
@@ -220,7 +220,7 @@ describe('loan-common', () => {
     const globalState = await pda([GLOBAL_STATE_SEED], programId)
 
     const signers = [superOwnerKeypair]
-    await setLoanGlobalState(
+    await createLoanGlobalState(
       accruedInterestNumerator,
       denominator,
       minRepaidNumerator,
@@ -230,7 +230,6 @@ describe('loan-common', () => {
       lenderRewardsPercentage,
       rewardMint,
       treasury,
-      superOwner,
       superOwner,
       signers
     )

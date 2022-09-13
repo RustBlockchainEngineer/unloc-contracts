@@ -14,7 +14,7 @@ const defaultAccounts = {
 import { IDL as idl, UnlocStaking } from '../types/unloc_staking'
 import { Connection, Keypair } from '@solana/web3.js';
 import { createAssociatedTokenAccountIfNotExist2, sendTransaction } from '../utils';
-import { STAKING_PID } from '../global-config';
+import { STAKING_PDATA, STAKING_PID } from '../global-config';
 import { sign } from 'crypto';
 let StakingProgram: anchor.Program<UnlocStaking> = null as unknown as anchor.Program<UnlocStaking>
 
@@ -159,6 +159,8 @@ export async function createStakingState(
     feeVault: new PublicKey(feeVault),
     authority: wallet.publicKey,
     payer: wallet.publicKey,
+    stakingProgram: STAKING_PID,
+    programData: STAKING_PDATA,
     ...defaultAccounts
   })
   .preInstructions(transaction.instructions)

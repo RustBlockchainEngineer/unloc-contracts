@@ -1,5 +1,5 @@
 
-import { burn, buyback, getBuybackGlobalState, getUnlocVaultKey, getUsdcVaultKey, initBuybackProgram, setBuybackGlobalState } from '../dist/cjs'
+import { burn, buyback, getBuybackGlobalState, getUnlocVaultKey, getUsdcVaultKey, initBuybackProgram, createBuybackGlobalState } from '../dist/cjs'
 import * as anchor from '@project-serum/anchor';
 
 import { assert } from 'chai'
@@ -252,7 +252,7 @@ describe('buyback-common', () => {
 
     it('Set global state', async () => {
         try {
-            await setBuybackGlobalState(superOwner,superOwner, poolKeys.id, market.address)
+            await createBuybackGlobalState(superOwner,poolKeys.id, market.address)
         } catch (e) {
             console.log(e)
             assert.fail('error while set global state');
