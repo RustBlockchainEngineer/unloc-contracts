@@ -1,6 +1,5 @@
 use crate::{constant::*, states::*, utils::*};
 use anchor_lang::prelude::*;
-use anchor_lang::AccountsClose;
 use anchor_lang::solana_program::program::invoke_signed;
 use anchor_spl::token::{self, Mint, Revoke, Token, TokenAccount};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
