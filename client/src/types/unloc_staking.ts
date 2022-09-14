@@ -452,7 +452,12 @@ export type UnlocStaking = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "stakeSeed",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "stake",
@@ -792,6 +797,10 @@ export type UnlocStaking = {
         "fields": [
           {
             "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "stakeSeed",
             "type": "u8"
           },
           {
@@ -1558,7 +1567,12 @@ export const IDL: UnlocStaking = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "stakeSeed",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "stake",
@@ -1898,6 +1912,10 @@ export const IDL: UnlocStaking = {
         "fields": [
           {
             "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "stakeSeed",
             "type": "u8"
           },
           {

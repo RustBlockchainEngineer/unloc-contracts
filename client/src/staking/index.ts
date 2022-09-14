@@ -491,10 +491,12 @@ export async function stake(
   const state = await getStakingState()
   const extraRewardSigner = await getStakingExtraRewardAddress()
   // const poolSigner = await getPoolAddressFromMint(rewardMint)
+  const stakeSeed = 10
 
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer()
+    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], StakingProgram.programId)
+  
 
   const userAccountData = await StakingProgram.account.farmPoolUserAccount.fetchNullable(userAccount)
   if (!userAccountData) {
@@ -544,16 +546,17 @@ export async function createStakingUser(
 ) {
 
   const stateSigner = await getStakingStateAddress()
+  const stakeSeed = 10;
 
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer()
+    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], StakingProgram.programId)
 
   const userAccountData = await StakingProgram.account.farmPoolUserAccount.fetchNullable(userAccount)
   if (!userAccountData) {
     console.log("You are the new user to stake")
     try {
-      const tx = await StakingProgram.methods.createUser()
+      const tx = await StakingProgram.methods.createUser(new BN(stakeSeed))
         .accounts({
           user: userAccount,
           state: stateSigner,
@@ -588,12 +591,13 @@ export async function unstake(
 
   const stateSigner = await getStakingStateAddress()
   const programState = await getStakingState()
+  const stakeSeed= 10
 
   const extraRewardSigner = await getStakingExtraRewardAddress()
   // const poolSigner = await getPoolAddressFromMint(rewardMint)
 
   const [poolUserAccount, bump1] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer()
+    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], StakingProgram.programId)
 
   try {
@@ -633,9 +637,10 @@ export async function harvest(
   const stateSigner = await getStakingStateAddress()
   const extraRewardSigner = await getStakingExtraRewardAddress()
   // const poolSigner = await getPoolAddressFromMint(rewardMint)
+  const stakeSeed = 10
 
   const [poolUserAccount, bump1] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer()
+    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], StakingProgram.programId)
 
 

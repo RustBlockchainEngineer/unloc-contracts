@@ -413,6 +413,7 @@ export const claimLenderRewards = async (
   const authority = signer
   //let lenderRewardVault = await checkWalletATA(rewardMint.toBase58(), loanProvider.connection, subOfferData.lender)
   const preInstructions: TransactionInstruction[] = []
+  const stakeSeed = 60
   //if (!lenderRewardVault) {
   let lenderRewardVault = await addTokenAccountFromKeypairInstruction(rewardMint, subOfferData.lender, newKeypair, preInstructions, signer, signers)
   //}
@@ -423,7 +424,7 @@ export const claimLenderRewards = async (
   )
 
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer()
+    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], STAKING_PID)
 
   const stateSigner = await getStakingStateAddress()
@@ -475,6 +476,7 @@ export const claimBorrowerRewards = async (
   const rewardVault = await pda([REWARD_VAULT_TAG], loanProgramId)
   const authority = signer
   const preInstructions: TransactionInstruction[] = []
+  const stakeSeed = 60
   //let borrowerRewardVault = await checkWalletATA(rewardMint.toBase58(), loanProvider.connection, subOfferData.borrower)
   //if (!borrowerRewardVault) {
   let borrowerRewardVault = await addTokenAccountFromKeypairInstruction(rewardMint, subOfferData.borrower, newKeypair, preInstructions, signer, signers)
@@ -486,7 +488,7 @@ export const claimBorrowerRewards = async (
   )
 
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer()
+    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], STAKING_PID)
 
   const stateSigner = await getStakingStateAddress()
@@ -659,7 +661,8 @@ export const createLoanSubOfferByStaking = async (
   const subOfferNumer = offerData.subOfferCount
   const subOffer = await pda([SUB_OFFER_TAG, offer.toBuffer(), subOfferNumer.toArrayLike(Buffer, 'be', 8)], loanProgramId)
   const globalStateData = await loanProgram.account.globalState.fetch(globalState)
-  const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], STAKING_PID)
+  const stakeSeed = 10
+  const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)], STAKING_PID)
   try {
     const tx = await loanProgram.methods
       .createSubOffer(offerAmount, loanDuration, aprNumerator)

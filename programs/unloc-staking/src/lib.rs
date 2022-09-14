@@ -104,9 +104,10 @@ pub mod unloc_staking {
     }
 
     pub fn create_user(
-        ctx: Context<CreatePoolUser>
+        ctx: Context<CreatePoolUser>,
+        stake_seed: u8
     ) -> Result<()> {
-        process_create_user::handle(ctx)
+        process_create_user::handle(ctx, stake_seed)
     }
 
     pub fn stake(

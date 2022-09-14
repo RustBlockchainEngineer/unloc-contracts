@@ -106,8 +106,9 @@ describe('staking-common', () => {
   it('Fund', async function () {
     await Promise.all(users.map(async u => {
       await connection.confirmTransaction(await connection.requestAirdrop(u.publicKey, web3.LAMPORTS_PER_SOL))
+      const stakeSeed = 10
       const [userAccount1, bump1] = await PublicKey.findProgramAddress([
-        poolSigner.toBuffer(), u.publicKey.toBuffer()
+        poolSigner.toBuffer(), u.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
       ], program.programId)
       u.userAccount1 = userAccount1
       u.bump1 = bump1
