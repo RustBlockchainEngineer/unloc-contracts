@@ -3,7 +3,7 @@ use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 use unloc_staking::{
     cpi::accounts::{CreatePoolUser, Stake},
     program::UnlocStaking,
-    utils::LIQUIDITY_MINING_SEED
+    states::StateAccount,
 };
 use crate::{constant::*, states::*, utils::*, error::*};
 use std::str::FromStr;
@@ -67,7 +67,7 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
 
     // create user staking account if not created yet
     if ctx.accounts.stake_user.data_is_empty() {
-        unloc_staking::cpi::create_user(ctx.accounts.create_user_ctx().with_signer(signer), LIQUIDITY_MINING_SEED)?;
+        unloc_staking::cpi::create_user(ctx.accounts.create_user_ctx().with_signer(signer), ctx.accounts.stake_state.liquidity_mining_stake_seed)?;
     }
 
     // stake rewards
@@ -115,8 +115,8 @@ pub struct ClaimBorrowerRewards<'info> {
     #[account(mut)]
     pub stake_user: AccountInfo<'info>,
     /// CHECK: Safe
-    #[account(mut)]
-    pub stake_state: AccountInfo<'info>,
+    #[account(mut, owner = unloc_staking_program.key())]
+    pub stake_state: Account<'info, StateAccount>,
     /// CHECK: Safe
     #[account(mut)]
     pub stake_pool: AccountInfo<'info>,

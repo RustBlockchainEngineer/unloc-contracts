@@ -10,4 +10,3 @@ pub const UNLOC_MINT: &str = if DEVNET_MODE {
 } else {
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 };
-pub const LIQUIDITY_MINING_SEED: u8 = 60;
