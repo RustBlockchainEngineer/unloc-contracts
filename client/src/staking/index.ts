@@ -542,11 +542,12 @@ export async function createStakingUser(
   wallet: any,
 
   poolSigner: string,
-  signers: Keypair[] = []
+  signers: Keypair[] = [],
+  stakeSeed
 ) {
 
   const stateSigner = await getStakingStateAddress()
-  const stakeSeed = 10;
+  //const stakeSeed = 10;
 
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
     new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
