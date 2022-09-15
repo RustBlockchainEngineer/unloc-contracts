@@ -114,7 +114,6 @@ pub struct ClaimBorrowerRewards<'info> {
     /// CHECK: Safe
     #[account(mut)]
     pub stake_user: AccountInfo<'info>,
-    /// CHECK: Safe
     #[account(mut, owner = unloc_staking_program.key())]
     pub stake_state: Account<'info, StateAccount>,
     /// CHECK: Safe

@@ -555,7 +555,6 @@ export async function createStakingUser(
 
   const userAccountData = await StakingProgram.account.farmPoolUserAccount.fetchNullable(userAccount)
   if (!userAccountData) {
-    console.log("You are the new user to stake")
     try {
       const tx = await StakingProgram.methods.createUser(new BN(stakeSeed))
         .accounts({

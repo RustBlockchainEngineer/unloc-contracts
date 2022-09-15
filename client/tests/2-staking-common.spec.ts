@@ -283,12 +283,19 @@ describe('staking-common', () => {
     await assertError(createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 50), undefined)
   })
   it('Create User', async function () {
+    console.log("Creating user stake accounts...")
     for (let i = 0; i < users.length; i++) {
       const u = users[i];
       await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 10);
     }
   })
-
+  it('Create 2nd staking accounts for users w different seed', async function () {
+    console.log("Creating 2nd user stake accounts...")
+    for (let i = 0; i < users.length; i++) {
+      const u = users[i];
+      await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 11);
+    }
+  })
   it('Stake invalid lock duration', async function () {
     await assertError(stake(user1, new BN(100), 4), undefined)
   })
