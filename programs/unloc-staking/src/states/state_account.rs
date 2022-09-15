@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use std::convert::TryInto;
+use crate::{error::*};
 
 #[account]
 #[derive(Default)]
@@ -28,5 +29,14 @@ impl StateAccount {
             i = i + 1;
         }
         return 0;
+    }
+
+    pub fn validate_stake_acct_seed<'info>(&self, input_seed: &u8) -> Result<()> {
+        for seed in self.stake_acct_seeds.iter() {
+            if *seed == *input_seed || *input_seed == self.liquidity_mining_stake_seed {
+                return Ok(());
+            }
+        }
+        Err(StakingError::InvalidSeed.into())
     }
 }

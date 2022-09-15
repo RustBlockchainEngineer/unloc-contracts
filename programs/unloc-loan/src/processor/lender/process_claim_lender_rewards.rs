@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Transfer};
+use anchor_spl::token::{Token, TokenAccount};
 use unloc_staking::{
     cpi::accounts::{CreatePoolUser, Stake},
     program::UnlocStaking,

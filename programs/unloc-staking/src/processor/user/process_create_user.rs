@@ -9,6 +9,9 @@ pub fn handle(ctx: Context<CreatePoolUser>, stake_seed: u8) -> Result<()> {
     user.authority = ctx.accounts.authority.key();
     user.bump = *ctx.bumps.get("user").unwrap();
     user.pool = ctx.accounts.pool.key();
+
+    ctx.accounts.state.validate_stake_acct_seed(&stake_seed)?;
+
     user.stake_seed = stake_seed;
     msg!("User stake seed: {}", user.stake_seed);
 
