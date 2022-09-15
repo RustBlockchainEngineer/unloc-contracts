@@ -10,9 +10,4 @@ pub const UNLOC_MINT: &str = if DEVNET_MODE {
 } else {
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 };
-pub const PERIOD_1: u8 = 10;
-pub const PERIOD_2: u8 = 20;
-pub const PERIOD_3: u8 = 30;
-pub const PERIOD_4: u8 = 40;
-pub const PERIOD_5: u8 = 50;
 pub const LIQUIDITY_MINING_SEED: u8 = 60;
