@@ -278,10 +278,14 @@ describe('staking-common', () => {
     assert.ok(poolInfo.point.eq(stateInfo.totalPoint))
     assert.ok(poolInfo.point.eq(new BN(1000)))
   })
+  it('Create User with Invalid Seed', async function () {
+    const u = users[0];
+    await assertError(createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 50), undefined)
+  })
   it('Create User', async function () {
     for (let i = 0; i < users.length; i++) {
       const u = users[i];
-      await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user]);
+      await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 10);
     }
   })
 
