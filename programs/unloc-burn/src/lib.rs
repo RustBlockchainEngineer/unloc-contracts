@@ -172,12 +172,12 @@ pub struct CreateGlobalState<'info> {
     /// The unloc buyback-burn program.
     ///
     /// Provided here to check the upgrade authority.
-    #[account(constraint = burn_program.programdata_address()?.as_ref() == Some(&program_data.key()) @ ErrorCode::InvalidProgramData)]
+    #[account(constraint = burn_program.programdata_address()? == Some(program_data.key()) @ ErrorCode::InvalidProgramData)]
     pub burn_program: Program<'info, UnlocBurn>,
     /// The program data account for the unloc buyback-burn program.
     ///
     /// Provided to check the upgrade authority.
-    #[account(constraint = program_data.upgrade_authority_address.as_ref() == Some(&authority.key()) @ ErrorCode::InvalidProgramUpgradeAuthority)]
+    #[account(constraint = program_data.upgrade_authority_address == Some(authority.key()) @ ErrorCode::InvalidProgramUpgradeAuthority)]
     pub program_data: Account<'info, ProgramData>,
     /// CHECK: Safe
     pub system_program: Program<'info, System>,

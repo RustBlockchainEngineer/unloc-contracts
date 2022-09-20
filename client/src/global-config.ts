@@ -66,7 +66,7 @@ export const [STAKING_PDATA] = PublicKey.findProgramAddressSync(
   [STAKING_PID.toBytes()],
   BPF_LOADER_UPGRADEABLE_PROGRAM_ID,
 );
-console.log("->", STAKING_PDATA.toBase58());
+
 export const VOTING_PID = new PublicKey(
   config.votingPids[config.cluster]
 )

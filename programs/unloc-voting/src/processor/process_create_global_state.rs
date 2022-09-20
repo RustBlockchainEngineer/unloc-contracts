@@ -32,12 +32,12 @@ pub struct CreateGlobalState<'info> {
     /// The unloc voting program.
     ///
     /// Provided here to check the upgrade authority.
-    #[account(constraint = voting_program.programdata_address()?.as_ref() == Some(&program_data.key()) @ VotingError::InvalidProgramData)]
+    #[account(constraint = voting_program.programdata_address()? == Some(program_data.key()) @ VotingError::InvalidProgramData)]
     pub voting_program: Program<'info, UnlocVoting>,
     /// The program data account for the unloc voting program.
     ///
     /// Provided to check the upgrade authority.
-    #[account(constraint = program_data.upgrade_authority_address.as_ref() == Some(&super_owner.key()) @ VotingError::InvalidProgramUpgradeAuthority)]
+    #[account(constraint = program_data.upgrade_authority_address == Some(super_owner.key()) @ VotingError::InvalidProgramUpgradeAuthority)]
     pub program_data: Account<'info, ProgramData>,
 
     pub system_program: Program<'info, System>,

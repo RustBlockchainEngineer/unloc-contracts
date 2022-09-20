@@ -114,7 +114,7 @@ export function getBigNumber(num: any) {
 export async function getMarket(conn: any, marketAddress: string, serumProgramId: string): Promise<MarketSerum> {
     try {
         const marketAddressPubKey = new PublicKey(marketAddress)
-        const market = await MarketSerum.load(conn, marketAddressPubKey, undefined, new PublicKey(serumProgramId))
+        const market = await MarketSerum.load(conn, marketAddressPubKey, {}, new PublicKey(serumProgramId))
         return market
     } catch (error: any) {
         console.log("get market err: ", error)
@@ -404,8 +404,11 @@ export async function createSerumMarket({
         await sendSignedTransaction({
             signedTransaction,
             connection: connection,
+            timeout: 100000
         });
     }
+    const res = await connection.getAccountInfo(market.publicKey)
+    console.log('---------->', res)
 
     return {
         market: market.publicKey,
@@ -510,7 +513,9 @@ export async function sendSignedTransaction({
     );
 
     console.log('Started awaiting confirmation for', txid);
-    await sleep(timeout);
+    // await sleep(timeout);
+    const response = await connection.confirmTransaction(txid, 'finalized')
+    if(response.value.err) throw new Error('confirm failed!')
     console.log('Latency', txid, getUnixTs() - startTime);
     return txid;
 }

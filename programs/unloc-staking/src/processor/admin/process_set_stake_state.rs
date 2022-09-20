@@ -12,7 +12,6 @@ pub fn handle(
     profile_levels: Vec<u128>,
 ) -> Result<()> {
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
-
     require_keys_eq!(ctx.accounts.reward_mint.key(), unloc_mint);
     require_keys_eq!(ctx.accounts.reward_vault.mint, unloc_mint);
     require!(
@@ -55,12 +54,12 @@ pub struct CreateState<'info> {
     /// The unloc staking program.
     ///
     /// Provided here to check the upgrade authority.
-    #[account(constraint = staking_program.programdata_address()?.as_ref() == Some(&program_data.key()) @ StakingError::InvalidProgramData)]
+    #[account(constraint = staking_program.programdata_address()? == Some(program_data.key()) @ StakingError::InvalidProgramData)]
     pub staking_program: Program<'info, UnlocStaking>,
     /// The program data account for the unloc staking program.
     ///
     /// Provided to check the upgrade authority.
-    #[account(constraint = program_data.upgrade_authority_address.as_ref() == Some(&authority.key()) @ StakingError::InvalidProgramUpgradeAuthority)]
+    #[account(constraint = program_data.upgrade_authority_address == Some(authority.key()) @ StakingError::InvalidProgramUpgradeAuthority)]
     pub program_data: Account<'info, ProgramData>,
 
     pub system_program: Program<'info, System>,

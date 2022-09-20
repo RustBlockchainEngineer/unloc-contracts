@@ -31,6 +31,7 @@ This contains staking, voting, loan, buyback-burn and liquidity mining contract 
      - [Functional Requirements](#functional-requirements-of-burn)
     - [Use cases](#use-cases-of-burn)
 - [Issues & Improvements](#issues--improvements)
+- [How to test](#how-to-test)
 
 ## Product Architecture
 
@@ -408,3 +409,15 @@ But we need automation of liquidation process.
 3. weak security codes
 
 We need to write security codes and audit all smart contract codes so that it can be safe.
+
+## How to test
+
+cd client
+
+yarn build
+
+cd ..
+
+yarn build
+
+yarn test
