@@ -11,7 +11,7 @@ import { BN } from '@project-serum/anchor';
 import { Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from '@solana/web3.js';
 import UNLOC_TOKEN_KEYPAIR from './keypairs/unloc-token.json'
 import USDC_TOKEN_KEYPAIR from './keypairs/usdc-token.json'
-import { createAssociatedTokenAccountIfNotExist, createSerumMarket, getAssociatedPoolKeys, getMarket, getMintDecimals } from './../dist/cjs';
+import { createAssociatedTokenAccountIfNotExist, createSerumMarket, getAssociatedPoolKeys, getMarket, getMintDecimals } from '../dist/cjs';
 import { Liquidity, SERUM_PROGRAM_ID_V3, Spl, SPL_ACCOUNT_LAYOUT, WSOL } from '@unloc-dev/raydium-sdk';
 import { AmmProxy, IDL as AMM_IDL } from './amm_proxy_type'
 import { closeAccount, initializeAccount } from '@project-serum/serum/lib/token-instructions';

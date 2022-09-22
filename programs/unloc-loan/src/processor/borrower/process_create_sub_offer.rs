@@ -21,6 +21,7 @@ pub fn handle(
             &[
                 staking_user.pool.as_ref(),
                 ctx.accounts.borrower.key().as_ref(),
+                staking_user.stake_seed.to_le_bytes().as_ref()
             ],
             &unloc_staking::id(),
             &staking_user_info.key(),

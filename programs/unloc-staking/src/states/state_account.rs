@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use std::convert::TryInto;
+use crate::{error::*};
 
 #[account]
 #[derive(Default)]
@@ -14,6 +15,8 @@ pub struct StateAccount {
     pub token_per_second: u64,
     pub early_unlock_fee: u64,
     pub profile_levels: Vec<u128>,
+    pub stake_acct_seeds: [u8; 20],
+    pub liquidity_mining_stake_seed: u8,
 }
 impl StateAccount {
     pub fn get_profile_level<'info>(&self, score: u128) -> u64 {
@@ -26,5 +29,14 @@ impl StateAccount {
             i = i + 1;
         }
         return 0;
+    }
+
+    pub fn validate_stake_acct_seed<'info>(&self, input_seed: &u8) -> Result<()> {
+        for seed in self.stake_acct_seeds.iter() {
+            if *seed == *input_seed || *input_seed == self.liquidity_mining_stake_seed {
+                return Ok(());
+            }
+        }
+        Err(StakingError::InvalidSeed.into())
     }
 }

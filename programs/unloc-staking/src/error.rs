@@ -22,4 +22,6 @@ pub enum StakingError {
     InvalidMint,
     #[msg("Math operation overflow")]
     MathOverflow,
+    #[msg("Invalid seed for staking account")]
+    InvalidSeed,
 }

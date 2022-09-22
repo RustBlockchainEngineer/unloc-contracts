@@ -50,7 +50,7 @@ pub fn handle(ctx: Context<Harvest>) -> Result<()> {
 #[derive(Accounts)]
 pub struct Harvest<'info> {
     #[account(mut,
-        seeds = [pool.key().as_ref(), authority.key().as_ref()], bump = user.bump, has_one = pool, has_one = authority)]
+        seeds = [pool.key().as_ref(), authority.key().as_ref(), user.stake_seed.to_le_bytes().as_ref()], bump = user.bump, has_one = pool, has_one = authority)]
     pub user: Account<'info, FarmPoolUserAccount>,
     #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump)]

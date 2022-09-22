@@ -599,7 +599,7 @@ describe('loan-common', () => {
     const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
 
     const tempLenderRewardsKeypair = Keypair.generate()
-    // borrower claims lender's rewards
+
     let hash = claimLenderRewards(
       subOffer,
       lender1,
@@ -616,7 +616,7 @@ describe('loan-common', () => {
     const subOffer = await pda([SUB_OFFER_SEED, offer.toBuffer(), subOfferNumer.toBuffer("be", 8)], programId)
 
     const tempBorrowerRewardsKeypair = Keypair.generate()
-    // lender claims borrower's rewards
+
     let hash = claimBorrowerRewards(
       subOffer,
       borrower,

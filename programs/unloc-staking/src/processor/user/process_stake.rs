@@ -14,6 +14,7 @@ pub fn handle(ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()
     let user = &mut ctx.accounts.user;
     let pool = &mut ctx.accounts.pool;
 
+    msg!("Lock duration: {}", lock_duration);
     extra_account.validate_lock_duration(&lock_duration)?;
     require!(
         lock_duration >= user.lock_duration,
@@ -56,7 +57,7 @@ pub fn handle(ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()
 #[derive(Accounts)]
 pub struct Stake<'info> {
     #[account(mut,
-        seeds = [pool.key().as_ref(), authority.key().as_ref()], bump = user.bump, has_one = pool, has_one = authority)]
+        seeds = [pool.key().as_ref(), authority.key().as_ref(), user.stake_seed.to_le_bytes().as_ref()], bump = user.bump, has_one = pool, has_one = authority)]
     pub user: Account<'info, FarmPoolUserAccount>,
     #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump)]

@@ -5,6 +5,7 @@ use crate::{utils::*, farmpool_account::*, extra_rewards_account::*, state_accou
 #[derive(Default)]
 pub struct FarmPoolUserAccount {
     pub bump: u8,
+    pub stake_seed: u8,
     pub pool: Pubkey,
     pub authority: Pubkey,
     pub amount: u64,
