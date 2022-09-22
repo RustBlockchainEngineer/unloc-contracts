@@ -407,9 +407,6 @@ export async function createSerumMarket({
             timeout: 100000
         });
     }
-    const res = await connection.getAccountInfo(market.publicKey)
-    console.log('---------->', res)
-
     return {
         market: market.publicKey,
         requestQueue: requestQueue.publicKey,
@@ -484,6 +481,7 @@ export async function signTransactions({
             wallet.publicKey,
             ...signers.map((s) => s.publicKey),
         );
+        transaction.feePayer = wallet.publicKey;
         if (signers?.length > 0) {
             transaction.partialSign(...signers);
         }

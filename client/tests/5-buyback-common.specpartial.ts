@@ -139,7 +139,7 @@ export default () => {
             const poolWithdrawQueue: PublicKey = poolKeys.withdrawQueue
             const ammOpenOrders: PublicKey = poolKeys.openOrders
 
-            const proxyPreInitializeTx = await ammProxyProgram.methods.proxyPreInitialize(nonce.toNumber())
+            const proxyPreInitializeTx = await ammProxyProgram.methods.proxyPreInitialize(nonce)
                 .accounts({
                     ammProgram: Liquidity.getProgramId(4),
                     ammTargetOrders: ammTargetOrders,
