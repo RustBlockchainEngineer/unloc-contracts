@@ -170,7 +170,7 @@ export default () => {
 
     it('Create Pool', async function () {
       let pools = await program.account.farmPoolAccount.all()
-      await program.methods.createPool(new BN('0'), new BN('0'))
+      await program.methods.createPool(new BN('0'))
         .accounts({
           pool: poolSigner,
           state: stateSigner,
@@ -203,7 +203,7 @@ export default () => {
         .rpc()
 
       pools = await program.account.farmPoolAccount.all()
-      await program.methods.createPool(new BN('0'), new BN('0'))
+      await program.methods.createPool(new BN('0'))
         .accounts({
           pool: poolSigner,
           state: stateSigner,
@@ -224,7 +224,6 @@ export default () => {
       let poolInfo = await program.account.farmPoolAccount.fetch(poolSigner)
       assert.ok(poolInfo.point.eq(stateInfo.totalPoint))
       assert.ok(poolInfo.point.eq(new BN('0')))
-      assert.ok(poolInfo.amountMultipler.eq(new BN(0)))
     })
     it('Fund to program', async function () {
       let stateInfo = await program.account.stateAccount.fetch(stateSigner)
@@ -244,19 +243,7 @@ export default () => {
       }
       // await master.provider.sendAndConfirm(tx, [], {})
     })
-    it('changePoolAmountMultipler', async function () {
-      await program.methods.changePoolAmountMultipler(new BN(1))
-        .accounts({
-          pool: poolSigner,
-          state: stateSigner,
-          authority: creatorKey,
-          ...defaultAccounts
-        })
-        .rpc()
-
-      let poolInfo = await program.account.farmPoolAccount.fetch(poolSigner)
-      assert.ok(poolInfo.amountMultipler.eq(new BN(1)))
-    })
+    
     it('changePoolPoint', async function () {
       let pools = await program.account.farmPoolAccount.all()
       await program.methods.changePoolPoint(new BN(1000))

@@ -331,7 +331,6 @@ export async function createStakingPool(
   // let poolInfo = await program.account.farmPoolAccount.fetch(poolSigner)
   // assert.ok(poolInfo.point.eq(stateInfo.totalPoint))
   // assert.ok(poolInfo.point.eq(new BN('0')))
-  // assert.ok(poolInfo.amountMultipler.eq(new BN(0)))
   return await sendTransaction(connection, wallet, transaction, signers)
 }
 export async function closeStakingPool(
@@ -361,30 +360,6 @@ export async function closeStakingPool(
   return await sendTransaction(connection, wallet, transaction, signers)
 }
 
-export async function changeStakingPoolAmountMultipler(
-  connection: Connection,
-  wallet: any,
-  poolSigner: string,
-) {
-
-  const transaction = new Transaction()
-  const signers: Keypair[] = []
-
-  const stateSigner = await getStakingStateAddress()
-
-  const tx = StakingProgram.instruction.changePoolAmountMultipler(new BN(1), {
-    accounts: {
-      pool: new PublicKey(poolSigner),
-      state: stateSigner,
-      authority: wallet.publicKey,
-      ...defaultAccounts
-    }
-  })
-
-  transaction.add(tx);
-
-  return await sendTransaction(connection, wallet, transaction, signers)
-}
 export async function changeStakingTokenPerSecond(
   connection: Connection,
   wallet: any,

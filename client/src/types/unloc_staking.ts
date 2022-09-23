@@ -323,10 +323,6 @@ export type UnlocStaking = {
         {
           "name": "point",
           "type": "u64"
-        },
-        {
-          "name": "amountMultipler",
-          "type": "u64"
         }
       ]
     },
@@ -360,37 +356,6 @@ export type UnlocStaking = {
         }
       ],
       "args": []
-    },
-    {
-      "name": "changePoolAmountMultipler",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "pool",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amountMultipler",
-          "type": "u64"
-        }
-      ]
     },
     {
       "name": "changePoolPoint",
@@ -740,10 +705,6 @@ export type UnlocStaking = {
             "type": "u128"
           },
           {
-            "name": "amountMultipler",
-            "type": "u64"
-          },
-          {
             "name": "totalUser",
             "type": "u64"
           }
@@ -947,21 +908,6 @@ export type UnlocStaking = {
         {
           "name": "lockDuration",
           "type": "i64",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "PoolAmountMultiplerChanged",
-      "fields": [
-        {
-          "name": "pool",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "amountMultipler",
-          "type": "u64",
           "index": false
         }
       ]
@@ -1476,10 +1422,6 @@ export const IDL: UnlocStaking = {
         {
           "name": "point",
           "type": "u64"
-        },
-        {
-          "name": "amountMultipler",
-          "type": "u64"
         }
       ]
     },
@@ -1513,37 +1455,6 @@ export const IDL: UnlocStaking = {
         }
       ],
       "args": []
-    },
-    {
-      "name": "changePoolAmountMultipler",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "pool",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amountMultipler",
-          "type": "u64"
-        }
-      ]
     },
     {
       "name": "changePoolPoint",
@@ -1893,10 +1804,6 @@ export const IDL: UnlocStaking = {
             "type": "u128"
           },
           {
-            "name": "amountMultipler",
-            "type": "u64"
-          },
-          {
             "name": "totalUser",
             "type": "u64"
           }
@@ -2100,21 +2007,6 @@ export const IDL: UnlocStaking = {
         {
           "name": "lockDuration",
           "type": "i64",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "PoolAmountMultiplerChanged",
-      "fields": [
-        {
-          "name": "pool",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "amountMultipler",
-          "type": "u64",
           "index": false
         }
       ]

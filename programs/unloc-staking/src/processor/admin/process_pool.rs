@@ -8,7 +8,6 @@ use crate::{utils::*, states::*};
 pub fn create_pool(
     ctx: Context<CreateFarmPool>,
     point: u64,
-    amount_multipler: u64,
 ) -> Result<()> {
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
 
@@ -27,7 +26,6 @@ pub fn create_pool(
     pool.mint = ctx.accounts.mint.key();
     pool.vault = ctx.accounts.vault.key();
     pool.point = point;
-    pool.amount_multipler = amount_multipler;
     pool.authority = ctx.accounts.authority.key();
 
     state.total_point = state.total_point.safe_add(point)?;
@@ -50,20 +48,6 @@ pub fn close_pool(ctx: Context<CloseFarmPool>) -> Result<()> {
     state.total_point = state.total_point.safe_sub(pool.point)?;
     Ok(())
 }
-
-pub fn change_pool_amount_multipler(
-    ctx: Context<ChangePoolSetting>,
-    amount_multipler: u64,
-) -> Result<()> {
-    let pool = &mut ctx.accounts.pool;
-    pool.amount_multipler = amount_multipler;
-    emit!(PoolAmountMultiplerChanged {
-        pool: ctx.accounts.pool.key(),
-        amount_multipler
-    });
-    Ok(())
-}
-
 
 pub fn change_pool_point(ctx: Context<ChangePoolSetting>, point: u64) -> Result<()> {
     let state = &mut ctx.accounts.state;
