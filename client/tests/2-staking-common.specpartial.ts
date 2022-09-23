@@ -80,7 +80,7 @@ const defaultAccounts = {
   systemProgram: SystemProgram.programId,
 }
 export default () => {
-  describe('2-staking-common', () => {
+  describe('staking-common', () => {
     it('Is initialized!', async function () {
       rewardMint = new Token(provider.connection, UNLOC_MINT, TOKEN_PROGRAM_ID, superOwnerKeypair);
       lpMint = await createMint(provider, superOwnerKeypair.publicKey);
@@ -106,8 +106,9 @@ export default () => {
     it('Fund', async function () {
       await Promise.all(users.map(async u => {
         await connection.confirmTransaction(await connection.requestAirdrop(u.publicKey, web3.LAMPORTS_PER_SOL))
+        const stakeSeed = 10
         const [userAccount1, bump1] = await PublicKey.findProgramAddress([
-          poolSigner.toBuffer(), u.publicKey.toBuffer()
+          poolSigner.toBuffer(), u.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
         ], program.programId)
         u.userAccount1 = userAccount1
         u.bump1 = bump1
@@ -152,7 +153,7 @@ export default () => {
       await program.methods.setExtraRewardConfigs([
         { duration: new BN(0), extraPercentage: getNumber(0) },
         { duration: new BN(1), extraPercentage: getNumber(50) },
-        { duration: new BN(2), extraPercentage: getNumber(100) },
+        { duration: new BN(5184000), extraPercentage: getNumber(100) },
       ])
         .accounts({
           extraRewardAccount: extraRewardSigner,
@@ -277,13 +278,24 @@ export default () => {
       assert.ok(poolInfo.point.eq(stateInfo.totalPoint))
       assert.ok(poolInfo.point.eq(new BN(1000)))
     })
+    it('Create User with Invalid Seed', async function () {
+      const u = users[0];
+      await assertError(createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 50), undefined)
+    })
     it('Create User', async function () {
+      console.log("Creating user stake accounts...")
       for (let i = 0; i < users.length; i++) {
         const u = users[i];
-        await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user]);
+        await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 10);
       }
     })
-
+    it('Create 2nd staking accounts for users w different seed', async function () {
+      console.log("Creating 2nd user stake accounts...")
+      for (let i = 0; i < users.length; i++) {
+        const u = users[i];
+        await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 11);
+      }
+    })
     it('Stake invalid lock duration', async function () {
       await assertError(stake(user1, new BN(100), 4), undefined)
     })

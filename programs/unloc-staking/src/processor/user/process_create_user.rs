@@ -4,11 +4,16 @@ use std::mem::size_of;
 
 use crate::{utils::*, states::*};
 
-pub fn handle(ctx: Context<CreatePoolUser>) -> Result<()> {
+pub fn handle(ctx: Context<CreatePoolUser>, stake_seed: u8) -> Result<()> {
     let user = &mut ctx.accounts.user;
     user.authority = ctx.accounts.authority.key();
     user.bump = *ctx.bumps.get("user").unwrap();
     user.pool = ctx.accounts.pool.key();
+
+    ctx.accounts.state.validate_stake_acct_seed(&stake_seed)?;
+
+    user.stake_seed = stake_seed;
+    msg!("User stake seed: {}", user.stake_seed);
 
     let pool = &mut ctx.accounts.pool;
     pool.total_user = pool.total_user.safe_add(1)?;
@@ -21,12 +26,12 @@ pub fn handle(ctx: Context<CreatePoolUser>) -> Result<()> {
 }
 
 #[derive(Accounts)]
-#[instruction()]
+#[instruction(stake_seed: u8)]
 pub struct CreatePoolUser<'info> {
     // this user account will be remained forever. we don't delete these accounts for permanent history
     #[account(
         init,
-        seeds = [pool.key().as_ref(), authority.key().as_ref()],
+        seeds = [pool.key().as_ref(), authority.key().as_ref(), stake_seed.to_le_bytes().as_ref()],
         bump,
         payer = payer,
         space = 8 + size_of::<FarmPoolUserAccount>()

@@ -221,8 +221,9 @@ export const vote = async (
     votingProgramId
   );
   const stakingPool = (await getFirstStakingPool()).publicKey;
+  const stakeSeed = 10
   const stakingUser = await pda(
-    [stakingPool.toBuffer(), user.toBuffer()],
+    [stakingPool.toBuffer(), user.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)],
     STAKING_PID
   );
   try {

@@ -26,4 +26,6 @@ pub enum StakingError {
     InvalidProgramData,
     #[msg("The provided program upgrade authority is incorrect.")]
     InvalidProgramUpgradeAuthority,
+    #[msg("Invalid seed for staking account")]
+    InvalidSeed,
 }

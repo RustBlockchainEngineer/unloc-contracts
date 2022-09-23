@@ -64,7 +64,7 @@ pub struct Vote<'info> {
 
     #[account(
         mut,
-        seeds = [staking_user.pool.as_ref(), user.key().as_ref()],
+        seeds = [staking_user.pool.as_ref(), user.key().as_ref(), staking_user.stake_seed.to_le_bytes().as_ref()],
         seeds::program = unloc_staking::id(),
         bump = staking_user.bump
     )]

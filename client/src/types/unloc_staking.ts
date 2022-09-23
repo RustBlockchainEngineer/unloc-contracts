@@ -462,7 +462,12 @@ export type UnlocStaking = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "stakeSeed",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "stake",
@@ -791,6 +796,19 @@ export type UnlocStaking = {
             "type": {
               "vec": "u128"
             }
+          },
+          {
+            "name": "stakeAcctSeeds",
+            "type": {
+              "array": [
+                "u8",
+                20
+              ]
+            }
+          },
+          {
+            "name": "liquidityMiningStakeSeed",
+            "type": "u8"
           }
         ]
       }
@@ -802,6 +820,10 @@ export type UnlocStaking = {
         "fields": [
           {
             "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "stakeSeed",
             "type": "u8"
           },
           {
@@ -1120,6 +1142,11 @@ export type UnlocStaking = {
       "code": 6011,
       "name": "InvalidProgramUpgradeAuthority",
       "msg": "The provided program upgrade authority is incorrect."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidSeed",
+      "msg": "Invalid seed for staking account"
     }
   ]
 };
@@ -1588,7 +1615,12 @@ export const IDL: UnlocStaking = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "stakeSeed",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "stake",
@@ -1917,6 +1949,19 @@ export const IDL: UnlocStaking = {
             "type": {
               "vec": "u128"
             }
+          },
+          {
+            "name": "stakeAcctSeeds",
+            "type": {
+              "array": [
+                "u8",
+                20
+              ]
+            }
+          },
+          {
+            "name": "liquidityMiningStakeSeed",
+            "type": "u8"
           }
         ]
       }
@@ -1928,6 +1973,10 @@ export const IDL: UnlocStaking = {
         "fields": [
           {
             "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "stakeSeed",
             "type": "u8"
           },
           {
@@ -2246,6 +2295,11 @@ export const IDL: UnlocStaking = {
       "code": 6011,
       "name": "InvalidProgramUpgradeAuthority",
       "msg": "The provided program upgrade authority is incorrect."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidSeed",
+      "msg": "Invalid seed for staking account"
     }
   ]
 };

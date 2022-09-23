@@ -66,3 +66,5 @@ pub const CHAINLINK_USDC_FEED: &str = if CLUSTER == 0 {
     "7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G"
 };
 pub const UNIX_DAY: i64 = 86400;
+
+pub const DEFAULT_STAKE_DURATION: i64 = 5184000;
