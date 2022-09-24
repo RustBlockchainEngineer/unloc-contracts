@@ -42,7 +42,7 @@ pub struct CreatePoolUser<'info> {
     )]
     pub user: Account<'info, FarmPoolUserAccount>,
     #[account(mut, seeds = [pool.key().as_ref(), authority.key.as_ref()], bump)]
-    pub user_state: Account<'info, UserStateAccount>,
+    pub user_state: Box<Account<'info, UserStateAccount>>,
     #[account(
         seeds = [b"state".as_ref()], bump = state.bump)]
     pub state: Account<'info, StateAccount>,

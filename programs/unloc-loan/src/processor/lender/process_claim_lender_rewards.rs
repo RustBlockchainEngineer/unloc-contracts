@@ -164,6 +164,7 @@ impl<'info> ClaimLenderRewards<'info> {
     pub fn stake_ctx(&self) -> CpiContext<'_, '_, '_, 'info, Stake<'info>> {
         let unloc_staking_program = self.unloc_staking_program.to_account_info();
         let stake_accts = Stake {
+            user_state: self.user_state.to_account_info(),
             user: self.stake_user.to_account_info(),
             state: self.stake_state.to_account_info(),
             extra_reward_account: self.extra_reward_account.to_account_info(),

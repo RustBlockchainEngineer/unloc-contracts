@@ -13,6 +13,7 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> Result<()> {
     let state = &ctx.accounts.state;
     let user = &mut ctx.accounts.user;
     let pool = &mut ctx.accounts.pool;
+    let user_state = &mut ctx.accounts.user_state;
 
     require!(user.amount >= amount, StakingError::UnstakeOverAmount);
     let is_early_unlock =
@@ -103,7 +104,7 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> Result<()> {
             amount
         });
     }
-    user.update_score_and_level(extra_account, state)?;
+    user.update_score_and_level(extra_account, state, user_state)?;
 
     Ok(())
 }

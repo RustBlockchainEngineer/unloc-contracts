@@ -34,7 +34,7 @@ pub fn handle(
     state.fee_vault = ctx.accounts.fee_vault.key();
     state.profile_levels = profile_levels;
     state.stake_acct_seeds = user_stake_acct_seeds;
-    state.liquidity_mining_stake_seed = 60;
+    state.liquidity_mining_stake_seed = 21;
     Ok(())
 }
 

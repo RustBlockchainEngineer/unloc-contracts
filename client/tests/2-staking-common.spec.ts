@@ -391,7 +391,7 @@ async function assertUserReward(user, amount, showthrow = true) {
 }
 
 async function unstake(u, amount) {
-  const hash = await unlocUnstake(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), poolVault.toBase58(), u.rewardUserVault.toBase58(), amount, [u.user])
+  const hash = await unlocUnstake(u.provider.connection, u.provider.wallet, u.user, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), poolVault.toBase58(), u.rewardUserVault.toBase58(), amount, [u.user])
   return hash
 }
 
@@ -402,7 +402,7 @@ async function unlocHarvest(u) {
 }
 
 async function stake(u, amount, lock = 0) {
-  const hash = await unlocStake(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), poolVault.toBase58(), u.rewardUserVault.toBase58(), amount, lock, [u.user])
+  const hash = await unlocStake(u.provider.connection, u.provider.wallet, u.user, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), poolVault.toBase58(), u.rewardUserVault.toBase58(), amount, lock, [u.user])
   return hash
 }
 async function createMint(provider, authority, decimals = 9) {

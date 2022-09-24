@@ -504,6 +504,11 @@ export type UnlocStaking = {
           "isSigner": false
         },
         {
+          "name": "userState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "state",
           "isMut": true,
           "isSigner": false
@@ -575,6 +580,11 @@ export type UnlocStaking = {
       "accounts": [
         {
           "name": "user",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userState",
           "isMut": true,
           "isSigner": false
         },
@@ -923,6 +933,19 @@ export type UnlocStaking = {
           {
             "name": "authority",
             "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "unlocScores",
+            "type": {
+              "array": [
+                "u128",
+                21
+              ]
+            }
           }
         ]
       }
@@ -1693,6 +1716,11 @@ export const IDL: UnlocStaking = {
           "isSigner": false
         },
         {
+          "name": "userState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "state",
           "isMut": true,
           "isSigner": false
@@ -1764,6 +1792,11 @@ export const IDL: UnlocStaking = {
       "accounts": [
         {
           "name": "user",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userState",
           "isMut": true,
           "isSigner": false
         },
@@ -2112,6 +2145,19 @@ export const IDL: UnlocStaking = {
           {
             "name": "authority",
             "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "unlocScores",
+            "type": {
+              "array": [
+                "u128",
+                21
+              ]
+            }
           }
         ]
       }

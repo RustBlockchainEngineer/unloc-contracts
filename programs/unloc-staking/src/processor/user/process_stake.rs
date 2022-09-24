@@ -13,6 +13,7 @@ pub fn handle(ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()
     let extra_account = &mut ctx.accounts.extra_reward_account;
     let user = &mut ctx.accounts.user;
     let pool = &mut ctx.accounts.pool;
+    let user_state = &mut ctx.accounts.user_state;
 
     msg!("Lock duration: {}", lock_duration);
     extra_account.validate_lock_duration(&lock_duration)?;
@@ -43,7 +44,7 @@ pub fn handle(ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
     token::transfer(cpi_ctx, amount)?;
-    user.update_score_and_level(extra_account, state)?;
+    user.update_score_and_level(extra_account, state, user_state)?;
     emit!(UserStaked {
         pool: ctx.accounts.pool.key(),
         user: ctx.accounts.user.key(),
@@ -59,6 +60,8 @@ pub struct Stake<'info> {
     #[account(mut,
         seeds = [pool.key().as_ref(), authority.key().as_ref(), user.stake_seed.to_le_bytes().as_ref()], bump = user.bump, has_one = pool, has_one = authority)]
     pub user: Account<'info, FarmPoolUserAccount>,
+    #[account(mut, seeds = [pool.key().as_ref(), authority.key().as_ref()], bump = user_state.bump)]
+    pub user_state: Box<Account<'info, UserStateAccount>>,
     #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump)]
     pub state: Account<'info, StateAccount>,

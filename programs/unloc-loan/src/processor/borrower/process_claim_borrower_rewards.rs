@@ -85,7 +85,6 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
 }
 
 #[derive(Accounts)]
-#[instruction()]
 pub struct ClaimBorrowerRewards<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -170,6 +169,7 @@ impl<'info> ClaimBorrowerRewards<'info> {
         let stake_accts = Stake {
             user: self.stake_user.to_account_info(),
             state: self.stake_state.to_account_info(),
+            user_state: self.user_state.to_account_info(),
             extra_reward_account: self.extra_reward_account.to_account_info(),
             pool: self.stake_pool.to_account_info(),
             authority: self.global_state.to_account_info(),

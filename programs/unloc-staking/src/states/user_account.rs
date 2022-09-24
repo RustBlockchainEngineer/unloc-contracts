@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::{utils::*, farmpool_account::*, extra_rewards_account::*, state_account::*};
+use crate::{utils::*, farmpool_account::*, extra_rewards_account::*, state_account::*, user_state_account::*};
 
 #[account]
 #[derive(Default)]
@@ -66,15 +66,20 @@ impl FarmPoolUserAccount {
     }
     pub fn update_score_and_level<'info>(
         &mut self,
-        extra_rewards_account: &ExtraRewardsAccount,
+        _extra_rewards_account: &ExtraRewardsAccount,
         state: &StateAccount,
+        user_state: &mut UserStateAccount
     ) -> Result<()> {
-        let extra_percentage =
-            extra_rewards_account.get_extra_reward_percentage(&self.lock_duration);
-        let score = self.get_score(&extra_percentage)?;
+        // let extra_percentage =
+        //     extra_rewards_account.get_extra_reward_percentage(&self.lock_duration);
+        // let score = self.get_score(&extra_percentage)?;
+        let score = self.calc_unloc_score().unwrap();
         let profile_level = state.get_profile_level(score);
         self.unloc_score = score;
         self.profile_level = profile_level;
+
+        user_state.unloc_scores[(self.stake_seed - 1) as usize] = score;
+        
         Ok(())
     }
     pub fn calc_unloc_score<'info>(&mut self) -> Result<u128> {

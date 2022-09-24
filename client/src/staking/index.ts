@@ -17,6 +17,7 @@ import { createAssociatedTokenAccountIfNotExist2, sendTransaction } from '../uti
 import { STAKING_PID } from '../global-config';
 import { sign } from 'crypto';
 import { program } from '@project-serum/anchor/dist/cjs/spl/token';
+import { Key } from 'readline';
 let StakingProgram: anchor.Program<UnlocStaking> = null as unknown as anchor.Program<UnlocStaking>
 
 export function initStakingProgram(
@@ -473,6 +474,7 @@ export function calculateTiers(amount: number, lockDuration: number) {
 export async function stake(
   connection: Connection,
   wallet: any,
+  user: Keypair,
 
   poolSigner: string,
 
@@ -495,11 +497,11 @@ export async function stake(
   const stakeSeed = 10
 
   const [userStateAccount, bump2] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer()
+    new PublicKey(poolSigner).toBuffer(), user.publicKey.toBuffer()
   ], StakingProgram.programId)
 
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
+    new PublicKey(poolSigner).toBuffer(), user.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], StakingProgram.programId)
   
 
@@ -512,7 +514,7 @@ export async function stake(
         userState: userStateAccount,
         state: stateSigner,
         pool: poolSigner,
-        authority: wallet.publicKey,
+        authority: user.publicKey,
         payer: wallet.publicKey,
         ...defaultAccounts
       }
@@ -527,9 +529,10 @@ export async function stake(
         userVault: rewardUserVault,
         feeVault: state.feeVault,
         user: userAccount,
+        userState: userStateAccount,
         state: stateSigner,
         pool: poolSigner,
-        authority: wallet.publicKey,
+        authority: user.publicKey,
         ...defaultAccounts
       })
       .preInstructions(transaction.instructions)
@@ -590,6 +593,7 @@ export async function createStakingUser(
 export async function unstake(
   connection: Connection,
   wallet: any,
+  user: Keypair,
 
   poolSigner: string,
   rewardMint: string,
@@ -605,9 +609,13 @@ export async function unstake(
 
   const extraRewardSigner = await getStakingExtraRewardAddress()
   // const poolSigner = await getPoolAddressFromMint(rewardMint)
+  const [userStateAccount, bump2] = await PublicKey.findProgramAddress([
+    new PublicKey(poolSigner).toBuffer(), user.publicKey.toBuffer()
+  ], StakingProgram.programId)
+
 
   const [poolUserAccount, bump1] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
+    new PublicKey(poolSigner).toBuffer(), user.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], StakingProgram.programId)
 
   try {
@@ -619,6 +627,7 @@ export async function unstake(
         userVault: rewardUserVault,
         feeVault: programState.feeVault,
         user: poolUserAccount,
+        userState: userStateAccount,
         state: stateSigner,
         pool: poolSigner,
         authority: wallet.publicKey,
