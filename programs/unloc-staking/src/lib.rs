@@ -110,6 +110,12 @@ pub mod unloc_staking {
         process_create_user::handle(ctx, stake_seed)
     }
 
+    pub fn create_user_state(
+        ctx: Context<CreateUserState>
+    ) -> Result<()> {
+        process_create_user_state::handle(ctx)
+    }
+
     pub fn stake(
         ctx: Context<Stake>,
         amount: u64,

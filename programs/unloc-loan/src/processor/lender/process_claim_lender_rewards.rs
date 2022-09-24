@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 use unloc_staking::{
-    cpi::accounts::{CreatePoolUser, Stake},
+    cpi::accounts::{CreatePoolUser, Stake, CreateUserState},
     program::UnlocStaking,
     states::StateAccount,
 };
@@ -63,6 +63,11 @@ pub fn handle(ctx: Context<ClaimLenderRewards>) -> Result<()> {
     let signer_seeds = &[GLOBAL_STATE_TAG, &[global_bump]];
     let signer = &[&signer_seeds[..]];
 
+    // create user state account if not created yet
+    if ctx.accounts.user_state.data_is_empty() {
+        unloc_staking::cpi::create_user_state(ctx.accounts.create_user_state_ctx().with_signer(signer))?;
+    }
+
     // create user staking account if not created yet
     if ctx.accounts.stake_user.data_is_empty() {
         unloc_staking::cpi::create_user(ctx.accounts.create_user_ctx().with_signer(signer), ctx.accounts.stake_state.liquidity_mining_stake_seed)?;
@@ -111,6 +116,9 @@ pub struct ClaimLenderRewards<'info> {
     /// CHECK: Safe
     #[account(mut)]
     pub stake_user: AccountInfo<'info>,
+    /// CHECK: Safe
+    #[account(mut)]
+    pub user_state: AccountInfo<'info>,
     #[account(mut, owner = unloc_staking_program.key())]
     pub stake_state: Account<'info, StateAccount>,
     /// CHECK: Safe
@@ -141,6 +149,7 @@ impl<'info> ClaimLenderRewards<'info> {
         let unloc_staking_program = self.unloc_staking_program.to_account_info();
         let create_user_accts = CreatePoolUser {
             user: self.stake_user.to_account_info(),
+            user_state: self.user_state.to_account_info(),
             state: self.stake_state.to_account_info(),
             pool: self.stake_pool.to_account_info(),
             authority: self.global_state.to_account_info(),
@@ -170,5 +179,18 @@ impl<'info> ClaimLenderRewards<'info> {
         };
 
         CpiContext::new(unloc_staking_program, stake_accts)
+    }
+
+    pub fn create_user_state_ctx(&self) -> CpiContext<'_, '_, '_, 'info, CreateUserState<'info>> {
+        let unloc_staking_program = self.unloc_staking_program.to_account_info();
+        let create_user_state_accts = CreateUserState {
+            user_state: self.user_state.to_account_info(),
+            pool: self.stake_pool.to_account_info(),
+            authority: self.global_state.to_account_info(),
+            payer: self.authority.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+        };
+
+        CpiContext::new(unloc_staking_program, create_user_state_accts)
     }
 }

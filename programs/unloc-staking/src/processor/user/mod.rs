@@ -9,3 +9,6 @@ pub use process_harvest::*;
 
 pub mod process_unstake;
 pub use process_unstake::*;
+
+pub mod process_create_user_state;
+pub use process_create_user_state::*;

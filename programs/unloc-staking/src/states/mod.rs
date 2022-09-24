@@ -9,3 +9,6 @@ pub use extra_rewards_account::*;
 
 pub mod state_account;
 pub use state_account::*;
+
+pub mod user_state_account;
+pub use user_state_account::*;

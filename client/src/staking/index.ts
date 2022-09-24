@@ -16,6 +16,7 @@ import { Connection, Keypair } from '@solana/web3.js';
 import { createAssociatedTokenAccountIfNotExist2, sendTransaction } from '../utils';
 import { STAKING_PID } from '../global-config';
 import { sign } from 'crypto';
+import { program } from '@project-serum/anchor/dist/cjs/spl/token';
 let StakingProgram: anchor.Program<UnlocStaking> = null as unknown as anchor.Program<UnlocStaking>
 
 export function initStakingProgram(
@@ -493,6 +494,10 @@ export async function stake(
   // const poolSigner = await getPoolAddressFromMint(rewardMint)
   const stakeSeed = 10
 
+  const [userStateAccount, bump2] = await PublicKey.findProgramAddress([
+    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer()
+  ], StakingProgram.programId)
+
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
     new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], StakingProgram.programId)
@@ -504,6 +509,7 @@ export async function stake(
     transaction.add(StakingProgram.instruction.createUser({
       accounts: {
         user: userAccount,
+        userState: userStateAccount,
         state: stateSigner,
         pool: poolSigner,
         authority: wallet.publicKey,
@@ -540,7 +546,7 @@ export async function stake(
 export async function createStakingUser(
   connection: Connection,
   wallet: any,
-
+  user: Keypair,
   poolSigner: string,
   signers: Keypair[] = [],
   stakeSeed
@@ -548,9 +554,12 @@ export async function createStakingUser(
 
   const stateSigner = await getStakingStateAddress()
   //const stakeSeed = 10;
+  const [userStateAccount, bump2] = await PublicKey.findProgramAddress([
+    new PublicKey(poolSigner).toBuffer(), user.publicKey.toBuffer()
+  ], StakingProgram.programId)
 
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), wallet.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
+    new PublicKey(poolSigner).toBuffer(), user.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], StakingProgram.programId)
 
   const userAccountData = await StakingProgram.account.farmPoolUserAccount.fetchNullable(userAccount)
@@ -559,6 +568,7 @@ export async function createStakingUser(
       const tx = await StakingProgram.methods.createUser(new BN(stakeSeed))
         .accounts({
           user: userAccount,
+          userState: userStateAccount,
           state: stateSigner,
           pool: poolSigner,
           authority: wallet.publicKey,

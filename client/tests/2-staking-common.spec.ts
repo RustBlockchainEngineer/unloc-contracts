@@ -278,22 +278,41 @@ describe('staking-common', () => {
     assert.ok(poolInfo.point.eq(stateInfo.totalPoint))
     assert.ok(poolInfo.point.eq(new BN(1000)))
   })
+  it('Create user state accounts', async function () {
+    for (let i = 0; i < users.length; i++) {
+      const u = users[i];
+      let userState = await PublicKey.findProgramAddress([
+        new PublicKey(poolSigner).toBuffer(), u.user.publicKey.toBuffer()],
+        program.programId
+      )
+      await program.methods.createUserState()
+      .accounts({
+        userState: userState[0],
+        pool: poolSigner,
+        authority: u.user.publicKey,
+        payer: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId
+      })
+      .signers([u.user])
+      .rpc()
+    } 
+  })
   it('Create User with Invalid Seed', async function () {
     const u = users[0];
-    await assertError(createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 50), undefined)
+    await assertError(createStakingUser(u.provider.connection, u.provider.wallet, u.user, poolSigner.toBase58(), [u.user], 50), undefined)
   })
   it('Create User', async function () {
     console.log("Creating user stake accounts...")
     for (let i = 0; i < users.length; i++) {
       const u = users[i];
-      await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 10);
+      await createStakingUser(u.provider.connection, u.provider.wallet, u.user, poolSigner.toBase58(), [u.user], 10);
     }
   })
   it('Create 2nd staking accounts for users w different seed', async function () {
     console.log("Creating 2nd user stake accounts...")
     for (let i = 0; i < users.length; i++) {
       const u = users[i];
-      await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 11);
+      await createStakingUser(u.provider.connection, u.provider.wallet, u.user, poolSigner.toBase58(), [u.user], 11);
     }
   })
   it('Stake invalid lock duration', async function () {

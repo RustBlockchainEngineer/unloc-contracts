@@ -77,4 +77,9 @@ impl FarmPoolUserAccount {
         self.profile_level = profile_level;
         Ok(())
     }
+    pub fn calc_unloc_score<'info>(&mut self) -> Result<u128> {
+        let score: u128 = u128::from(self.amount)
+            .safe_mul((self.lock_duration as f64).sqrt() as u128)?;
+        Ok(score)
+    }
 }

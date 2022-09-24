@@ -10,6 +10,10 @@ pub fn handle(ctx: Context<CreatePoolUser>, stake_seed: u8) -> Result<()> {
     user.bump = *ctx.bumps.get("user").unwrap();
     user.pool = ctx.accounts.pool.key();
 
+    let user_state = &mut ctx.accounts.user_state;
+    user_state.stake_acct_seeds.push(stake_seed);
+    msg!("User seeds: {:?}", ctx.accounts.user_state.stake_acct_seeds);
+
     ctx.accounts.state.validate_stake_acct_seed(&stake_seed)?;
 
     user.stake_seed = stake_seed;
@@ -37,11 +41,12 @@ pub struct CreatePoolUser<'info> {
         space = 8 + size_of::<FarmPoolUserAccount>()
     )]
     pub user: Account<'info, FarmPoolUserAccount>,
+    #[account(mut, seeds = [pool.key().as_ref(), authority.key.as_ref()], bump)]
+    pub user_state: Account<'info, UserStateAccount>,
     #[account(
         seeds = [b"state".as_ref()], bump = state.bump)]
     pub state: Account<'info, StateAccount>,
-    #[account(mut,
-        seeds = [pool.mint.key().as_ref()], bump = pool.bump)]
+    #[account(mut, seeds = [pool.mint.key().as_ref()], bump = pool.bump)]
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,

@@ -422,6 +422,11 @@ export type UnlocStaking = {
           "isSigner": false
         },
         {
+          "name": "userState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "state",
           "isMut": false,
           "isSigner": false
@@ -458,6 +463,37 @@ export type UnlocStaking = {
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "createUserState",
+      "accounts": [
+        {
+          "name": "userState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
       "name": "stake",
@@ -786,6 +822,19 @@ export type UnlocStaking = {
             "type": {
               "vec": "u128"
             }
+          },
+          {
+            "name": "stakeAcctSeeds",
+            "type": {
+              "array": [
+                "u8",
+                20
+              ]
+            }
+          },
+          {
+            "name": "liquidityMiningStakeSeed",
+            "type": "u8"
           }
         ]
       }
@@ -854,6 +903,26 @@ export type UnlocStaking = {
           {
             "name": "reserved3",
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "userStateAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "totalUnlocScore",
+            "type": "u128"
+          },
+          {
+            "name": "stakeAcctSeeds",
+            "type": "bytes"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
           }
         ]
       }
@@ -1109,6 +1178,11 @@ export type UnlocStaking = {
       "code": 6009,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidSeed",
+      "msg": "Invalid seed for staking account"
     }
   ]
 };
@@ -1537,6 +1611,11 @@ export const IDL: UnlocStaking = {
           "isSigner": false
         },
         {
+          "name": "userState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "state",
           "isMut": false,
           "isSigner": false
@@ -1573,6 +1652,37 @@ export const IDL: UnlocStaking = {
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "createUserState",
+      "accounts": [
+        {
+          "name": "userState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     },
     {
       "name": "stake",
@@ -1901,6 +2011,19 @@ export const IDL: UnlocStaking = {
             "type": {
               "vec": "u128"
             }
+          },
+          {
+            "name": "stakeAcctSeeds",
+            "type": {
+              "array": [
+                "u8",
+                20
+              ]
+            }
+          },
+          {
+            "name": "liquidityMiningStakeSeed",
+            "type": "u8"
           }
         ]
       }
@@ -1969,6 +2092,26 @@ export const IDL: UnlocStaking = {
           {
             "name": "reserved3",
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "userStateAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "totalUnlocScore",
+            "type": "u128"
+          },
+          {
+            "name": "stakeAcctSeeds",
+            "type": "bytes"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
           }
         ]
       }
@@ -2224,6 +2367,11 @@ export const IDL: UnlocStaking = {
       "code": 6009,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidSeed",
+      "msg": "Invalid seed for staking account"
     }
   ]
 };

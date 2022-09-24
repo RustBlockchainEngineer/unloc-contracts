@@ -423,6 +423,9 @@ export const claimLenderRewards = async (
     STAKING_PID
   )
 
+  const [userState, bump2] = await PublicKey.findProgramAddress([
+    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer()], STAKING_PID)
+
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
     new PublicKey(poolSigner).toBuffer(), globalState.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], STAKING_PID)
@@ -440,6 +443,7 @@ export const claimLenderRewards = async (
         subOffer,
         ...chainlinkIds,
         lenderRewardVault,
+        userState: userState,
         stakeUser: userAccount,
         stakeState: stateSigner,
         stakePool: poolSigner,
@@ -487,6 +491,9 @@ export const claimBorrowerRewards = async (
     STAKING_PID
   )
 
+  const [userState, bump2] = await PublicKey.findProgramAddress([
+    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer()], STAKING_PID)
+
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
     new PublicKey(poolSigner).toBuffer(), globalState.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], STAKING_PID)
@@ -504,6 +511,7 @@ export const claimBorrowerRewards = async (
         subOffer,
         ...chainlinkIds,
         borrowerRewardVault,
+        userState: userState,
         stakeUser: userAccount,
         stakeState: stateSigner,
         stakePool: poolSigner,
