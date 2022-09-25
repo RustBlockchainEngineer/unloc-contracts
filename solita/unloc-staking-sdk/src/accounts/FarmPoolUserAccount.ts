@@ -16,6 +16,7 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
  */
 export type FarmPoolUserAccountArgs = {
   bump: number
+  stakeSeed: number
   pool: web3.PublicKey
   authority: web3.PublicKey
   amount: beet.bignum
@@ -44,6 +45,7 @@ export const farmPoolUserAccountDiscriminator = [
 export class FarmPoolUserAccount implements FarmPoolUserAccountArgs {
   private constructor(
     readonly bump: number,
+    readonly stakeSeed: number,
     readonly pool: web3.PublicKey,
     readonly authority: web3.PublicKey,
     readonly amount: beet.bignum,
@@ -65,6 +67,7 @@ export class FarmPoolUserAccount implements FarmPoolUserAccountArgs {
   static fromArgs(args: FarmPoolUserAccountArgs) {
     return new FarmPoolUserAccount(
       args.bump,
+      args.stakeSeed,
       args.pool,
       args.authority,
       args.amount,
@@ -100,9 +103,13 @@ export class FarmPoolUserAccount implements FarmPoolUserAccountArgs {
    */
   static async fromAccountAddress(
     connection: web3.Connection,
-    address: web3.PublicKey
+    address: web3.PublicKey,
+    commitmentOrConfig?: web3.Commitment | web3.GetAccountInfoConfig
   ): Promise<FarmPoolUserAccount> {
-    const accountInfo = await connection.getAccountInfo(address)
+    const accountInfo = await connection.getAccountInfo(
+      address,
+      commitmentOrConfig
+    )
     if (accountInfo == null) {
       throw new Error(
         `Unable to find FarmPoolUserAccount account at ${address}`
@@ -183,6 +190,7 @@ export class FarmPoolUserAccount implements FarmPoolUserAccountArgs {
   pretty() {
     return {
       bump: this.bump,
+      stakeSeed: this.stakeSeed,
       pool: this.pool.toBase58(),
       authority: this.authority.toBase58(),
       amount: (() => {
@@ -323,6 +331,7 @@ export const farmPoolUserAccountBeet = new beet.BeetStruct<
   [
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['bump', beet.u8],
+    ['stakeSeed', beet.u8],
     ['pool', beetSolana.publicKey],
     ['authority', beetSolana.publicKey],
     ['amount', beet.u64],

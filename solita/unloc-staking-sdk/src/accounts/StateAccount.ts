@@ -25,6 +25,8 @@ export type StateAccountArgs = {
   tokenPerSecond: beet.bignum
   earlyUnlockFee: beet.bignum
   profileLevels: beet.bignum[]
+  stakeAcctSeeds: number[] /* size: 20 */
+  liquidityMiningStakeSeed: number
 }
 
 export const stateAccountDiscriminator = [142, 247, 54, 95, 85, 133, 249, 103]
@@ -46,7 +48,9 @@ export class StateAccount implements StateAccountArgs {
     readonly startTime: beet.bignum,
     readonly tokenPerSecond: beet.bignum,
     readonly earlyUnlockFee: beet.bignum,
-    readonly profileLevels: beet.bignum[]
+    readonly profileLevels: beet.bignum[],
+    readonly stakeAcctSeeds: number[] /* size: 20 */,
+    readonly liquidityMiningStakeSeed: number
   ) {}
 
   /**
@@ -63,7 +67,9 @@ export class StateAccount implements StateAccountArgs {
       args.startTime,
       args.tokenPerSecond,
       args.earlyUnlockFee,
-      args.profileLevels
+      args.profileLevels,
+      args.stakeAcctSeeds,
+      args.liquidityMiningStakeSeed
     )
   }
 
@@ -86,9 +92,13 @@ export class StateAccount implements StateAccountArgs {
    */
   static async fromAccountAddress(
     connection: web3.Connection,
-    address: web3.PublicKey
+    address: web3.PublicKey,
+    commitmentOrConfig?: web3.Commitment | web3.GetAccountInfoConfig
   ): Promise<StateAccount> {
-    const accountInfo = await connection.getAccountInfo(address)
+    const accountInfo = await connection.getAccountInfo(
+      address,
+      commitmentOrConfig
+    )
     if (accountInfo == null) {
       throw new Error(`Unable to find StateAccount account at ${address}`)
     }
@@ -218,6 +228,8 @@ export class StateAccount implements StateAccountArgs {
         return x
       })(),
       profileLevels: this.profileLevels,
+      stakeAcctSeeds: this.stakeAcctSeeds,
+      liquidityMiningStakeSeed: this.liquidityMiningStakeSeed,
     }
   }
 }
@@ -244,6 +256,8 @@ export const stateAccountBeet = new beet.FixableBeetStruct<
     ['tokenPerSecond', beet.u64],
     ['earlyUnlockFee', beet.u64],
     ['profileLevels', beet.array(beet.u128)],
+    ['stakeAcctSeeds', beet.uniformFixedSizeArray(beet.u8, 20)],
+    ['liquidityMiningStakeSeed', beet.u8],
   ],
   StateAccount.fromArgs,
   'StateAccount'
