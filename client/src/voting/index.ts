@@ -1,6 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { BN } from "@project-serum/anchor";
-import { defaults, STAKING_PID, VOTING_PID } from "./../global-config";
+import { defaults, STAKING_PID, VOTING_PDATA, VOTING_PID } from "./../global-config";
 import { getFirstStakingPool } from "./../staking";
 import { pda, SOLANA_CONNECTION } from "./../utils";
 
@@ -39,7 +39,29 @@ export const initVotingProgram = (
   ) as anchor.Program<UnlocVoting>;
 };
 
-export const setVotingGlobalState = async (
+export const createVotingGlobalState = async (
+  signer: anchor.web3.PublicKey = votingProgramProvider.wallet.publicKey,
+  signers: anchor.web3.Keypair[] = []
+) => {
+  const globalState = await pda([VOTING_GLOBAL_STATE_TAG], votingProgramId);
+  const superOwner = signer;
+
+  const tx = await votingProgram.methods.createGlobalState()
+    .accounts({
+      superOwner,
+      globalState,
+      votingProgram: VOTING_PID,
+      programData: VOTING_PDATA,
+      ...defaults,
+    })
+    .signers(signers)
+    .rpc()
+
+  // eslint-disable-next-line no-console
+  console.log("createGlobalState tx = ", tx);
+};
+
+export const updateVotingGlobalState = async (
   newSuperOwner: anchor.web3.PublicKey,
   signer: anchor.web3.PublicKey = votingProgramProvider.wallet.publicKey,
   signers: anchor.web3.Keypair[] = []
@@ -47,7 +69,7 @@ export const setVotingGlobalState = async (
   const globalState = await pda([VOTING_GLOBAL_STATE_TAG], votingProgramId);
   const superOwner = signer;
 
-  const tx = await votingProgram.methods.setGlobalState(newSuperOwner)
+  const tx = await votingProgram.methods.updateGlobalState(newSuperOwner)
     .accounts({
       superOwner,
       globalState,
@@ -57,7 +79,7 @@ export const setVotingGlobalState = async (
     .rpc()
 
   // eslint-disable-next-line no-console
-  console.log("setGlobalState tx = ", tx);
+  console.log("updateGlobalState tx = ", tx);
 };
 export const getVotingKeyFromNum = async (votingNumber: anchor.BN) => {
   return await pda(

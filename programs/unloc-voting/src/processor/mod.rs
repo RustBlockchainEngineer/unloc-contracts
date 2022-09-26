@@ -1,5 +1,8 @@
-pub mod process_set_global_state;
-pub use process_set_global_state::*;
+pub mod process_create_global_state;
+pub use process_create_global_state::*;
+
+pub mod process_update_global_state;
+pub use process_update_global_state::*;
 
 pub mod process_set_voting;
 pub use process_set_voting::*;

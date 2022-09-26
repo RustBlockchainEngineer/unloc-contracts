@@ -20,11 +20,6 @@ pub struct PoolLockDurationChanged {
     pub lock_duration: i64,
 }
 #[event]
-pub struct PoolAmountMultiplerChanged {
-    pub pool: Pubkey,
-    pub amount_multipler: u64,
-}
-#[event]
 pub struct PoolPointChanged {
     pub pool: Pubkey,
     pub point: u64,

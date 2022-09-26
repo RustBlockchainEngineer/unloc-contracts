@@ -14,7 +14,7 @@ const defaultAccounts = {
 import { IDL as idl, UnlocStaking } from '../types/unloc_staking'
 import { Connection, Keypair } from '@solana/web3.js';
 import { createAssociatedTokenAccountIfNotExist2, sendTransaction } from '../utils';
-import { STAKING_PID } from '../global-config';
+import { STAKING_PDATA, STAKING_PID } from '../global-config';
 import { sign } from 'crypto';
 let StakingProgram: anchor.Program<UnlocStaking> = null as unknown as anchor.Program<UnlocStaking>
 
@@ -159,6 +159,8 @@ export async function createStakingState(
     feeVault: new PublicKey(feeVault),
     authority: wallet.publicKey,
     payer: wallet.publicKey,
+    stakingProgram: STAKING_PID,
+    programData: STAKING_PDATA,
     ...defaultAccounts
   })
   .preInstructions(transaction.instructions)
@@ -329,7 +331,6 @@ export async function createStakingPool(
   // let poolInfo = await program.account.farmPoolAccount.fetch(poolSigner)
   // assert.ok(poolInfo.point.eq(stateInfo.totalPoint))
   // assert.ok(poolInfo.point.eq(new BN('0')))
-  // assert.ok(poolInfo.amountMultipler.eq(new BN(0)))
   return await sendTransaction(connection, wallet, transaction, signers)
 }
 export async function closeStakingPool(
@@ -359,30 +360,6 @@ export async function closeStakingPool(
   return await sendTransaction(connection, wallet, transaction, signers)
 }
 
-export async function changeStakingPoolAmountMultipler(
-  connection: Connection,
-  wallet: any,
-  poolSigner: string,
-) {
-
-  const transaction = new Transaction()
-  const signers: Keypair[] = []
-
-  const stateSigner = await getStakingStateAddress()
-
-  const tx = StakingProgram.instruction.changePoolAmountMultipler(new BN(1), {
-    accounts: {
-      pool: new PublicKey(poolSigner),
-      state: stateSigner,
-      authority: wallet.publicKey,
-      ...defaultAccounts
-    }
-  })
-
-  transaction.add(tx);
-
-  return await sendTransaction(connection, wallet, transaction, signers)
-}
 export async function changeStakingTokenPerSecond(
   connection: Connection,
   wallet: any,
@@ -543,7 +520,7 @@ export async function createStakingUser(
 
   poolSigner: string,
   signers: Keypair[] = [],
-  stakeSeed
+  stakeSeed: number
 ) {
 
   const stateSigner = await getStakingStateAddress()
@@ -556,7 +533,7 @@ export async function createStakingUser(
   const userAccountData = await StakingProgram.account.farmPoolUserAccount.fetchNullable(userAccount)
   if (!userAccountData) {
     try {
-      const tx = await StakingProgram.methods.createUser(new BN(stakeSeed))
+      const tx = await StakingProgram.methods.createUser(stakeSeed)
         .accounts({
           user: userAccount,
           state: stateSigner,

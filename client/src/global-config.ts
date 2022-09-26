@@ -49,19 +49,38 @@ export const config = {
     '7CLo1BY41BHAVnEs57kzYMnWXyBJrVEBPpZyQyPo2p1G',
   ]
 }
-
+export const BPF_LOADER_UPGRADEABLE_PROGRAM_ID = new PublicKey(
+  "BPFLoaderUpgradeab1e11111111111111111111111",
+);
 export const NFT_LOAN_PID = new PublicKey(
   config.loanPids[config.cluster]
 )
+export const [NFT_LOAN_PDATA] = PublicKey.findProgramAddressSync(
+  [NFT_LOAN_PID.toBytes()],
+  BPF_LOADER_UPGRADEABLE_PROGRAM_ID,
+);
 export const STAKING_PID = new PublicKey(
   config.stakingPids[config.cluster]
 )
+export const [STAKING_PDATA] = PublicKey.findProgramAddressSync(
+  [STAKING_PID.toBytes()],
+  BPF_LOADER_UPGRADEABLE_PROGRAM_ID,
+);
+
 export const VOTING_PID = new PublicKey(
   config.votingPids[config.cluster]
 )
+export const [VOTING_PDATA] = PublicKey.findProgramAddressSync(
+  [VOTING_PID.toBytes()],
+  BPF_LOADER_UPGRADEABLE_PROGRAM_ID,
+);
 export const BUYBACK_PID = new PublicKey(
   config.buybackPids[config.cluster]
 )
+export const [BUYBACK_PDATA] = PublicKey.findProgramAddressSync(
+  [BUYBACK_PID.toBytes()],
+  BPF_LOADER_UPGRADEABLE_PROGRAM_ID,
+);
 export const TOKEN_META_PID = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
 export const RPC_ENDPOINT = config.endpoints[config.cluster]
 export const WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
