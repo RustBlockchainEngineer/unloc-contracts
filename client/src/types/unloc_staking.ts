@@ -544,6 +544,11 @@ export type UnlocStaking = {
           "isSigner": false
         },
         {
+          "name": "userVaultAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "feeVault",
           "isMut": true,
           "isSigner": false
@@ -622,6 +627,11 @@ export type UnlocStaking = {
           "name": "userVault",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "userVaultAuthority",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "feeVault",
@@ -935,6 +945,10 @@ export type UnlocStaking = {
             "type": "publicKey"
           },
           {
+            "name": "pool",
+            "type": "publicKey"
+          },
+          {
             "name": "bump",
             "type": "u8"
           },
@@ -946,6 +960,10 @@ export type UnlocStaking = {
                 21
               ]
             }
+          },
+          {
+            "name": "profileLevel",
+            "type": "u64"
           }
         ]
       }
@@ -1756,6 +1774,11 @@ export const IDL: UnlocStaking = {
           "isSigner": false
         },
         {
+          "name": "userVaultAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
           "name": "feeVault",
           "isMut": true,
           "isSigner": false
@@ -1834,6 +1857,11 @@ export const IDL: UnlocStaking = {
           "name": "userVault",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "userVaultAuthority",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "feeVault",
@@ -2147,6 +2175,10 @@ export const IDL: UnlocStaking = {
             "type": "publicKey"
           },
           {
+            "name": "pool",
+            "type": "publicKey"
+          },
+          {
             "name": "bump",
             "type": "u8"
           },
@@ -2158,6 +2190,10 @@ export const IDL: UnlocStaking = {
                 21
               ]
             }
+          },
+          {
+            "name": "profileLevel",
+            "type": "u64"
           }
         ]
       }

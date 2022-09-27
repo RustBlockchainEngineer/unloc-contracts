@@ -19,8 +19,10 @@ import { VOTING_ITEM_TAG } from './../voting'
 import { pda, SOLANA_CONNECTION } from './../utils'
 import { getStakingStateAddress, getStakingExtraRewardAddress, getStakingState } from './../staking'
 import { poolVault } from './../../tests/2-staking-common.spec'
+import { UnlocStaking } from '../types/unloc_staking'
 
 export let loanProgram: anchor.Program<UnlocLoan> = null as unknown as anchor.Program<UnlocLoan>
+export let stakingProgram: anchor.Program<UnlocStaking> = null as unknown as anchor.Program<UnlocStaking>
 export let loanProvider: anchor.AnchorProvider = null as unknown as anchor.AnchorProvider
 export let loanProgramId: anchor.web3.PublicKey = null as unknown as anchor.web3.PublicKey
 
@@ -32,6 +34,8 @@ const OFFER_VAULT_TAG = Buffer.from('OFFER_VAULT_SEED')
 const TREASURY_VAULT_TAG = Buffer.from('TREASURY_VAULT_SEED')
 const REWARD_VAULT_TAG = Buffer.from('REWARD_VAULT_SEED')
 const USER_REWARD_TAG = Buffer.from('LENDER_REWARD_SEED')
+
+const utf8 = anchor.utils.bytes.utf8;
 
 const WSOL_MINT = new anchor.web3.PublicKey('So11111111111111111111111111111111111111112')
 // This command makes an Lottery
@@ -424,10 +428,10 @@ export const claimLenderRewards = async (
   )
 
   const [userState, bump2] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer()], STAKING_PID)
+    new PublicKey(poolSigner).toBuffer(), authority.toBuffer()], STAKING_PID)
 
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
+    new PublicKey(poolSigner).toBuffer(), authority.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], STAKING_PID)
 
   const stateSigner = await getStakingStateAddress()
@@ -492,10 +496,10 @@ export const claimBorrowerRewards = async (
   )
 
   const [userState, bump2] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer()], STAKING_PID)
+    new PublicKey(poolSigner).toBuffer(), authority.toBuffer()], STAKING_PID)
 
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
-    new PublicKey(poolSigner).toBuffer(), globalState.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
+    new PublicKey(poolSigner).toBuffer(), authority.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], STAKING_PID)
 
   const stateSigner = await getStakingStateAddress()
@@ -669,8 +673,32 @@ export const createLoanSubOfferByStaking = async (
   const subOfferNumer = offerData.subOfferCount
   const subOffer = await pda([SUB_OFFER_TAG, offer.toBuffer(), subOfferNumer.toArrayLike(Buffer, 'be', 8)], loanProgramId)
   const globalStateData = await loanProgram.account.globalState.fetch(globalState)
-  const stakeSeed = 10
-  const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)], STAKING_PID)
+  //const stakeSeed = 10
+  const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], STAKING_PID)
+  let [stateSigner, stateBump] = await anchor.web3.PublicKey.findProgramAddress(
+    [utf8.encode('state')],
+    STAKING_PID
+  )
+
+  try {
+    const stakingStateAcct = await loanProvider.connection.getAccountInfo(stakingUser)
+
+    if (stakingStateAcct == null) {
+      const createStateAcctTx = await stakingProgram.methods.createUserState()
+        .accounts({
+          userState: stakingUser,
+          pool: globalStateData.unlocStakingPoolId,
+          authority: borrower,
+          payer: borrower,
+          systemProgram: SystemProgram.programId
+        })
+        .signers(signers)
+        .rpc()
+        console.log('create user state tx = ', createStateAcctTx)
+    }
+  } catch (e) {
+    console.log(e)
+  }
   try {
     const tx = await loanProgram.methods
       .createSubOffer(offerAmount, loanDuration, aprNumerator)
@@ -683,7 +711,8 @@ export const createLoanSubOfferByStaking = async (
         ...defaults
       })
       .remainingAccounts([
-        { pubkey: stakingUser, isSigner: false, isWritable: false }
+        { pubkey: stakingUser, isSigner: false, isWritable: false },
+        { pubkey: stateSigner, isSigner: false, isWritable: false }
       ])
       .signers(signers)
       .rpc()

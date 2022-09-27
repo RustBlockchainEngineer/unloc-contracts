@@ -67,12 +67,12 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
 
     // create user state account if not created yet
     if ctx.accounts.user_state.data_is_empty() {
-        unloc_staking::cpi::create_user_state(ctx.accounts.create_user_state_ctx().with_signer(signer))?;
+        unloc_staking::cpi::create_user_state(ctx.accounts.create_user_state_ctx())?;
     }
 
     // create user staking account if not created yet
     if ctx.accounts.stake_user.data_is_empty() {
-        unloc_staking::cpi::create_user(ctx.accounts.create_user_ctx().with_signer(signer), ctx.accounts.stake_state.liquidity_mining_stake_seed)?;
+        unloc_staking::cpi::create_user(ctx.accounts.create_user_ctx(), ctx.accounts.stake_state.liquidity_mining_stake_seed)?;
     }
 
     // stake rewards
@@ -155,7 +155,7 @@ impl<'info> ClaimBorrowerRewards<'info> {
             state: self.stake_state.to_account_info(),
             user_state: self.user_state.to_account_info(),
             pool: self.stake_pool.to_account_info(),
-            authority: self.global_state.to_account_info(),
+            authority: self.authority.to_account_info(),
             payer: self.authority.to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info()
@@ -172,10 +172,11 @@ impl<'info> ClaimBorrowerRewards<'info> {
             user_state: self.user_state.to_account_info(),
             extra_reward_account: self.extra_reward_account.to_account_info(),
             pool: self.stake_pool.to_account_info(),
-            authority: self.global_state.to_account_info(),
+            authority: self.authority.to_account_info(),
             mint: self.stake_mint.to_account_info(),
             pool_vault: self.stake_pool_vault.to_account_info(),
             user_vault: self.reward_vault.to_account_info(),
+            user_vault_authority: self.global_state.to_account_info(),
             fee_vault: self.fee_vault.to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
@@ -190,7 +191,7 @@ impl<'info> ClaimBorrowerRewards<'info> {
         let create_user_state_accts = CreateUserState {
             user_state: self.user_state.to_account_info(),
             pool: self.stake_pool.to_account_info(),
-            authority: self.global_state.to_account_info(),
+            authority: self.authority.to_account_info(),
             payer: self.authority.to_account_info(),
             system_program: self.system_program.to_account_info(),
         };

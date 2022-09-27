@@ -153,6 +153,7 @@ describe('staking-common', () => {
     await program.methods.setExtraRewardConfigs([
       { duration: new BN(0), extraPercentage: getNumber(0) },
       { duration: new BN(1), extraPercentage: getNumber(50) },
+      { duration: new BN(86400), extraPercentage: getNumber(85) },
       { duration: new BN(5184000), extraPercentage: getNumber(100) },
     ])
       .accounts({
@@ -163,7 +164,7 @@ describe('staking-common', () => {
       .rpc()
 
     const extraRewardConfigs = await program.account.extraRewardsAccount.fetch(extraRewardSigner)
-    assert.ok((extraRewardConfigs.configs as any).length === 3)
+    assert.ok((extraRewardConfigs.configs as any).length === 4)
     assert.ok(new BN(1).eq((extraRewardConfigs.configs as any)[1].duration))
     assert.ok(getNumber(50).eq((extraRewardConfigs.configs as any)[1].extraPercentage))
   })
@@ -373,7 +374,17 @@ describe('staking-common', () => {
     const tokenPerSecond = state.tokenPerSecond.toNumber();
     assert.ok(tokenPerSecond === 40);
   })
+  
+  it('Stake for longer duration', async function () {
+    await guardTime(2000, async () => {
+      const stakeAmount = 100;
+      await stake(user4, new BN(stakeAmount), 86400);
 
+      const userInfo = await program.account.farmPoolUserAccount.fetch(user4.userAccount1)
+      assert.ok(userInfo.amount.toNumber() === 100);
+      assert.ok(userInfo.lockDuration.toNumber() === 86400);
+    })
+  })
 })
 
 async function guardTime(time, fn) {
@@ -450,3 +461,4 @@ async function getRewardTokenAmount(account) {
   const amount = tokenAcc.amount;
   return amount;
 }
+

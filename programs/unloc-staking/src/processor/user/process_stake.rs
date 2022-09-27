@@ -5,7 +5,7 @@ use std::str::FromStr;
 use crate::{error::*, utils::*, states::*};
 
 pub fn handle(ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()> {
-    require_keys_eq!(ctx.accounts.user_vault.owner, ctx.accounts.authority.key());
+    //require_keys_eq!(ctx.accounts.user_vault.owner, ctx.accounts.authority.key());
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
     require_keys_eq!(ctx.accounts.mint.key(), unloc_mint);
 
@@ -39,7 +39,7 @@ pub fn handle(ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()
     let cpi_accounts = Transfer {
         from: ctx.accounts.user_vault.to_account_info(),
         to: ctx.accounts.pool_vault.to_account_info(),
-        authority: ctx.accounts.authority.to_account_info(),
+        authority: ctx.accounts.user_vault_authority.to_account_info(),
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
@@ -80,6 +80,8 @@ pub struct Stake<'info> {
     pub pool_vault: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
     pub user_vault: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
+    pub user_vault_authority: Signer<'info>,
     #[account(mut,
         constraint = fee_vault.key() == state.fee_vault)]
     pub fee_vault: Box<Account<'info, TokenAccount>>,

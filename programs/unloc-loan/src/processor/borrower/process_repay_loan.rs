@@ -69,17 +69,17 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     )?;
     let unloc_fee_amount = accrued_unloc_fee.safe_add(unloc_apr_fee)?;
     // log fees
-    msg!("origin = {}, duration = {}", origin, duration);
-    msg!(
-        "offer apr = {}%, unloc apr = {}%, accrued apr = {}%",
-        offer_apr * 100 / denominator,
-        unloc_apr * 100 / denominator,
-        accrued_apr * 100 / denominator
-    );
-    msg!("interest by offer apr = {}", accrued_amount);
-    msg!("interest by unloc apr = {}", unloc_apr_fee);
-    msg!("accrued unloc fee = {}", accrued_unloc_fee);
-    msg!("total unloc fee = {}", unloc_fee_amount);
+    // msg!("origin = {}, duration = {}", origin, duration);
+    // msg!(
+    //     "offer apr = {}%, unloc apr = {}%, accrued apr = {}%",
+    //     offer_apr * 100 / denominator,
+    //     unloc_apr * 100 / denominator,
+    //     accrued_apr * 100 / denominator
+    // );
+    // msg!("interest by offer apr = {}", accrued_amount);
+    // msg!("interest by unloc apr = {}", unloc_apr_fee);
+    // msg!("accrued unloc fee = {}", accrued_unloc_fee);
+    // msg!("total unloc fee = {}", unloc_fee_amount);
 
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     if ctx.accounts.sub_offer.offer_mint == wsol_mint {

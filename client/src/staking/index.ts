@@ -527,6 +527,7 @@ export async function stake(
         extraRewardAccount: extraRewardSigner,
         poolVault: poolVault,
         userVault: rewardUserVault,
+        userVaultAuthority: user.publicKey,
         feeVault: state.feeVault,
         user: userAccount,
         userState: userStateAccount,

@@ -3,7 +3,7 @@ use anchor_spl::token::{Mint, Token};
 
 use crate::{constant::*, states::*, utils::*};
 use std::str::FromStr;
-use unloc_staking::states::FarmPoolUserAccount;
+use unloc_staking::states::{UserStateAccount, StateAccount};
 
 pub fn handle(
     ctx: Context<CreateSubOffer>,
@@ -14,19 +14,23 @@ pub fn handle(
     let mut profile_level = 0;
     if ctx.remaining_accounts.len() > 0 {
         let staking_user_info = ctx.remaining_accounts[0].to_account_info();
-        let mut data: &[u8] = &staking_user_info.try_borrow_data()?;
-        let staking_user = FarmPoolUserAccount::try_deserialize(&mut data)?;
+        let stake_state_account = ctx.remaining_accounts[1].to_account_info();
+
+        let mut user_data: &[u8] = &staking_user_info.try_borrow_data()?;
+        let mut staking_user = UserStateAccount::try_deserialize(&mut user_data)?;
+        let mut stake_state_data: &[u8] = &stake_state_account.try_borrow_data()?;
+        let stake_state = StateAccount::try_deserialize(&mut stake_state_data)?;
 
         assert_pda(
             &[
                 staking_user.pool.as_ref(),
                 ctx.accounts.borrower.key().as_ref(),
-                staking_user.stake_seed.to_le_bytes().as_ref()
             ],
             &unloc_staking::id(),
             &staking_user_info.key(),
         )?;
 
+        staking_user.calc_user_profile_level(stake_state)?;
         profile_level = staking_user.profile_level;
     }
 
