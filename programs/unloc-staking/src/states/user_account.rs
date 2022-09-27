@@ -78,9 +78,9 @@ impl FarmPoolUserAccount {
         self.unloc_score = score;
         self.profile_level = profile_level;
 
-        msg!("User score before update: {}", user_state.unloc_scores[(self.stake_seed - 1) as usize]);
+        msg!("Stake acct unloc score before update: {}", user_state.unloc_scores[(self.stake_seed - 1) as usize]);
         user_state.unloc_scores[(self.stake_seed - 1) as usize] = score;
-        msg!("User score after update: {}", user_state.unloc_scores[(self.stake_seed - 1) as usize]);
+        msg!("Stake acct unloc score after update: {}", user_state.unloc_scores[(self.stake_seed - 1) as usize]);
         
         Ok(())
     }

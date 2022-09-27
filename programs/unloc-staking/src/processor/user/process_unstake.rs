@@ -105,6 +105,9 @@ pub fn handle(ctx: Context<Stake>, amount: u64) -> Result<()> {
         });
     }
     user.update_score_and_level(extra_account, state, user_state)?;
+    user_state.calc_overall_unloc_score()?;
+    user_state.calc_user_profile_level(state)?;
+    msg!("User overall unloc score: {}", user_state.total_unloc_score);
 
     Ok(())
 }

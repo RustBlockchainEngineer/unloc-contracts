@@ -24,6 +24,8 @@ impl StateAccount {
         let mut i = 0;
         for level in profile_levels.iter() {
             if score >= *level {
+                msg!("Profile levels length: {}", profile_levels.len());
+                msg!("i = {}", i);
                 return (profile_levels.len() - i).try_into().unwrap();
             }
             i = i + 1;

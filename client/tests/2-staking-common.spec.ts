@@ -422,6 +422,7 @@ describe('staking-common', () => {
 
     const userStateInfo = await program.account.userStateAccount.fetch(userState)
     console.log("User total unloc score: ", userStateInfo.totalUnlocScore.toNumber())
+    console.log("User's profile level: ", userStateInfo.profileLevel.toNumber())
   })
 })
 

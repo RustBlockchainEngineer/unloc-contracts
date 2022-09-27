@@ -23,7 +23,7 @@ impl UserStateAccount {
         Ok(())
     }
 
-    pub fn calc_user_profile_level<'info>(&mut self, state_account: StateAccount) -> Result<()> {
+    pub fn calc_user_profile_level<'info>(&mut self, state_account: &StateAccount) -> Result<()> {
         /*
         * calc overall unloc score
         * use user's overall unloc score to determine what their profile level is

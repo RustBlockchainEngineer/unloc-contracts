@@ -31,7 +31,7 @@ pub fn handle(
         )?;
 
         // calculate a user's profile level based on their overall unloc score
-        staking_user.calc_user_profile_level(stake_state)?;
+        staking_user.calc_user_profile_level(&stake_state)?;
         profile_level = staking_user.profile_level;
     }
 
