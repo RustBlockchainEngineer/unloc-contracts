@@ -45,6 +45,9 @@ pub fn handle(ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
     token::transfer(cpi_ctx, amount)?;
     user.update_score_and_level(extra_account, state, user_state)?;
+
+    user_state.calc_overall_unloc_score()?;
+    msg!("User overall unloc score: {}", user_state.total_unloc_score);
     emit!(UserStaked {
         pool: ctx.accounts.pool.key(),
         user: ctx.accounts.user.key(),

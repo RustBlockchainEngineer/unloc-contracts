@@ -81,12 +81,14 @@ impl FarmPoolUserAccount {
         msg!("User score before update: {}", user_state.unloc_scores[(self.stake_seed - 1) as usize]);
         user_state.unloc_scores[(self.stake_seed - 1) as usize] = score;
         msg!("User score after update: {}", user_state.unloc_scores[(self.stake_seed - 1) as usize]);
-
+        
         Ok(())
     }
     pub fn calc_unloc_score<'info>(&mut self) -> Result<u128> {
+        let unix_day: i64 = 86400;
         let score: u128 = u128::from(self.amount)
-            .safe_mul((self.lock_duration as f64).sqrt() as u128)?;
+            .safe_mul((self.lock_duration.safe_div(unix_day).unwrap() as f64).sqrt() as u128)?;
+
         Ok(score)
     }
 }

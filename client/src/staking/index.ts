@@ -485,7 +485,8 @@ export async function stake(
 
   amount: any,
   lock = 0,
-  signers: Keypair[] = []
+  signers: Keypair[] = [],
+  stakeSeed
 ) {
 
   const transaction = new Transaction()
@@ -494,7 +495,7 @@ export async function stake(
   const state = await getStakingState()
   const extraRewardSigner = await getStakingExtraRewardAddress()
   // const poolSigner = await getPoolAddressFromMint(rewardMint)
-  const stakeSeed = 10
+  //const stakeSeed = 10
 
   const [userStateAccount, bump2] = await PublicKey.findProgramAddress([
     new PublicKey(poolSigner).toBuffer(), user.publicKey.toBuffer()
@@ -503,22 +504,21 @@ export async function stake(
   const [userAccount, bump1] = await PublicKey.findProgramAddress([
     new PublicKey(poolSigner).toBuffer(), user.publicKey.toBuffer(), new anchor.BN(stakeSeed).toBuffer('le', 1)
   ], StakingProgram.programId)
-  
 
   const userAccountData = await StakingProgram.account.farmPoolUserAccount.fetchNullable(userAccount)
   if (!userAccountData) {
-    console.log("You are the new user to stake")
-    transaction.add(StakingProgram.instruction.createUser({
-      accounts: {
-        user: userAccount,
-        userState: userStateAccount,
-        state: stateSigner,
-        pool: poolSigner,
-        authority: user.publicKey,
-        payer: wallet.publicKey,
-        ...defaultAccounts
-      }
-    }));
+    await StakingProgram.methods.createUser(new BN(stakeSeed))
+    .accounts({
+      user: userAccount,
+      userState: userStateAccount,
+      state: stateSigner,
+      pool: poolSigner,
+      authority: user.publicKey,
+      payer: wallet.publicKey,
+      ...defaultAccounts
+    })
+    .signers(signers)
+    .rpc()
   }
   try {
     const txHash = await StakingProgram.methods.stake(new BN(amount), new BN(lock))
@@ -543,6 +543,7 @@ export async function stake(
     return txHash
   } catch (e) {
     console.log(e);
+    console.log("caught error")
   }
   return '';
 }
