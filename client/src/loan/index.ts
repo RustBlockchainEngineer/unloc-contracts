@@ -22,7 +22,7 @@ import { poolVault } from './../../tests/2-staking-common.spec'
 import { UnlocStaking } from '../types/unloc_staking'
 
 export let loanProgram: anchor.Program<UnlocLoan> = null as unknown as anchor.Program<UnlocLoan>
-export let stakingProgram: anchor.Program<UnlocStaking> = null as unknown as anchor.Program<UnlocStaking>
+let stakingProgram = anchor.workspace.UnlocStaking as anchor.Program<UnlocStaking>
 export let loanProvider: anchor.AnchorProvider = null as unknown as anchor.AnchorProvider
 export let loanProgramId: anchor.web3.PublicKey = null as unknown as anchor.web3.PublicKey
 
@@ -931,6 +931,28 @@ export const repayLoan = async (
   const nftMint = offerData.nftMint
   const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer(), globalStateData.treasuryWallet.toBuffer()], loanProgramId)
 
+  const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], STAKING_PID)
+  try {
+    const stakingStateAcct = await loanProvider.connection.getAccountInfo(stakingUser)
+
+    if (stakingStateAcct == null) {
+      console.log("Creating borrower stake account")
+      const createStateAcctTx = await stakingProgram.methods.createUserState()
+        .accounts({
+          userState: stakingUser,
+          pool: globalStateData.unlocStakingPoolId,
+          authority: borrower,
+          payer: borrower,
+          systemProgram: SystemProgram.programId
+        })
+        .signers(signers)
+        .rpc()
+        console.log('create user state tx = ', createStateAcctTx)
+    }
+  } catch (e) {
+    console.log(e)
+  }
+
   let borrowerOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, borrower)
   let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, borrower)
   let lenderOfferVault = await checkWalletATA(offerMint.toBase58(), loanProvider.connection, lender)
@@ -973,6 +995,7 @@ export const repayLoan = async (
         borrowerOfferVault,
         offerMint,
         treasuryVault,
+        userStakeState: stakingUser,
         metadataProgram: TOKEN_META_PID,
         ...chainlinkIds,
         ...defaults
@@ -1004,6 +1027,29 @@ export const claimLoanCollateral = async (
   const offerMint = subOfferData.offerMint
   const nftMint = offerData.nftMint
   const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer(), treasuryWallet.toBuffer()], loanProgramId)
+
+  const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), lender.toBuffer()], STAKING_PID)
+  try {
+    const stakingStateAcct = await loanProvider.connection.getAccountInfo(stakingUser)
+
+    if (stakingStateAcct == null) {
+      console.log("Creating lender stake account")
+      const createUserStateTx = await stakingProgram.methods.createUserState()
+      .accounts({
+        userState: stakingUser,
+        pool: globalStateData.unlocStakingPoolId,
+        authority: lender,
+        payer: lender,
+        systemProgram: SystemProgram.programId
+      })
+      .signers(signers)
+      .rpc()
+
+      console.log("Create lender state account tx: ", createUserStateTx)
+    }
+  } catch (e) {
+    console.log(e)
+  }
 
   let borrowerNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, offerData.borrower)
   let lenderNftVault = await checkWalletATA(nftMint.toBase58(), loanProvider.connection, lender)
@@ -1040,6 +1086,7 @@ export const claimLoanCollateral = async (
         offerMint,
         treasuryVault,
         rewardVault,
+        userStakeState: stakingUser,
         metadataProgram: TOKEN_META_PID,
         ...chainlinkIds,
         ...defaults

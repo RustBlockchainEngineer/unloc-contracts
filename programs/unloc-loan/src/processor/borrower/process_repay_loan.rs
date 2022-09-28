@@ -4,6 +4,9 @@ use anchor_lang::solana_program::{program::invoke, program::invoke_signed, syste
 use anchor_spl::token::{self, Mint, Revoke, Token, TokenAccount, Transfer};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 use std::str::FromStr;
+use unloc_staking::{
+    states::UserStateAccount,
+};
 
 pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
     require_eq!(
@@ -30,7 +33,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
         .update_rps(&ctx.accounts.global_state, &offer_mint)?;
 
     let borrower_key = ctx.accounts.borrower.key();
-    let origin = ctx.accounts.sub_offer.offer_amount;
+    let loan_amount = ctx.accounts.sub_offer.offer_amount;
     let started_time = ctx.accounts.sub_offer.loan_started_time;
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let seconds_for_year = 3600 * 24 * 365;
@@ -53,42 +56,46 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
         duration = min_duration;
     }
 
-    let accrued_amount = calc_fee(
-        origin,
+    // calculates interest due
+    let interest_amount = calc_fee(
+        loan_amount,
         offer_apr.safe_mul(duration)?,
         denominator.safe_mul(seconds_for_year)?,
     )?;
-    let accrued_unloc_fee = calc_fee(accrued_amount, accrued_apr, denominator)?;
-    let needed_amount = origin
-        .safe_add(accrued_amount)?
+
+    // TODO: use a user's profile level to determine this value 
+    //let accrued_unloc_fee = calc_fee(accrued_amount, accrued_apr, denominator)?;
+    let accrued_unloc_fee = calc_fee_with_profile_level(interest_amount, accrued_apr, denominator, ctx.accounts.user_stake_state.profile_level)?;
+    let amount_borrower_owes = loan_amount
+        .safe_add(interest_amount)?
         .safe_sub(accrued_unloc_fee)?;
     let unloc_apr_fee = calc_fee(
-        origin,
+        loan_amount,
         unloc_apr.safe_mul(duration)?,
         denominator.safe_mul(seconds_for_year)?,
     )?;
     let unloc_fee_amount = accrued_unloc_fee.safe_add(unloc_apr_fee)?;
     // log fees
-    // msg!("origin = {}, duration = {}", origin, duration);
+    // msg!("loan amount = {}, duration = {}", loan_amount, duration);
     // msg!(
     //     "offer apr = {}%, unloc apr = {}%, accrued apr = {}%",
     //     offer_apr * 100 / denominator,
     //     unloc_apr * 100 / denominator,
     //     accrued_apr * 100 / denominator
     // );
-    // msg!("interest by offer apr = {}", accrued_amount);
+    // msg!("interest by offer apr = {}", interest_amount);
     // msg!("interest by unloc apr = {}", unloc_apr_fee);
     // msg!("accrued unloc fee = {}", accrued_unloc_fee);
     // msg!("total unloc fee = {}", unloc_fee_amount);
 
     let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
     if ctx.accounts.sub_offer.offer_mint == wsol_mint {
-        require(ctx.accounts.borrower.lamports() >= needed_amount.safe_add(unloc_fee_amount)?, "borrower.lamports()")?;
+        require(ctx.accounts.borrower.lamports() >= amount_borrower_owes.safe_add(unloc_fee_amount)?, "borrower.lamports()")?;
         invoke(
             &system_instruction::transfer(
                 &ctx.accounts.borrower.key(),
                 &ctx.accounts.lender.key(),
-                needed_amount,
+                amount_borrower_owes,
             ),
             &[
                 ctx.accounts.borrower.to_account_info(),
@@ -115,7 +122,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
         require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.sub_offer.lender, "lender_offer_vault.owner")?;
         require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.sub_offer.offer_mint, "lender_offer_vault.mint")?;
 
-        let _borrower_offer_vault = needed_amount.safe_add(unloc_fee_amount)?;
+        let _borrower_offer_vault = amount_borrower_owes.safe_add(unloc_fee_amount)?;
         if _borrower_offer_vault > ctx.accounts.borrower_offer_vault.amount {
             return Err(error!(LoanError::InvalidAmount));
         }
@@ -126,7 +133,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_ctx, needed_amount)?;
+        token::transfer(cpi_ctx, amount_borrower_owes)?;
 
         // pay unloc_fee_amount to unloc
         let cpi_accounts = Transfer {
@@ -142,7 +149,7 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
         .accounts
         .sub_offer
         .repaid_amount
-        .safe_add(needed_amount)?;
+        .safe_add(amount_borrower_owes)?;
     ctx.accounts.sub_offer.loan_ended_time = current_time;
 
     // this will be used if above and below actions are separated later
@@ -263,6 +270,9 @@ pub struct RepayLoan<'info> {
         bump = global_state.reward_vault_bump,
     )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
+
+    #[account(constraint = user_stake_state.authority == borrower.key())]
+    pub user_stake_state: Account<'info, UserStateAccount>,
 
     /// CHECK: metaplex edition account
     pub edition: UncheckedAccount<'info>,

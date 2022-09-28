@@ -128,7 +128,7 @@ describe('staking-common', () => {
         superOwnerKeypair, 
         tokenPerSecond, 
         1000, 
-        [new BN(100), new BN(1000)], 
+        [new BN(0), new BN(100), new BN(500), new BN(1000), new BN(2000)], 
         rewardMint.publicKey.toBase58(),
         )
     }
@@ -381,40 +381,36 @@ describe('staking-common', () => {
     ], program.programId)
 
     await guardTime(2000, async () => {
-      const stakeAmount = 100;
+      let stakeAmount = 100;
       await stake(user4, new BN(stakeAmount), 86400, 1);
 
       const [userStakeAccount0, bump1] = await PublicKey.findProgramAddress([
         new PublicKey(poolSigner).toBuffer(), user4.publicKey.toBuffer(), new anchor.BN(1).toBuffer('le', 1)
       ], program.programId)
-      const userInfo = await program.account.farmPoolUserAccount.fetch(userStakeAccount0)
+      let userInfo = await program.account.farmPoolUserAccount.fetch(userStakeAccount0)
       assert.ok(userInfo.amount.toNumber() === 100);
       assert.ok(userInfo.lockDuration.toNumber() === 86400);
       console.log("Unloc score: ", userInfo.unlocScore.toNumber())
-    })
 
-    await guardTime(2000, async () => {
-      const stakeAmount = 200;
+      stakeAmount = 200;
       await stake(user4, new BN(stakeAmount), 86400, 2);
 
-      const [userStakeAccount1, bump1] = await PublicKey.findProgramAddress([
+      const [userStakeAccount1, bump2] = await PublicKey.findProgramAddress([
         new PublicKey(poolSigner).toBuffer(), user4.publicKey.toBuffer(), new anchor.BN(2).toBuffer('le', 1)
       ], program.programId)
 
-      const userInfo = await program.account.farmPoolUserAccount.fetch(userStakeAccount1)
+      userInfo = await program.account.farmPoolUserAccount.fetch(userStakeAccount1)
       assert.ok(userInfo.amount.toNumber() === 200);
       assert.ok(userInfo.lockDuration.toNumber() === 86400);
       console.log("Unloc score: ", userInfo.unlocScore.toNumber())
-    })
 
-    await guardTime(2000, async () => {
-      const stakeAmount = 300;
+      stakeAmount = 300;
       await stake(user4, new BN(stakeAmount), 86400, 20);
 
-      const [userStakeAccount2, bump1] = await PublicKey.findProgramAddress([
+      const [userStakeAccount2, bump3] = await PublicKey.findProgramAddress([
         new PublicKey(poolSigner).toBuffer(), user4.publicKey.toBuffer(), new anchor.BN(20).toBuffer('le', 1)
       ], program.programId)
-      const userInfo = await program.account.farmPoolUserAccount.fetch(userStakeAccount2)
+      userInfo = await program.account.farmPoolUserAccount.fetch(userStakeAccount2)
       assert.ok(userInfo.amount.toNumber() === 300);
       assert.ok(userInfo.lockDuration.toNumber() === 86400);
       console.log("Unloc score: ", userInfo.unlocScore.toNumber())

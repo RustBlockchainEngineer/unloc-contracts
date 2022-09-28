@@ -7,6 +7,10 @@ use anchor_lang::solana_program::{
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 use std::str::FromStr;
+use unloc_staking::{
+    states::UserStateAccount,
+};
+
 pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
     require(ctx.accounts.borrower_nft_vault.amount > 0, "borrower_nft_vault.amount")?;
     require(ctx.accounts.lender.key() == ctx.accounts.sub_offer.lender, "lender")?;
@@ -25,7 +29,7 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
         .sub_offer
         .update_rps(&ctx.accounts.global_state, &offer_mint)?;
     let borrower_key = ctx.accounts.offer.borrower;
-    let origin = ctx.accounts.sub_offer.offer_amount;
+    let loan_amount = ctx.accounts.sub_offer.offer_amount;
     let started_time = ctx.accounts.sub_offer.loan_started_time;
     let seconds_for_year = 3600 * 24 * 365;
     let unloc_apr = ctx.accounts.global_state.apr_numerator;
@@ -39,28 +43,31 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
 
     require(current_time > started_time.safe_add(loan_duration)?, "current_time")?;
 
-    let accrued_amount = calc_fee(
-        origin,
+    // calculates interest due
+    let interest_amount = calc_fee(
+        loan_amount,
         offer_apr.safe_mul(duration)?,
         denominator.safe_mul(seconds_for_year)?,
     )?;
-    let accrued_unloc_fee = calc_fee(accrued_amount, accrued_apr, denominator)?;
+    // TODO: use user's profile level to determine this fee
+    //let accrued_unloc_fee = calc_fee(interest_amount, accrued_apr, denominator)?;
+    let accrued_unloc_fee = calc_fee_with_profile_level(interest_amount, accrued_apr, denominator, ctx.accounts.user_stake_state.profile_level)?;
     let _unloc_fee_amount = calc_fee(
-        origin,
+        loan_amount,
         unloc_apr.safe_mul(duration)?,
         denominator.safe_mul(seconds_for_year)?,
     )?;
     let unloc_fee_amount = accrued_unloc_fee.safe_mul(_unloc_fee_amount)?;
 
     // log fees
-    msg!("origin = {}, duration = {}", origin, duration);
+    msg!("loan amount = {}, loan duration = {}", loan_amount, duration);
     msg!(
         "offer apr = {}%, unloc apr = {}%, accrued apr = {}%",
         offer_apr * 100 / denominator,
         unloc_apr * 100 / denominator,
         accrued_apr * 100 / denominator
     );
-    msg!("interest by offer apr = {}", accrued_amount);
+    msg!("interest by offer apr = {}", interest_amount);
     msg!("accrued unloc fee = {}", accrued_unloc_fee);
     msg!("total unloc fee = {}", unloc_fee_amount);
 
@@ -215,6 +222,10 @@ pub struct ClaimCollateral<'info> {
         bump = global_state.reward_vault_bump,
     )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
+
+    #[account(constraint = user_stake_state.authority == lender.key())]
+    pub user_stake_state: Account<'info, UserStateAccount>,
+    
     /// CHECK: Safe
     pub chainlink_program: AccountInfo<'info>,
 

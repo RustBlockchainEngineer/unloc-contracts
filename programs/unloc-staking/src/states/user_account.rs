@@ -12,6 +12,7 @@ pub struct FarmPoolUserAccount {
     pub reward_amount: u128,
     pub extra_reward: u128, // extra from lock duration; ex lock 12M => +10%
     pub reward_debt: u128,
+    pub is_staked: bool,
     pub last_stake_time: i64,
     pub lock_duration: i64,
     pub unloc_score: u128,

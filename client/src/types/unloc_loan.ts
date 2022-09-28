@@ -676,6 +676,11 @@ export type UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "userStakeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "edition",
           "isMut": false,
           "isSigner": false
@@ -931,6 +936,11 @@ export type UnlocLoan = {
         },
         {
           "name": "rewardVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userStakeState",
           "isMut": false,
           "isSigner": false
         },
@@ -1618,6 +1628,11 @@ export type UnlocLoan = {
       "code": 6011,
       "name": "CooldownPeriod",
       "msg": "Must wait until current cooldown period resets before redeeming liquidity mining rewards again."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidProfileLevel",
+      "msg": "Invalid profile level"
     }
   ]
 };
@@ -2300,6 +2315,11 @@ export const IDL: UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "userStakeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "edition",
           "isMut": false,
           "isSigner": false
@@ -2555,6 +2575,11 @@ export const IDL: UnlocLoan = {
         },
         {
           "name": "rewardVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userStakeState",
           "isMut": false,
           "isSigner": false
         },
@@ -3242,6 +3267,11 @@ export const IDL: UnlocLoan = {
       "code": 6011,
       "name": "CooldownPeriod",
       "msg": "Must wait until current cooldown period resets before redeeming liquidity mining rewards again."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidProfileLevel",
+      "msg": "Invalid profile level"
     }
   ]
 };

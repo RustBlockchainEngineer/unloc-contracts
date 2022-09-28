@@ -8,7 +8,7 @@ pub fn handle(ctx: Context<CreateUserState>) -> Result<()> {
     ctx.accounts.user_state.authority = ctx.accounts.authority.key();
     ctx.accounts.user_state.pool = ctx.accounts.pool.key();
     ctx.accounts.user_state.bump = *ctx.bumps.get("user_state").unwrap();
-    ctx.accounts.user_state.profile_level = 0;
+    ctx.accounts.user_state.profile_level = 1;
 
     let unloc_scores: [u128; 21] = [0; 21];
     ctx.accounts.user_state.unloc_scores = unloc_scores;

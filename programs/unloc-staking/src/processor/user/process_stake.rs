@@ -48,6 +48,7 @@ pub fn handle(ctx: Context<Stake>, amount: u64, lock_duration: i64) -> Result<()
 
     user_state.calc_overall_unloc_score()?;
     user_state.calc_user_profile_level(state)?;
+    user.is_staked = true;
     msg!("User overall unloc score: {}", user_state.total_unloc_score);
     emit!(UserStaked {
         pool: ctx.accounts.pool.key(),

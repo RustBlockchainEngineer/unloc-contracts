@@ -26,4 +26,6 @@ pub enum LoanError {
     InvalidDenominator,
     #[msg("Must wait until current cooldown period resets before redeeming liquidity mining rewards again.")]
     CooldownPeriod,
+    #[msg("Invalid profile level")]
+    InvalidProfileLevel
 }

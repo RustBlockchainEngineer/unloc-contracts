@@ -77,6 +77,27 @@ pub fn assert_borrower_claimable_nft(sub_offer: &SubOffer, current_time: u64) ->
     Ok(())
 }
 
+pub fn calc_fee_with_profile_level(total: u64, fee_numerator: u64, fee_denominator: u64, profile_level: u64) -> Result<u64> {
+    // change 'fee_percent' based on 'profile_level' passed in
+    let percentage_fee_reduction = fee_reduction_from_profile(profile_level)?;
+    let mut fee_percentage = fee_numerator.safe_div(fee_denominator)?;
+    msg!("Fee num: {}", fee_numerator);
+    msg!("Fee denominator: {}", fee_denominator);
+    msg!("Total: {}", total);
+    msg!("Real fee in percentage: {}", fee_percentage);
+    if percentage_fee_reduction > 0 {
+        let notional_fee_reduction = fee_percentage.safe_div(percentage_fee_reduction)?;
+        fee_percentage = fee_percentage.safe_sub(notional_fee_reduction)?;
+    }
+
+    msg!("Fee reduction in percent: {}", percentage_fee_reduction);
+    msg!("Fee percent after reduction: {}", fee_percentage);
+    //calc_fee_u128(total, fee_percentage as u128, denominator as u128)
+    let result = total.safe_mul(fee_percentage)?;
+    msg!("Notional value of fees paid: {}", result);
+    Ok(result.try_into().unwrap())
+}
+
 pub fn calc_fee(total: u64, fee_percent: u64, denominator: u64) -> Result<u64> {
     calc_fee_u128(total, fee_percent as u128, denominator as u128)
 }
@@ -90,8 +111,25 @@ pub fn calc_fee_u128(total: u64, fee_percent: u128, denominator: u128) -> Result
         return Err(error!(LoanError::InvalidDenominator));
     }
     let result = _total.safe_mul(_fee_percent)?.safe_div(_denominator)?;
+
     Ok(result.try_into().unwrap())
 }
+
+pub fn fee_reduction_from_profile(profile_level: u64) -> Result<u64> {
+    let fee_reduction: u64;
+    // determine fee reduction in percentage terms
+    match profile_level {
+        1 => fee_reduction = 0,
+        2 => fee_reduction = 10,
+        3 => fee_reduction = 25,
+        4 => fee_reduction = 50,
+        5 => fee_reduction = 75,
+        _ => return Err(error!(LoanError::InvalidProfileLevel))
+    }
+
+    Ok(fee_reduction)
+}
+
 pub fn get_chainlink_price<'info>(
     feed_account: &AccountInfo<'info>,
     chainlink_program: &AccountInfo<'info>,
