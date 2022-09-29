@@ -24,4 +24,6 @@ pub enum StakingError {
     MathOverflow,
     #[msg("Invalid seed for staking account")]
     InvalidSeed,
+    #[msg("Cannot perform action until staking period is finished")]
+    StakingLockPeriod,
 }

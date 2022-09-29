@@ -2,13 +2,17 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use std::convert::TryInto;
 
-use crate::{utils::*, states::*};
+use crate::{utils::*, states::*, error::*};
 
 pub fn handle(ctx: Context<Harvest>) -> Result<()> {
     let extra_account = &mut ctx.accounts.extra_reward_account;
     let state = &ctx.accounts.state;
     let pool = &mut ctx.accounts.pool;
     let user = &mut ctx.accounts.user;
+
+    msg!("Unlock time: {:?}", user.last_stake_time.safe_add(user.lock_duration).unwrap());
+    msg!("Current time: {}", ctx.accounts.clock.unix_timestamp);
+    require!(user.last_stake_time.safe_add(user.lock_duration).unwrap() < ctx.accounts.clock.unix_timestamp, StakingError::StakingLockPeriod);
 
     pool.update(state, &ctx.accounts.clock)?;
     let user_lock_duration = user.lock_duration;

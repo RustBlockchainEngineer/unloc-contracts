@@ -64,6 +64,13 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
         unloc_apr.safe_mul(duration)?,
         denominator.safe_mul(seconds_for_year)?,
     )?;
+    // calculate amount Lender pays in apr fee
+    // let _unloc_fee_amount = calc_fee_with_profile_level(
+    //     loan_amount,
+    //     unloc_apr.safe_mul(duration)?,
+    //     denominator.safe_mul(seconds_for_year)?,
+    //     ctx.accounts.lender_user_stake_state.profile_level
+    // )?;
     
     let unloc_fee_amount = accrued_unloc_fee.safe_mul(_unloc_fee_amount)?;
 
