@@ -409,7 +409,8 @@ describe('loan-common', () => {
     await repayLoan(
       subOffer,
       borrower,
-      signers
+      signers,
+      [lender1Keypair]
     )
     //assert
     const offerData = await program.account.offer.fetch(offer)

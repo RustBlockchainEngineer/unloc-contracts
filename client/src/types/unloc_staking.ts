@@ -897,6 +897,10 @@ export type UnlocStaking = {
             "type": "u128"
           },
           {
+            "name": "isStaked",
+            "type": "bool"
+          },
+          {
             "name": "lastStakeTime",
             "type": "i64"
           },
@@ -2125,6 +2129,10 @@ export const IDL: UnlocStaking = {
           {
             "name": "rewardDebt",
             "type": "u128"
+          },
+          {
+            "name": "isStaked",
+            "type": "bool"
           },
           {
             "name": "lastStakeTime",

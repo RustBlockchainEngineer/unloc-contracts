@@ -917,7 +917,8 @@ export const acceptLoanOfferByVoting = async (
 export const repayLoan = async (
   subOffer: anchor.web3.PublicKey,
   signer: anchor.web3.PublicKey = loanProvider.wallet.publicKey,
-  signers: anchor.web3.Keypair[] = []
+  signers: anchor.web3.Keypair[] = [],
+  lender1Keypair: anchor.web3.Keypair[] = []
 ) => {
   const globalState = await pda([GLOBAL_STATE_TAG], loanProgramId)
   const borrower = signer
@@ -931,23 +932,43 @@ export const repayLoan = async (
   const nftMint = offerData.nftMint
   const treasuryVault = await pda([TREASURY_VAULT_TAG, offerMint.toBuffer(), globalStateData.treasuryWallet.toBuffer()], loanProgramId)
 
-  const stakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], STAKING_PID)
-  try {
-    const stakingStateAcct = await loanProvider.connection.getAccountInfo(stakingUser)
+  const borrowerStakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), borrower.toBuffer()], STAKING_PID)
+  const lenderStakingUser = await pda([globalStateData.unlocStakingPoolId.toBuffer(), lender.toBuffer()], STAKING_PID)
 
-    if (stakingStateAcct == null) {
-      console.log("Creating borrower stake account")
+  try {
+    const lenderStateAcct = await loanProvider.connection.getAccountInfo(lenderStakingUser)
+
+    if (lenderStateAcct == null) {
+      console.log("Creating lender stake account")
       const createStateAcctTx = await stakingProgram.methods.createUserState()
         .accounts({
-          userState: stakingUser,
+          userState: lenderStakingUser,
           pool: globalStateData.unlocStakingPoolId,
-          authority: borrower,
-          payer: borrower,
+          authority: lender,
+          payer: lender,
           systemProgram: SystemProgram.programId
         })
-        .signers(signers)
+        .signers(lender1Keypair)
         .rpc()
-        console.log('create user state tx = ', createStateAcctTx)
+        console.log('create lender user state tx = ', createStateAcctTx)
+
+      console.log("Lender staking to raise their unloc level")
+      const stateSigner = await getStakingStateAddress()
+      const stakeAcct = await pda([globalStateData.unlocStakingPoolId.toBuffer(), lender.toBuffer(), new anchor.BN(1).toBuffer('le', 1)], STAKING_PID)
+      const createStakeTx = await stakingProgram.methods.createUser(1)
+      .accounts({
+        user: stakeAcct,
+        userState: lenderStakingUser,
+        state: stateSigner,
+        pool: globalStateData.unlocStakingPoolId,
+        authority: lender,
+        payer: lender,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID
+      })
+      .signers(lender1Keypair)
+      .rpc()
+      console.log("Create lender staking account tx: ", createStakeTx)
     }
   } catch (e) {
     console.log(e)
@@ -995,7 +1016,8 @@ export const repayLoan = async (
         borrowerOfferVault,
         offerMint,
         treasuryVault,
-        userStakeState: stakingUser,
+        lenderUserStakeState: lenderStakingUser,
+        borrowerUserStakeState: borrowerStakingUser,
         metadataProgram: TOKEN_META_PID,
         ...chainlinkIds,
         ...defaults
@@ -1046,6 +1068,25 @@ export const claimLoanCollateral = async (
       .rpc()
 
       console.log("Create lender state account tx: ", createUserStateTx)
+
+      console.log("Lender staking to raise their unloc level")
+      const stateSigner = await getStakingStateAddress()
+      const stakeAcct = await pda([globalStateData.unlocStakingPoolId.toBuffer(), lender.toBuffer(), new anchor.BN(1).toBuffer('le', 1)], STAKING_PID)
+      const createStakeTx = await stakingProgram.methods.createUser(1)
+      .accounts({
+        user: stakeAcct,
+        userState: stakingUser,
+        state: stateSigner,
+        pool: globalStateData.unlocStakingPoolId,
+        authority: lender,
+        payer: lender,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID
+      })
+      .signers(signers)
+      .rpc()
+
+      console.log("Create lender staking account tx: ", createStakeTx)
     }
   } catch (e) {
     console.log(e)
@@ -1086,7 +1127,7 @@ export const claimLoanCollateral = async (
         offerMint,
         treasuryVault,
         rewardVault,
-        userStakeState: stakingUser,
+        lenderUserStakeState: stakingUser,
         metadataProgram: TOKEN_META_PID,
         ...chainlinkIds,
         ...defaults

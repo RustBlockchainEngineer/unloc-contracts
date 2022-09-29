@@ -676,7 +676,12 @@ export type UnlocLoan = {
           "isSigner": false
         },
         {
-          "name": "userStakeState",
+          "name": "borrowerUserStakeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lenderUserStakeState",
           "isMut": false,
           "isSigner": false
         },
@@ -940,7 +945,7 @@ export type UnlocLoan = {
           "isSigner": false
         },
         {
-          "name": "userStakeState",
+          "name": "lenderUserStakeState",
           "isMut": false,
           "isSigner": false
         },
@@ -2315,7 +2320,12 @@ export const IDL: UnlocLoan = {
           "isSigner": false
         },
         {
-          "name": "userStakeState",
+          "name": "borrowerUserStakeState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lenderUserStakeState",
           "isMut": false,
           "isSigner": false
         },
@@ -2579,7 +2589,7 @@ export const IDL: UnlocLoan = {
           "isSigner": false
         },
         {
-          "name": "userStakeState",
+          "name": "lenderUserStakeState",
           "isMut": false,
           "isSigner": false
         },

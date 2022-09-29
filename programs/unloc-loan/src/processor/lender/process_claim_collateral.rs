@@ -49,14 +49,22 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
         offer_apr.safe_mul(duration)?,
         denominator.safe_mul(seconds_for_year)?,
     )?;
-    // TODO: use user's profile level to determine this fee
-    //let accrued_unloc_fee = calc_fee(interest_amount, accrued_apr, denominator)?;
-    let accrued_unloc_fee = calc_fee_with_profile_level(interest_amount, accrued_apr, denominator, ctx.accounts.user_stake_state.profile_level)?;
+
+    // let accrued_unloc_fee = calc_fee(interest_amount, accrued_apr, denominator)?;
+    // calculate amount unloc takes from Lender's interest
+    let accrued_unloc_fee = calc_fee_with_profile_level(
+        interest_amount,
+        accrued_apr,
+        denominator,
+        ctx.accounts.lender_user_stake_state.profile_level
+    )?;
+
     let _unloc_fee_amount = calc_fee(
         loan_amount,
         unloc_apr.safe_mul(duration)?,
         denominator.safe_mul(seconds_for_year)?,
     )?;
+    
     let unloc_fee_amount = accrued_unloc_fee.safe_mul(_unloc_fee_amount)?;
 
     // log fees
@@ -223,8 +231,8 @@ pub struct ClaimCollateral<'info> {
     )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
 
-    #[account(constraint = user_stake_state.authority == lender.key())]
-    pub user_stake_state: Account<'info, UserStateAccount>,
+    #[account(constraint = lender_user_stake_state.authority == lender.key())]
+    pub lender_user_stake_state: Box<Account<'info, UserStateAccount>>,
     
     /// CHECK: Safe
     pub chainlink_program: AccountInfo<'info>,
