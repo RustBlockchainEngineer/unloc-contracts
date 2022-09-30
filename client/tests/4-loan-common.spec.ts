@@ -399,6 +399,8 @@ describe('loan-common', () => {
     assert(subOfferData.state == SubOfferState.Accepted, "state")
   });
 
+  delay(10000)
+  
   it('Repay loan', async () => {
     const borrowerNftATA = await checkWalletATA(nftMint.publicKey.toBase58(), provider.connection, borrower);
     const offer = await pda([OFFER_SEED, borrower.toBuffer(), nftMint.publicKey.toBuffer()], programId)

@@ -65,21 +65,16 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
 
     //let accrued_unloc_fee = calc_fee(interest_amount, accrued_apr, denominator)?;
     // calculate amount unloc takes from Lender's interest
-    // msg!("User profile level: {}", ctx.accounts.lender_user_stake_state.profile_level);
-    // msg!("User unloc score: {}", ctx.accounts.lender_user_stake_state.total_unloc_score);
-    // msg!("Total interest amount: {}", interest_amount);
     let accrued_unloc_fee = calc_fee_with_profile_level(
         interest_amount,
         accrued_apr,
         denominator,
         ctx.accounts.lender_user_stake_state.profile_level
     )?;
-    //msg!("Unloc fee taken from interest Lender is owed: {}", accrued_unloc_fee);
 
     let amount_borrower_owes_lender = loan_amount
         .safe_add(interest_amount)?
         .safe_sub(accrued_unloc_fee)?;
-    //msg!("Amount borrower owes lender with interest: {}", amount_borrower_owes_lender);
 
     // calculate amount borrower pays unloc in fees
     let unloc_apr_fee = calc_fee_with_profile_level(
@@ -88,10 +83,10 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
         denominator.safe_mul(seconds_for_year)?,
         ctx.accounts.borrower_user_stake_state.profile_level
     )?;
-    //msg!("Amount borrower pays in fees to unloc: {}", unloc_apr_fee);
 
     // calculate amount protocol is owed in fees total from borrower/lender
     let unloc_fee_amount = accrued_unloc_fee.safe_add(unloc_apr_fee)?;
+    
     //msg!("Total unloc fees: {}", unloc_fee_amount);
     // log fees
     // msg!("loan amount = {}, duration = {}", loan_amount, duration);

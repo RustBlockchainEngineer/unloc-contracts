@@ -85,19 +85,20 @@ pub fn calc_fee_with_profile_level(total: u64, fee_numerator: u64, fee_denominat
 
     let percentage_fee_reduction = fee_reduction_from_profile(profile_level)?;
     
-    // msg!("Total: {}", _total);
-    // msg!("Initial fee numerator: {}", _fee_numerator);
-    // msg!("Fee denominator: {}", _fee_denominator);
-    // msg!("Percent reduction: {}", percentage_fee_reduction);
+    msg!("Total: {}", _total);
+    msg!("Initial fee numerator: {}", _fee_numerator);
+    msg!("Fee denominator: {}", _fee_denominator);
+    msg!("Percent reduction: {}", percentage_fee_reduction);
 
     if percentage_fee_reduction > 0 {
-        _fee_numerator = _fee_numerator.safe_div(percentage_fee_reduction)?;
+        let numerator_reduction = _fee_numerator.safe_mul(percentage_fee_reduction)?.safe_div(100 as u128)?;
+        _fee_numerator = _fee_numerator.safe_sub(numerator_reduction)?;
     }
 
-    //msg!("Fee numerator after profile level: {}", _fee_numerator);
+    msg!("Fee numerator after profile level: {}", _fee_numerator);
 
     let result = _total.safe_mul(_fee_numerator)?.safe_div(_fee_denominator)?;
-    //msg!("Notional value of fees paid: {}", result);
+    msg!("Notional value of fees paid: {}", result);
     Ok(result.try_into().unwrap())
 }
 
@@ -109,6 +110,10 @@ pub fn calc_fee_u128(total: u64, fee_percent: u128, denominator: u128) -> Result
     let _total: u128 = total as u128;
     let _fee_percent: u128 = fee_percent;
     let _denominator: u128 = denominator;
+
+    msg!("Total (calc_fee_u128): {}", _total);
+    msg!("Fee percent (calc_fee_u128): {}", _fee_percent);
+    msg!("Denominator (calc_fee_u128): {}", _denominator);
 
     if _denominator == 0 {
         return Err(error!(LoanError::InvalidDenominator));
