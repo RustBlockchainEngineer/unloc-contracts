@@ -33,7 +33,7 @@ export type UnlocVoting = {
   ],
   "instructions": [
     {
-      "name": "setGlobalState",
+      "name": "createGlobalState",
       "accounts": [
         {
           "name": "superOwner",
@@ -51,6 +51,16 @@ export type UnlocVoting = {
           "isSigner": false
         },
         {
+          "name": "votingProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -63,6 +73,27 @@ export type UnlocVoting = {
         {
           "name": "rent",
           "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "updateGlobalState",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
           "isSigner": false
         }
       ],
@@ -443,6 +474,16 @@ export type UnlocVoting = {
       "code": 6010,
       "name": "InvalidDenominator",
       "msg": "InvalidDenominator"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidProgramData",
+      "msg": "The provided program data is incorrect."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidProgramUpgradeAuthority",
+      "msg": "The provided program upgrade authority is incorrect."
     }
   ]
 };
@@ -482,7 +523,7 @@ export const IDL: UnlocVoting = {
   ],
   "instructions": [
     {
-      "name": "setGlobalState",
+      "name": "createGlobalState",
       "accounts": [
         {
           "name": "superOwner",
@@ -500,6 +541,16 @@ export const IDL: UnlocVoting = {
           "isSigner": false
         },
         {
+          "name": "votingProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -512,6 +563,27 @@ export const IDL: UnlocVoting = {
         {
           "name": "rent",
           "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "updateGlobalState",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
           "isSigner": false
         }
       ],
@@ -892,6 +964,16 @@ export const IDL: UnlocVoting = {
       "code": 6010,
       "name": "InvalidDenominator",
       "msg": "InvalidDenominator"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidProgramData",
+      "msg": "The provided program data is incorrect."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidProgramUpgradeAuthority",
+      "msg": "The provided program upgrade authority is incorrect."
     }
   ]
 };

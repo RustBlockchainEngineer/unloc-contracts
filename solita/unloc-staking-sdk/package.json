@@ -1,6 +1,6 @@
 {
   "name": "@unloc-dev/unloc-staking-solita",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "UNLOC-staking auto-generated SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,7 +24,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "devDependencies": {
-    "@metaplex-foundation/solita": "^0.15.2",
+    "@metaplex-foundation/solita": "^0.18.0",
     "typescript": "^4.7.4"
   },
   "dependencies": {

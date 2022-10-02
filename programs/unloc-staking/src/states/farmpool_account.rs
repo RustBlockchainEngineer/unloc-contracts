@@ -13,7 +13,6 @@ pub struct FarmPoolAccount {
     pub point: u64,
     pub last_reward_time: i64,
     pub acc_reward_per_share: u128,
-    pub amount_multipler: u64,
     pub total_user: u64,
 }
 

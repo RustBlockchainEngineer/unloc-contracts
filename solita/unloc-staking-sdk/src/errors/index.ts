@@ -224,6 +224,26 @@ createErrorFromCodeLookup.set(0x1779, () => new MathOverflowError())
 createErrorFromNameLookup.set('MathOverflow', () => new MathOverflowError())
 
 /**
+ * InvalidSeed: 'Invalid seed for staking account'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class InvalidSeedError extends Error {
+  readonly code: number = 0x177a
+  readonly name: string = 'InvalidSeed'
+  constructor() {
+    super('Invalid seed for staking account')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, InvalidSeedError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x177a, () => new InvalidSeedError())
+createErrorFromNameLookup.set('InvalidSeed', () => new InvalidSeedError())
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated

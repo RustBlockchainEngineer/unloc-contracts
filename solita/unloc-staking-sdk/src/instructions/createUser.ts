@@ -14,10 +14,23 @@ import * as web3 from '@solana/web3.js'
  * @category CreateUser
  * @category generated
  */
-export const createUserStruct = new beet.BeetArgsStruct<{
-  instructionDiscriminator: number[] /* size: 8 */
-}>(
-  [['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)]],
+export type CreateUserInstructionArgs = {
+  stakeSeed: number
+}
+/**
+ * @category Instructions
+ * @category CreateUser
+ * @category generated
+ */
+export const createUserStruct = new beet.BeetArgsStruct<
+  CreateUserInstructionArgs & {
+    instructionDiscriminator: number[] /* size: 8 */
+  }
+>(
+  [
+    ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
+    ['stakeSeed', beet.u8],
+  ],
   'CreateUserInstructionArgs'
 )
 /**
@@ -51,16 +64,20 @@ export const createUserInstructionDiscriminator = [
  * Creates a _CreateUser_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
+ * @param args to provide as instruction data to the program
+ *
  * @category Instructions
  * @category CreateUser
  * @category generated
  */
 export function createCreateUserInstruction(
   accounts: CreateUserInstructionAccounts,
+  args: CreateUserInstructionArgs,
   programId = new web3.PublicKey('EmS3wD1UF9UhejugSrfUydMzWrCKBCxz4Dr1tBUsodfU')
 ) {
   const [data] = createUserStruct.serialize({
     instructionDiscriminator: createUserInstructionDiscriminator,
+    ...args,
   })
   const keys: web3.AccountMeta[] = [
     {

@@ -22,8 +22,31 @@ pub mod unloc_loan {
     use super::*;
 
     // admin
-    pub fn set_global_state(
-        ctx: Context<SetGlobalState>,
+    pub fn create_global_state(
+        ctx: Context<CreateGlobalState>,
+        accrued_interest_numerator: u64,
+        denominator: u64,
+        min_repaid_numerator: u64,
+        apr_numerator: u64,
+        expire_loan_duration: u64,
+        reward_rate: u64,
+        lender_rewards_percentage: u64,
+        treasury_wallet: Pubkey,
+    ) -> Result<()> {
+        process_create_global_state::handle(
+            ctx,
+            accrued_interest_numerator,
+            denominator,
+            min_repaid_numerator,
+            apr_numerator,
+            expire_loan_duration,
+            reward_rate,
+            lender_rewards_percentage,
+            treasury_wallet,
+        )
+    }
+    pub fn update_global_state(
+        ctx: Context<UpdateGlobalState>,
         accrued_interest_numerator: u64,
         denominator: u64,
         min_repaid_numerator: u64,
@@ -34,7 +57,7 @@ pub mod unloc_loan {
         new_super_owner: Pubkey,
         treasury_wallet: Pubkey,
     ) -> Result<()> {
-        process_set_global_state::handle(
+        process_update_global_state::handle(
             ctx,
             accrued_interest_numerator,
             denominator,

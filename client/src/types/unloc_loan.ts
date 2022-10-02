@@ -50,7 +50,7 @@ export type UnlocLoan = {
   ],
   "instructions": [
     {
-      "name": "setGlobalState",
+      "name": "createGlobalState",
       "accounts": [
         {
           "name": "superOwner",
@@ -78,6 +78,16 @@ export type UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "loanProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -95,6 +105,60 @@ export type UnlocLoan = {
         {
           "name": "clock",
           "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "accruedInterestNumerator",
+          "type": "u64"
+        },
+        {
+          "name": "denominator",
+          "type": "u64"
+        },
+        {
+          "name": "minRepaidNumerator",
+          "type": "u64"
+        },
+        {
+          "name": "aprNumerator",
+          "type": "u64"
+        },
+        {
+          "name": "expireLoanDuration",
+          "type": "u64"
+        },
+        {
+          "name": "rewardRate",
+          "type": "u64"
+        },
+        {
+          "name": "lenderRewardsPercentage",
+          "type": "u64"
+        },
+        {
+          "name": "treasuryWallet",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "updateGlobalState",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
           "isSigner": false
         }
       ],
@@ -1636,9 +1700,19 @@ export type UnlocLoan = {
     },
     {
       "code": 6012,
+      "name": "InvalidProgramData",
+      "msg": "The provided program data is incorrect."
+    },
+    {
+      "code": 6013,
+      "name": "InvalidProgramUpgradeAuthority",
+      "msg": "The provided program upgrade authority is incorrect."
+    },
+    {
+      "code": 6014,
       "name": "InvalidProfileLevel",
       "msg": "Invalid profile level"
-    }
+    },
   ]
 };
 
@@ -1694,7 +1768,7 @@ export const IDL: UnlocLoan = {
   ],
   "instructions": [
     {
-      "name": "setGlobalState",
+      "name": "createGlobalState",
       "accounts": [
         {
           "name": "superOwner",
@@ -1722,6 +1796,16 @@ export const IDL: UnlocLoan = {
           "isSigner": false
         },
         {
+          "name": "loanProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1739,6 +1823,60 @@ export const IDL: UnlocLoan = {
         {
           "name": "clock",
           "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "accruedInterestNumerator",
+          "type": "u64"
+        },
+        {
+          "name": "denominator",
+          "type": "u64"
+        },
+        {
+          "name": "minRepaidNumerator",
+          "type": "u64"
+        },
+        {
+          "name": "aprNumerator",
+          "type": "u64"
+        },
+        {
+          "name": "expireLoanDuration",
+          "type": "u64"
+        },
+        {
+          "name": "rewardRate",
+          "type": "u64"
+        },
+        {
+          "name": "lenderRewardsPercentage",
+          "type": "u64"
+        },
+        {
+          "name": "treasuryWallet",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "updateGlobalState",
+      "accounts": [
+        {
+          "name": "superOwner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
           "isSigner": false
         }
       ],
@@ -3280,6 +3418,16 @@ export const IDL: UnlocLoan = {
     },
     {
       "code": 6012,
+      "name": "InvalidProgramData",
+      "msg": "The provided program data is incorrect."
+    },
+    {
+      "code": 6013,
+      "name": "InvalidProgramUpgradeAuthority",
+      "msg": "The provided program upgrade authority is incorrect."
+    },
+    {
+      "code": 6014,
       "name": "InvalidProfileLevel",
       "msg": "Invalid profile level"
     }

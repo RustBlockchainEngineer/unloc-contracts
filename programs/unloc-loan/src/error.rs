@@ -26,6 +26,10 @@ pub enum LoanError {
     InvalidDenominator,
     #[msg("Must wait until current cooldown period resets before redeeming liquidity mining rewards again.")]
     CooldownPeriod,
+    #[msg("The provided program data is incorrect.")]
+    InvalidProgramData,
+    #[msg("The provided program upgrade authority is incorrect.")]
+    InvalidProgramUpgradeAuthority,
     #[msg("Invalid profile level")]
     InvalidProfileLevel
 }

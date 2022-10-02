@@ -1,5 +1,4 @@
 pub const DEVNET_MODE: bool = true;
-pub const INITIAL_OWNER: &str = "HV2t9B2oxdtkwbZrWj1vjZ2q3g4SH5rasGw8WohBFbvH";
 pub const ACC_PRECISION: u128 = 100_000_000_000;
 pub const MAX_LEVEL: usize = 10;
 pub const MAX_PROFILE_LEVEL: usize = 5;

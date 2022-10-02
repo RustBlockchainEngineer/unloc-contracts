@@ -1,6 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import {
+  BUYBACK_PDATA,
   BUYBACK_PID,
   defaults,
   UNLOC_MINT,
@@ -56,8 +57,7 @@ export const getWsolVaultKey = async () => {
   const wsolVault = await pda([WSOL_VAULT_SEED], buybackProgramId);
   return wsolVault
 }
-export const setBuybackGlobalState = async (
-  newAuthority: PublicKey,
+export const createBuybackGlobalState = async (
   newBurner: PublicKey,
   amm: PublicKey,
   serumMarket: PublicKey,
@@ -72,7 +72,7 @@ export const setBuybackGlobalState = async (
   const wsolVault = await pda([WSOL_VAULT_SEED], buybackProgramId);
   const superOwner = signer;
 
-  const tx = await buybackProgram.methods.setGlobalState(newAuthority, newBurner)
+  const tx = await buybackProgram.methods.createGlobalState(newBurner)
     .accounts({
       authority: superOwner,
       globalState,
@@ -86,13 +86,44 @@ export const setBuybackGlobalState = async (
       amm,
       serumProgram,
       serumMarket,
+      burnProgram: BUYBACK_PID,
+      programData: BUYBACK_PDATA,
       ...defaults,
     })
     .signers(signers)
     .rpc()
 
   // eslint-disable-next-line no-console
-  console.log("setGlobalState tx = ", tx);
+  console.log("createGlobalState tx = ", tx);
+};
+export const updateBuybackGlobalState = async (
+  newAuthority: PublicKey,
+  newBurner: PublicKey,
+  amm: PublicKey,
+  serumMarket: PublicKey,
+  ammProgram: PublicKey = Liquidity.getProgramId(4),
+  serumProgram: PublicKey = SERUM_PROGRAM_ID_V3,
+  signer: anchor.web3.PublicKey = buybackProgramProvider.wallet.publicKey,
+  signers: anchor.web3.Keypair[] = []
+) => {
+  const globalState = await pda([BUYBACK_GLOBAL_STATE_SEED], buybackProgramId);
+  const superOwner = signer;
+
+  const tx = await buybackProgram.methods.updateGlobalState(newAuthority, newBurner)
+    .accounts({
+      authority: superOwner,
+      globalState,
+      ammProgram,
+      amm,
+      serumProgram,
+      serumMarket,
+      ...defaults,
+    })
+    .signers(signers)
+    .rpc()
+
+  // eslint-disable-next-line no-console
+  console.log("updateGlobalState tx = ", tx);
 };
 
 // backend api will call this function regularly

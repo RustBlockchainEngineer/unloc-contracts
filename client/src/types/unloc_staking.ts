@@ -36,6 +36,16 @@ export type UnlocStaking = {
           "isSigner": true
         },
         {
+          "name": "stakingProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -313,10 +323,6 @@ export type UnlocStaking = {
         {
           "name": "point",
           "type": "u64"
-        },
-        {
-          "name": "amountMultipler",
-          "type": "u64"
         }
       ]
     },
@@ -350,37 +356,6 @@ export type UnlocStaking = {
         }
       ],
       "args": []
-    },
-    {
-      "name": "changePoolAmountMultipler",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "pool",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amountMultipler",
-          "type": "u64"
-        }
-      ]
     },
     {
       "name": "changePoolPoint",
@@ -786,10 +761,6 @@ export type UnlocStaking = {
             "type": "u128"
           },
           {
-            "name": "amountMultipler",
-            "type": "u64"
-          },
-          {
             "name": "totalUser",
             "type": "u64"
           }
@@ -1043,21 +1014,6 @@ export type UnlocStaking = {
       ]
     },
     {
-      "name": "PoolAmountMultiplerChanged",
-      "fields": [
-        {
-          "name": "pool",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "amountMultipler",
-          "type": "u64",
-          "index": false
-        }
-      ]
-    },
-    {
       "name": "PoolPointChanged",
       "fields": [
         {
@@ -1226,6 +1182,16 @@ export type UnlocStaking = {
     },
     {
       "code": 6010,
+      "name": "InvalidProgramData",
+      "msg": "The provided program data is incorrect."
+    },
+    {
+      "code": 6011,
+      "name": "InvalidProgramUpgradeAuthority",
+      "msg": "The provided program upgrade authority is incorrect."
+    },
+    {
+      "code": 6012,
       "name": "InvalidSeed",
       "msg": "Invalid seed for staking account"
     }
@@ -1270,6 +1236,16 @@ export const IDL: UnlocStaking = {
           "isSigner": true
         },
         {
+          "name": "stakingProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "programData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1547,10 +1523,6 @@ export const IDL: UnlocStaking = {
         {
           "name": "point",
           "type": "u64"
-        },
-        {
-          "name": "amountMultipler",
-          "type": "u64"
         }
       ]
     },
@@ -1584,37 +1556,6 @@ export const IDL: UnlocStaking = {
         }
       ],
       "args": []
-    },
-    {
-      "name": "changePoolAmountMultipler",
-      "accounts": [
-        {
-          "name": "state",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "pool",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amountMultipler",
-          "type": "u64"
-        }
-      ]
     },
     {
       "name": "changePoolPoint",
@@ -2020,10 +1961,6 @@ export const IDL: UnlocStaking = {
             "type": "u128"
           },
           {
-            "name": "amountMultipler",
-            "type": "u64"
-          },
-          {
             "name": "totalUser",
             "type": "u64"
           }
@@ -2277,21 +2214,6 @@ export const IDL: UnlocStaking = {
       ]
     },
     {
-      "name": "PoolAmountMultiplerChanged",
-      "fields": [
-        {
-          "name": "pool",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "amountMultipler",
-          "type": "u64",
-          "index": false
-        }
-      ]
-    },
-    {
       "name": "PoolPointChanged",
       "fields": [
         {
@@ -2460,6 +2382,16 @@ export const IDL: UnlocStaking = {
     },
     {
       "code": 6010,
+      "name": "InvalidProgramData",
+      "msg": "The provided program data is incorrect."
+    },
+    {
+      "code": 6011,
+      "name": "InvalidProgramUpgradeAuthority",
+      "msg": "The provided program upgrade authority is incorrect."
+    },
+    {
+      "code": 6012,
       "name": "InvalidSeed",
       "msg": "Invalid seed for staking account"
     }

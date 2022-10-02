@@ -78,9 +78,8 @@ pub mod unloc_staking {
     pub fn create_pool(
         ctx: Context<CreateFarmPool>,
         point: u64,
-        amount_multipler: u64
     ) -> Result<()> {
-        process_pool::create_pool(ctx, point, amount_multipler)
+        process_pool::create_pool(ctx, point)
     }
 
     pub fn close_pool(
@@ -88,14 +87,6 @@ pub mod unloc_staking {
     ) -> Result<()> {
         process_pool::close_pool(ctx)
     }
-
-    pub fn change_pool_amount_multipler(
-        ctx: Context<ChangePoolSetting>,
-        amount_multipler: u64
-    ) -> Result<()> {
-        process_pool::change_pool_amount_multipler(ctx, amount_multipler)
-    }
-
     pub fn change_pool_point(
         ctx: Context<ChangePoolSetting>,
         point: u64

@@ -1,9 +1,11 @@
+<<<<<<< HEAD
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount};
 use std::mem::size_of;
 use std::str::FromStr;
 
 use crate::{error::*, states::*, utils::*};
+use crate::program::UnlocStaking;
 
 pub fn handle(
     ctx: Context<CreateState>,
@@ -11,8 +13,6 @@ pub fn handle(
     early_unlock_fee: u64,
     profile_levels: Vec<u128>,
 ) -> Result<()> {
-    let initial_owner = Pubkey::from_str(INITIAL_OWNER).unwrap();
-    require_keys_eq!(initial_owner, ctx.accounts.authority.key());
 
     let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
     let user_stake_acct_seeds: [u8; 20] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
@@ -53,10 +53,22 @@ pub struct CreateState<'info> {
     pub reward_vault: Account<'info, TokenAccount>,
     pub reward_mint: Box<Account<'info, Mint>>,
     pub fee_vault: Account<'info, TokenAccount>,
+    /// The program's upgrade authority.
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
+    /// The unloc staking program.
+    ///
+    /// Provided here to check the upgrade authority.
+    #[account(constraint = staking_program.programdata_address()? == Some(program_data.key()) @ StakingError::InvalidProgramData)]
+    pub staking_program: Program<'info, UnlocStaking>,
+    /// The program data account for the unloc staking program.
+    ///
+    /// Provided to check the upgrade authority.
+    #[account(constraint = program_data.upgrade_authority_address == Some(authority.key()) @ StakingError::InvalidProgramUpgradeAuthority)]
+    pub program_data: Account<'info, ProgramData>,
+
     pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
