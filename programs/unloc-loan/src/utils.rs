@@ -85,20 +85,20 @@ pub fn calc_fee_with_profile_level(total: u64, fee_numerator: u64, fee_denominat
 
     let percentage_fee_reduction = fee_reduction_from_profile(profile_level)?;
     
-    msg!("Total: {}", _total);
-    msg!("Initial fee numerator: {}", _fee_numerator);
-    msg!("Fee denominator: {}", _fee_denominator);
-    msg!("Percent reduction: {}", percentage_fee_reduction);
+    // msg!("Total: {}", _total);
+    // msg!("Initial fee numerator: {}", _fee_numerator);
+    // msg!("Fee denominator: {}", _fee_denominator);
+    // msg!("Percent reduction: {}", percentage_fee_reduction);
 
     if percentage_fee_reduction > 0 {
         let numerator_reduction = _fee_numerator.safe_mul(percentage_fee_reduction)?.safe_div(100 as u128)?;
         _fee_numerator = _fee_numerator.safe_sub(numerator_reduction)?;
     }
 
-    msg!("Fee numerator after profile level: {}", _fee_numerator);
+    //msg!("Fee numerator after profile level: {}", _fee_numerator);
 
     let result = _total.safe_mul(_fee_numerator)?.safe_div(_fee_denominator)?;
-    msg!("Notional value of fees paid: {}", result);
+    //msg!("Notional value of fees paid: {}", result);
     Ok(result.try_into().unwrap())
 }
 
