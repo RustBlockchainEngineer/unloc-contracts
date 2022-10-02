@@ -60,13 +60,13 @@ pub struct CreateState<'info> {
     /// The unloc staking program.
     ///
     /// Provided here to check the upgrade authority.
-    #[account(constraint = staking_program.programdata_address()? == Some(program_data.key()) @ StakingError::InvalidProgramData)]
-    pub staking_program: Program<'info, UnlocStaking>,
+     //#[account(constraint = staking_program.programdata_address()? == Some(program_data.key()) @ StakingError::InvalidProgramData)]
+    // pub staking_program: Program<'info, UnlocStaking>,
     /// The program data account for the unloc staking program.
     ///
     /// Provided to check the upgrade authority.
-    #[account(constraint = program_data.upgrade_authority_address == Some(authority.key()) @ StakingError::InvalidProgramUpgradeAuthority)]
-    pub program_data: Account<'info, ProgramData>,
+    // #[account(constraint = program_data.upgrade_authority_address == Some(authority.key()) @ StakingError::InvalidProgramUpgradeAuthority)]
+    // pub program_data: Account<'info, ProgramData>,
 
     pub system_program: Program<'info, System>,
     #[account(constraint = token_program.key == &token::ID)]

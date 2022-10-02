@@ -8,10 +8,12 @@ import { assertError, wrapError } from './staking-utils';
 import { UnlocStaking } from '../src/types/unloc_staking'
 import { Connection, Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 import { changeStakingTokenPerSecond, createStakingState, createStakingUser, harvest, initStakingProgram, stake as unlocStake, unstake as unlocUnstake } from '../src';
-
+import LOANER1_WALLET from './test-users/lender1.json'
 import SUPER_OWNER_WALLET from './test-users/super_owner.json'
 import BORROWER1_KEYPAIR from './test-users/borrower1.json'
 import { UNLOC_MINT } from '../src/global-config';
+import { UnlocLoan } from '../src/types/unloc_loan';
+import { getStakingStateAddress, getStakingExtraRewardAddress, getStakingState } from '../src/staking'
 
 let stateSigner = Keypair.generate().publicKey
 let stateBump = 255
@@ -22,8 +24,12 @@ let extraRewardBump = 255
 
 let rewardMint: Token = null as any
 let poolSigner = Keypair.generate().publicKey
-let poolVault = Keypair.generate().publicKey
+export let poolVault = Keypair.generate().publicKey
 let poolBump = 255
+
+const lender1Keypair = anchor.web3.Keypair.fromSecretKey(Buffer.from(LOANER1_WALLET))
+const lender1 = lender1Keypair.publicKey;
+const GLOBAL_STATE_TAG = Buffer.from('GLOBAL_STATE_SEED')
 
 let lpMint: Token = null as any
 let lpPoolSigner = Keypair.generate().publicKey
@@ -42,6 +48,8 @@ anchor.setProvider(provider);
 let creatorKey = superOwnerKeypair.publicKey
 let program = anchor.workspace.UnlocStaking as anchor.Program<UnlocStaking>
 let connection = provider.connection
+
+const loanProgram = anchor.workspace.UnlocLoan as anchor.Program<UnlocLoan>;
 
 const cccc = new Connection(connection.rpcEndpoint, { commitment: 'confirmed' })
 
@@ -104,6 +112,7 @@ export default () => {
       lpPoolVault = await lpMint.createAccount(lpPoolSigner)
     })
     it('Fund', async function () {
+      await connection.confirmTransaction(await connection.requestAirdrop(lender1Keypair.publicKey, web3.LAMPORTS_PER_SOL))
       await Promise.all(users.map(async u => {
         await connection.confirmTransaction(await connection.requestAirdrop(u.publicKey, web3.LAMPORTS_PER_SOL))
         const stakeSeed = 10
@@ -128,7 +137,7 @@ export default () => {
           superOwnerKeypair, 
           tokenPerSecond, 
           1000, 
-          [new BN(100), new BN(1000)], 
+          [new BN(0), new BN(100), new BN(500), new BN(1000), new BN(2000)], 
           rewardMint.publicKey.toBase58(),
           )
       }
@@ -148,11 +157,13 @@ export default () => {
           authority: creatorKey,
           ...defaultAccounts
         })
+        .signers([superOwnerKeypair])
         .rpc()
 
       await program.methods.setExtraRewardConfigs([
         { duration: new BN(0), extraPercentage: getNumber(0) },
         { duration: new BN(1), extraPercentage: getNumber(50) },
+        { duration: new BN(86400), extraPercentage: getNumber(85) },
         { duration: new BN(5184000), extraPercentage: getNumber(100) },
       ])
         .accounts({
@@ -160,10 +171,11 @@ export default () => {
           authority: creatorKey,
           ...defaultAccounts
         })
+        .signers([superOwnerKeypair])
         .rpc()
 
       const extraRewardConfigs = await program.account.extraRewardsAccount.fetch(extraRewardSigner)
-      assert.ok((extraRewardConfigs.configs as any).length === 3)
+      assert.ok((extraRewardConfigs.configs as any).length === 4)
       assert.ok(new BN(1).eq((extraRewardConfigs.configs as any)[1].duration))
       assert.ok(getNumber(50).eq((extraRewardConfigs.configs as any)[1].extraPercentage))
     })
@@ -185,6 +197,7 @@ export default () => {
           isWritable: true,
           isSigner: false
         })))
+        .signers([superOwnerKeypair])
         .rpc()
 
       pools = await program.account.farmPoolAccount.all()
@@ -200,6 +213,7 @@ export default () => {
           isWritable: true,
           isSigner: false
         })))
+        .signers([superOwnerKeypair])
         .rpc()
 
       pools = await program.account.farmPoolAccount.all()
@@ -218,6 +232,7 @@ export default () => {
           isWritable: true,
           isSigner: false
         })))
+        .signers([superOwnerKeypair])
         .rpc()
 
       let stateInfo = await program.account.stateAccount.fetch(stateSigner)
@@ -258,6 +273,7 @@ export default () => {
           isWritable: true,
           isSigner: false
         })))
+        .signers([superOwnerKeypair])
         .rpc()
 
       let stateInfo = await program.account.stateAccount.fetch(stateSigner)
@@ -265,22 +281,41 @@ export default () => {
       assert.ok(poolInfo.point.eq(stateInfo.totalPoint))
       assert.ok(poolInfo.point.eq(new BN(1000)))
     })
+    it('Create user state accounts', async function () {
+      for (let i = 0; i < users.length; i++) {
+        const u = users[i];
+        let userState = await PublicKey.findProgramAddress([
+          new PublicKey(poolSigner).toBuffer(), u.user.publicKey.toBuffer()],
+          program.programId
+        )
+        await program.methods.createUserState()
+        .accounts({
+          userState: userState[0],
+          pool: poolSigner,
+          authority: u.user.publicKey,
+          payer: creatorKey,
+          systemProgram: SystemProgram.programId
+        })
+        .signers([u.user, superOwnerKeypair])
+        .rpc()
+      } 
+    })
     it('Create User with Invalid Seed', async function () {
       const u = users[0];
-      await assertError(createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 50), undefined)
+      await assertError(createStakingUser(u.provider.connection, u.provider.wallet, u.user, poolSigner.toBase58(), [u.user], 50), undefined)
     })
     it('Create User', async function () {
       console.log("Creating user stake accounts...")
       for (let i = 0; i < users.length; i++) {
         const u = users[i];
-        await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 10);
+        await createStakingUser(u.provider.connection, u.provider.wallet, u.user, poolSigner.toBase58(), [u.user], 10);
       }
     })
     it('Create 2nd staking accounts for users w different seed', async function () {
       console.log("Creating 2nd user stake accounts...")
       for (let i = 0; i < users.length; i++) {
         const u = users[i];
-        await createStakingUser(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), [u.user], 11);
+        await createStakingUser(u.provider.connection, u.provider.wallet, u.user, poolSigner.toBase58(), [u.user], 11);
       }
     })
     it('Stake invalid lock duration', async function () {
@@ -341,6 +376,128 @@ export default () => {
       const tokenPerSecond = state.tokenPerSecond.toNumber();
       assert.ok(tokenPerSecond === 40);
     })
+    it('Create multiple staking accounts, for longer lock periods', async function () {
+      const [userState, bump] = await PublicKey.findProgramAddress([
+        new PublicKey(poolSigner).toBuffer(), user4.publicKey.toBuffer()
+      ], program.programId)
+  
+      await guardTime(2000, async () => {
+        let stakeAmount = 100;
+        await stake(user4, new BN(stakeAmount), 86400, 1);
+  
+        const [userStakeAccount0, bump1] = await PublicKey.findProgramAddress([
+          new PublicKey(poolSigner).toBuffer(), user4.publicKey.toBuffer(), new anchor.BN(1).toBuffer('le', 1)
+        ], program.programId)
+        let userInfo = await program.account.farmPoolUserAccount.fetch(userStakeAccount0)
+        assert.ok(userInfo.amount.toNumber() === 100);
+        assert.ok(userInfo.lockDuration.toNumber() === 86400);
+        console.log("Unloc score: ", userInfo.unlocScore.toNumber())
+  
+        stakeAmount = 200;
+        await stake(user4, new BN(stakeAmount), 86400, 2);
+  
+        const [userStakeAccount1, bump2] = await PublicKey.findProgramAddress([
+          new PublicKey(poolSigner).toBuffer(), user4.publicKey.toBuffer(), new anchor.BN(2).toBuffer('le', 1)
+        ], program.programId)
+  
+        userInfo = await program.account.farmPoolUserAccount.fetch(userStakeAccount1)
+        assert.ok(userInfo.amount.toNumber() === 200);
+        assert.ok(userInfo.lockDuration.toNumber() === 86400);
+        console.log("Unloc score: ", userInfo.unlocScore.toNumber())
+  
+        stakeAmount = 300;
+        await stake(user4, new BN(stakeAmount), 86400, 20);
+  
+        const [userStakeAccount2, bump3] = await PublicKey.findProgramAddress([
+          new PublicKey(poolSigner).toBuffer(), user4.publicKey.toBuffer(), new anchor.BN(20).toBuffer('le', 1)
+        ], program.programId)
+        userInfo = await program.account.farmPoolUserAccount.fetch(userStakeAccount2)
+        assert.ok(userInfo.amount.toNumber() === 300);
+        assert.ok(userInfo.lockDuration.toNumber() === 86400);
+        console.log("Unloc score: ", userInfo.unlocScore.toNumber())
+      })
+  
+      const userStateInfo = await program.account.userStateAccount.fetch(userState)
+      console.log("User total unloc score: ", userStateInfo.totalUnlocScore.toNumber())
+      console.log("User's profile level: ", userStateInfo.profileLevel.toNumber())
+    })
+  
+    it('Create staking account for lender and stake', async function () {
+      // const globalState = await PublicKey.findProgramAddress([GLOBAL_STATE_TAG], loanProgram.programId)
+      // const globalStateData = await loanProgram.account.globalState.fetch(globalState[0])
+  
+      const lenderStakingUser = await PublicKey.findProgramAddress(
+        [poolSigner.toBuffer(), lender1Keypair.publicKey.toBuffer()],
+        program.programId
+      )
+      try {
+        console.log("Creating lender stake account")
+        const createStateAcctTx = await program.methods.createUserState()
+          .accounts({
+            userState: lenderStakingUser[0],
+            pool: poolSigner,
+            authority: lender1Keypair.publicKey,
+            payer: lender1Keypair.publicKey,
+            systemProgram: SystemProgram.programId
+          })
+          .signers([lender1Keypair])
+          .rpc()
+          console.log('create lender user state tx = ', createStateAcctTx)
+  
+        console.log("Lender staking to raise their unloc level")
+        const stateSigner = await getStakingStateAddress()
+        const stakeAcct = await PublicKey.findProgramAddress(
+          [poolSigner.toBuffer(), lender1Keypair.publicKey.toBuffer(),
+          new anchor.BN(1).toBuffer('le', 1)],
+          program.programId
+        )
+        const createStakeTx = await program.methods.createUser(1)
+        .accounts({
+          user: stakeAcct[0],
+          userState: lenderStakingUser[0],
+          state: stateSigner,
+          pool: poolSigner,
+          authority: lender1Keypair.publicKey,
+          payer: lender1Keypair.publicKey,
+          systemProgram: SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID
+        })
+        .signers([lender1Keypair])
+        .rpc()
+        console.log("Create lender staking account tx: ", createStakeTx)
+  
+        console.log("Lender staking tokens")
+        const tx = new Transaction()
+        const lenderTokenAcct = await Token.getAssociatedTokenAddress(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, rewardMint.publicKey, lender1Keypair.publicKey)
+        tx.add(Token.createAssociatedTokenAccountInstruction(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, rewardMint.publicKey, lenderTokenAcct, lender1Keypair.publicKey, lender1Keypair.publicKey))
+        await provider.sendAndConfirm(tx, [lender1Keypair])
+        await rewardMint.mintTo(lenderTokenAcct, superOwnerKeypair, [superOwnerKeypair as any], 100)
+  
+        const state = await getStakingState()
+        const stakeTx = await program.methods.stake(new BN(100), new BN(5184000))
+        .accounts({
+          user: stakeAcct[0],
+          userState: lenderStakingUser[0],
+          state: stateSigner,
+          pool: poolSigner,
+          poolVault: poolVault.toBase58(),
+          authority: lender1Keypair.publicKey,
+          mint: rewardMint.publicKey,
+          extraRewardAccount: extraRewardSigner,
+          userVault: lenderTokenAcct,
+          userVaultAuthority: lender1Keypair.publicKey,
+          feeVault: state.feeVault,
+          ...defaultAccounts
+        })
+        .signers([lender1Keypair])
+        .rpc()
+  
+        console.log("Lender stake tx: ", stakeTx)
+        
+      } catch (e) {
+        console.log(e)
+      }
+    })
 
   })
 }
@@ -359,7 +516,7 @@ async function assertUserReward(user, amount, showthrow = true) {
 }
 
 async function unstake(u, amount) {
-  const hash = await unlocUnstake(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), poolVault.toBase58(), u.rewardUserVault.toBase58(), amount, [u.user])
+  const hash = await unlocUnstake(u.provider.connection, u.provider.wallet, u.user, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), poolVault.toBase58(), u.rewardUserVault.toBase58(), amount, [u.user])
   return hash
 }
 
@@ -369,8 +526,8 @@ async function unlocHarvest(u) {
   return hash
 }
 
-async function stake(u, amount, lock = 0) {
-  const hash = await unlocStake(u.provider.connection, u.provider.wallet, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), poolVault.toBase58(), u.rewardUserVault.toBase58(), amount, lock, [u.user])
+async function stake(u, amount, lock = 0, stakeSeed = 10) {
+  const hash = await unlocStake(u.provider.connection, u.provider.wallet, u.user, poolSigner.toBase58(), rewardMint.publicKey.toBase58(), poolVault.toBase58(), u.rewardUserVault.toBase58(), amount, lock, [u.user], stakeSeed)
   return hash
 }
 async function createMint(provider, authority, decimals = 9) {
