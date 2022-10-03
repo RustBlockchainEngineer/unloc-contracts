@@ -1,10 +1,10 @@
 
-import { createVoting, getLastVoting, getLastVotingKey, getVoting, getVotingGlobalState, getVotingItem, getVotingItemKey, getVotingUser, initStakingProgram, initVotingProgram, setVoting, createVotingGlobalState, setVotingItem, vote } from '../dist/cjs'
+import { createVoting, getLastVoting, getLastVotingKey, getVoting, getVotingGlobalState, getVotingItem, getVotingItemKey, getVotingUser, initStakingProgram, initVotingProgram, setVoting, createVotingGlobalState, setVotingItem, vote } from '../src'
 import * as anchor from '@project-serum/anchor';
 
 import { assert} from 'chai'  
-import { UnlocVoting } from '../dist/cjs/types/unloc_voting';
-import { UnlocStaking } from '../dist/cjs/types/unloc_staking';
+import { UnlocVoting } from '../src/types/unloc_voting';
+import { UnlocStaking } from '../src/types/unloc_staking';
 
 import SUPER_OWNER_WALLET from './test-users/super_owner.json'
 import BORROWER1_KEYPAIR from './test-users/borrower1.json'
@@ -55,7 +55,7 @@ export default () => {
     })
     
     it('Set global state', async () => {
-      await createVotingGlobalState()
+      await createVotingGlobalState(superOwner, [superOwnerKeypair])
       // assert
       const globalStateData = await getVotingGlobalState()
       assert.ok(globalStateData.superOwner.equals(superOwner))

@@ -50,8 +50,8 @@ export const createVotingGlobalState = async (
     .accounts({
       superOwner,
       globalState,
-      votingProgram: VOTING_PID,
-      programData: VOTING_PDATA,
+      //votingProgram: VOTING_PID,
+      //programData: VOTING_PDATA,
       ...defaults,
     })
     .signers(signers)
