@@ -1194,6 +1194,11 @@ export type UnlocStaking = {
       "code": 6012,
       "name": "InvalidSeed",
       "msg": "Invalid seed for staking account"
+    },
+    {
+      "code": 6013,
+      "name": "StakingLockPeriod",
+      "msg": "Cannot perform action until staking period is finished"
     }
   ]
 };
@@ -2394,6 +2399,11 @@ export const IDL: UnlocStaking = {
       "code": 6012,
       "name": "InvalidSeed",
       "msg": "Invalid seed for staking account"
+    },
+    {
+      "code": 6013,
+      "name": "StakingLockPeriod",
+      "msg": "Cannot perform action until staking period is finished"
     }
   ]
 };

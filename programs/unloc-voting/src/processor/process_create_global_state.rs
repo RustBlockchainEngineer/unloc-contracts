@@ -30,15 +30,15 @@ pub struct CreateGlobalState<'info> {
     pub global_state: Box<Account<'info, GlobalState>>,
 
     /// The unloc voting program.
-    ///
+    
     /// Provided here to check the upgrade authority.
-    // #[account(constraint = voting_program.programdata_address()? == Some(program_data.key()) @ VotingError::InvalidProgramData)]
-    // pub voting_program: Program<'info, UnlocVoting>,
+    #[account(constraint = voting_program.programdata_address()? == Some(program_data.key()) @ VotingError::InvalidProgramData)]
+    pub voting_program: Program<'info, UnlocVoting>,
     /// The program data account for the unloc voting program.
-    ///
+    
     /// Provided to check the upgrade authority.
-    // #[account(constraint = program_data.upgrade_authority_address == Some(super_owner.key()) @ VotingError::InvalidProgramUpgradeAuthority)]
-    // pub program_data: Account<'info, ProgramData>,
+    #[account(constraint = program_data.upgrade_authority_address == Some(super_owner.key()) @ VotingError::InvalidProgramUpgradeAuthority)]
+    pub program_data: Account<'info, ProgramData>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

@@ -72,15 +72,15 @@ pub struct CreateGlobalState<'info> {
     pub reward_vault: Box<Account<'info, TokenAccount>>,
 
     /// The unloc loan program.
-    ///
+
     /// Provided here to check the upgrade authority.
-    // #[account(constraint = loan_program.programdata_address()? == Some(program_data.key()) @ LoanError::InvalidProgramData)]
-    // pub loan_program: Program<'info, UnlocLoan>,
+    #[account(constraint = loan_program.programdata_address()? == Some(program_data.key()) @ LoanError::InvalidProgramData)]
+    pub loan_program: Program<'info, UnlocLoan>,
     /// The program data account for the unloc loan program.
-    ///
+    
     /// Provided to check the upgrade authority.
-    // #[account(constraint = program_data.upgrade_authority_address == Some(super_owner.key()) @ LoanError::InvalidProgramUpgradeAuthority)]
-    // pub program_data: Account<'info, ProgramData>,
+    #[account(constraint = program_data.upgrade_authority_address == Some(super_owner.key()) @ LoanError::InvalidProgramUpgradeAuthority)]
+    pub program_data: Account<'info, ProgramData>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

@@ -1712,7 +1712,7 @@ export type UnlocLoan = {
       "code": 6014,
       "name": "InvalidProfileLevel",
       "msg": "Invalid profile level"
-    },
+    }
   ]
 };
 
