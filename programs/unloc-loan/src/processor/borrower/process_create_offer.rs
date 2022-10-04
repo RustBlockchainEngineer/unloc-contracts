@@ -10,7 +10,7 @@ pub fn handle(ctx: Context<CreateOffer>) -> Result<()> {
     let metadata = Metadata::from_account_info(&ctx.accounts.nft_metadata.to_account_info())?;
     let collection = metadata.collection.unwrap();
     let collection_key = collection.key;
-    require(metadata.mint == ctx.accounts.nft_mint.key(), "metadata.mint")?;
+    require(metadata.mint == ctx.accounts.nft_mint.key(), "wrong metadata.mint")?;
 
     let borrower_key = ctx.accounts.borrower.key();
     let nft_mint_key = ctx.accounts.nft_mint.key();
@@ -104,7 +104,7 @@ pub struct CreateOffer<'info> {
     )]
     pub edition: AccountInfo<'info>,
 
-    /// CHECK: metaplex program
+    /// CHECK: metaplex program. this will be checked in the cpi call of freeze_delegated_account
     pub metadata_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

@@ -1,4 +1,4 @@
-use crate::{constant::*, states::*, utils::*, error::*};
+use crate::{constant::*, states::*, error::*};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use std::str::FromStr;
@@ -14,8 +14,6 @@ pub fn handle(
     lender_rewards_percentage: u64,
     treasury_wallet: Pubkey,
 ) -> Result<()> {
-    let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
-    require(ctx.accounts.reward_mint.key() == unloc_mint, "ctx.accounts.reward_mint")?;
 
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     ctx.accounts.global_state.super_owner = ctx.accounts.super_owner.key();
@@ -59,7 +57,9 @@ pub struct CreateGlobalState<'info> {
         space = std::mem::size_of::<GlobalState>() + 8
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
-
+    #[account(
+        address = Pubkey::from_str(UNLOC_MINT).unwrap()
+    )]
     pub reward_mint: Box<Account<'info, Mint>>,
     #[account(
         init,

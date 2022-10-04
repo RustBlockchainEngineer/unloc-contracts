@@ -1,14 +1,10 @@
-use crate::{constant::*, states::*, utils::*};
+use crate::{constant::*, states::*};
 use anchor_lang::prelude::*;
 
 pub fn handle(ctx: Context<SetRedeemReset>, new_redeem_reset: i64) -> Result<()> {
-    assert_owner(
-        ctx.accounts.global_state.super_owner,
-        ctx.accounts.super_owner.key(),
-    )?;
 
     ctx.accounts.global_state.redemption_reset = new_redeem_reset;
-    msg!("New redemption time: {}", ctx.accounts.global_state.redemption_reset);
+    msg!("new redemption time: {}", ctx.accounts.global_state.redemption_reset);
 
     Ok(())
 }
@@ -23,6 +19,7 @@ pub struct SetRedeemReset<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
+        has_one = super_owner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 }

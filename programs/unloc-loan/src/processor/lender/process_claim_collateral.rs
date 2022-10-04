@@ -8,9 +8,6 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 use std::str::FromStr;
 pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
-    require(ctx.accounts.borrower_nft_vault.amount > 0, "borrower_nft_vault.amount")?;
-    require(ctx.accounts.lender.key() == ctx.accounts.sub_offer.lender, "lender")?;
-
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let reward_vault_amount = ctx.accounts.reward_vault.amount;
     ctx.accounts.global_state.distribute(
@@ -37,7 +34,7 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
 
     let duration = current_time.safe_sub(started_time)?;
 
-    require(current_time > started_time.safe_add(loan_duration)?, "current_time")?;
+    require(current_time > started_time.safe_add(loan_duration)?, "wrong time")?;
 
     let accrued_amount = calc_fee(
         origin,
@@ -149,7 +146,9 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
 #[derive(Accounts)]
 #[instruction()]
 pub struct ClaimCollateral<'info> {
-    #[account(mut)]
+    #[account(mut,
+        address = sub_offer.lender
+    )]
     pub lender: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -188,7 +187,8 @@ pub struct ClaimCollateral<'info> {
 
     #[account(mut,
         constraint = borrower_nft_vault.mint == offer.nft_mint,
-        constraint = borrower_nft_vault.owner == offer.borrower.key()
+        constraint = borrower_nft_vault.owner == offer.borrower.key(),
+        constraint = borrower_nft_vault.amount > 0
     )]
     pub borrower_nft_vault: Box<Account<'info, TokenAccount>>,
 
@@ -199,6 +199,8 @@ pub struct ClaimCollateral<'info> {
         address = sub_offer.offer_mint
     )]
     pub offer_mint: Box<Account<'info, Mint>>,
+
+    // init_if_needed is safe above solana-program v1.10.29
     #[account(init_if_needed,
         token::mint = offer_mint,
         token::authority = treasury_wallet,
@@ -207,7 +209,7 @@ pub struct ClaimCollateral<'info> {
         payer = payer)]
     pub treasury_vault: Box<Account<'info, TokenAccount>>,
 
-    /// CHECK: metaplex edition account
+    /// CHECK: metaplex edition account. this will be checked in the cpi call of thaw_delegated_account
     pub edition: UncheckedAccount<'info>,
 
     #[account(
@@ -215,16 +217,16 @@ pub struct ClaimCollateral<'info> {
         bump = global_state.reward_vault_bump,
     )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
-    /// CHECK: Safe
+    /// CHECK: Safe. this will be checked in the distribute function
     pub chainlink_program: AccountInfo<'info>,
 
-    /// CHECK: Safe
+    /// CHECK: Safe. this will be checked in the distribute function
     pub sol_feed: AccountInfo<'info>,
 
-    /// CHECK: Safe
+    /// CHECK: Safe. this will be checked in the distribute function
     pub usdc_feed: AccountInfo<'info>,
 
-    /// CHECK: metaplex program
+    /// CHECK: metaplex program. this will be checked in the cpi call of thaw_delegated_account
     pub metadata_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

@@ -10,7 +10,6 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account};
 
 pub fn handle(ctx: Context<ClaimExpiredCollateral>) -> Result<()> {
-    require(ctx.accounts.borrower_nft_vault.amount > 0, "ctx.accounts.borrower_nft_vault.amount")?;
 
     let borrower_key = ctx.accounts.offer.borrower;
     let started_time = ctx.accounts.sub_offer.loan_started_time;
@@ -83,7 +82,7 @@ pub struct ClaimExpiredCollateral<'info> {
     pub global_state: Box<Account<'info, GlobalState>>,
     /// CHECK: key only
     #[account(mut,
-        constraint = global_state.treasury_wallet == treasury_wallet.key()
+        address = global_state.treasury_wallet
     )]
     pub treasury_wallet: AccountInfo<'info>,
 
@@ -107,12 +106,13 @@ pub struct ClaimExpiredCollateral<'info> {
 
     #[account(mut,
         constraint = borrower_nft_vault.mint == offer.nft_mint,
-        constraint = borrower_nft_vault.owner == offer.borrower.key()
+        constraint = borrower_nft_vault.owner == offer.borrower.key(),
+        constraint = borrower_nft_vault.amount > 0
     )]
     pub borrower_nft_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        constraint = nft_mint.key() == offer.nft_mint
+        address = offer.nft_mint
     )]
     pub nft_mint: Box<Account<'info, Mint>>,
 
