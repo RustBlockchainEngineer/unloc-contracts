@@ -28,4 +28,6 @@ pub enum VotingError {
     InvalidProgramData,
     #[msg("The provided program upgrade authority is incorrect.")]
     InvalidProgramUpgradeAuthority,
+    #[msg("InvalidVotingNumber")]
+    InvalidVotingNumber,
 }

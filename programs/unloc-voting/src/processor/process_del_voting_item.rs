@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::Token;
 
 use crate::{
-    // error::*,
+    error::*,
     constant::*,
     states::*,
     utils::*,
@@ -24,7 +24,7 @@ pub struct DelVotingItem<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
-        has_one = super_owner
+        has_one = super_owner @ VotingError::InvalidOwner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 
