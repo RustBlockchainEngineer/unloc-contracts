@@ -41,10 +41,6 @@ pub fn change_profile_levels(
     ctx: Context<ChangeState>,
     profile_levels: Vec<u128>,
 ) -> Result<()> {
-    require!(
-        profile_levels.len() <= MAX_PROFILE_LEVEL,
-        StakingError::OverflowMaxProfileLevel
-    );
     let state = &mut ctx.accounts.state;
     state.profile_levels = profile_levels;
     Ok(())
@@ -89,9 +85,13 @@ pub struct ChangeTokensPerSecond<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(profile_levels: Vec<u128>)]
 pub struct ChangeState<'info> {
     #[account(mut,
-        seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
+        seeds = [b"state".as_ref()], bump = state.bump, 
+        has_one = authority @ StakingError::InvalidAuthority,
+        constraint = profile_levels.len() <= MAX_PROFILE_LEVEL @ StakingError::OverflowMaxProfileLevel
+    )]
     pub state: Account<'info, StateAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,

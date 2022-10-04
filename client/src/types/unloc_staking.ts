@@ -1036,61 +1036,81 @@ export type UnlocStaking = {
     },
     {
       "code": 6001,
+      "name": "InvalidAuthority",
+      "msg": "Invalid Authority"
+    },
+    {
+      "code": 6002,
       "name": "UnstakeOverAmount",
       "msg": "Over staked amount"
     },
     {
-      "code": 6002,
+      "code": 6003,
       "name": "UnderLocked",
       "msg": "Under locked"
     },
     {
-      "code": 6003,
+      "code": 6004,
       "name": "WorkingPool",
       "msg": "Pool is working"
     },
     {
-      "code": 6004,
+      "code": 6005,
+      "name": "InvalidPool",
+      "msg": "InvalidPool"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidAmount",
+      "msg": "InvalidAmount"
+    },
+    {
+      "code": 6007,
       "name": "InvalidLockDuration",
       "msg": "Invalid Lock Duration"
     },
     {
-      "code": 6005,
+      "code": 6008,
       "name": "InvalidSEQ",
       "msg": "Invalid SEQ"
     },
     {
-      "code": 6006,
+      "code": 6009,
       "name": "InvalidDenominator",
       "msg": "InvalidDenominator"
     },
     {
-      "code": 6007,
+      "code": 6010,
       "name": "OverflowMaxProfileLevel",
       "msg": "Overlfow Max Profile Level"
     },
     {
-      "code": 6008,
+      "code": 6011,
       "name": "InvalidMint",
       "msg": "Wrong Mint"
     },
     {
-      "code": 6009,
+      "code": 6012,
+      "name": "InvalidVault",
+      "msg": "Wrong Vault"
+    },
+    {
+      "code": 6013,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
     },
     {
-      "code": 6010,
+      "code": 6014,
       "name": "InvalidProgramData",
       "msg": "The provided program data is incorrect."
     },
     {
-      "code": 6011,
+      "code": 6015,
       "name": "InvalidProgramUpgradeAuthority",
       "msg": "The provided program upgrade authority is incorrect."
     },
     {
-      "code": 6012,
+      "code": 6016,
       "name": "InvalidSeed",
       "msg": "Invalid seed for staking account"
     }
@@ -2135,61 +2155,81 @@ export const IDL: UnlocStaking = {
     },
     {
       "code": 6001,
+      "name": "InvalidAuthority",
+      "msg": "Invalid Authority"
+    },
+    {
+      "code": 6002,
       "name": "UnstakeOverAmount",
       "msg": "Over staked amount"
     },
     {
-      "code": 6002,
+      "code": 6003,
       "name": "UnderLocked",
       "msg": "Under locked"
     },
     {
-      "code": 6003,
+      "code": 6004,
       "name": "WorkingPool",
       "msg": "Pool is working"
     },
     {
-      "code": 6004,
+      "code": 6005,
+      "name": "InvalidPool",
+      "msg": "InvalidPool"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidAmount",
+      "msg": "InvalidAmount"
+    },
+    {
+      "code": 6007,
       "name": "InvalidLockDuration",
       "msg": "Invalid Lock Duration"
     },
     {
-      "code": 6005,
+      "code": 6008,
       "name": "InvalidSEQ",
       "msg": "Invalid SEQ"
     },
     {
-      "code": 6006,
+      "code": 6009,
       "name": "InvalidDenominator",
       "msg": "InvalidDenominator"
     },
     {
-      "code": 6007,
+      "code": 6010,
       "name": "OverflowMaxProfileLevel",
       "msg": "Overlfow Max Profile Level"
     },
     {
-      "code": 6008,
+      "code": 6011,
       "name": "InvalidMint",
       "msg": "Wrong Mint"
     },
     {
-      "code": 6009,
+      "code": 6012,
+      "name": "InvalidVault",
+      "msg": "Wrong Vault"
+    },
+    {
+      "code": 6013,
       "name": "MathOverflow",
       "msg": "Math operation overflow"
     },
     {
-      "code": 6010,
+      "code": 6014,
       "name": "InvalidProgramData",
       "msg": "The provided program data is incorrect."
     },
     {
-      "code": 6011,
+      "code": 6015,
       "name": "InvalidProgramUpgradeAuthority",
       "msg": "The provided program upgrade authority is incorrect."
     },
     {
-      "code": 6012,
+      "code": 6016,
       "name": "InvalidSeed",
       "msg": "Invalid seed for staking account"
     }

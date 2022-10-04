@@ -1,20 +1,14 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount};
+use anchor_spl::token::{Mint, Token, TokenAccount};
 use std::mem::size_of;
 use std::str::FromStr;
 
-use crate::{utils::*, states::*};
+use crate::{utils::*, states::*, error::*};
 
 pub fn create_pool(
     ctx: Context<CreateFarmPool>,
     point: u64,
 ) -> Result<()> {
-    let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
-
-    require_keys_eq!(ctx.accounts.mint.key(), unloc_mint);
-
-    require_keys_eq!(ctx.accounts.vault.mint, unloc_mint);
-
     let state = &mut ctx.accounts.state;
     for pool_acc in ctx.remaining_accounts.iter() {
         let loader = &mut Account::<FarmPoolAccount>::try_from(&pool_acc)?;
@@ -44,7 +38,6 @@ pub fn close_pool(ctx: Context<CloseFarmPool>) -> Result<()> {
         loader.update(state, &ctx.accounts.clock)?;
     }
     let pool = &ctx.accounts.pool;
-    require_eq!(pool.amount, 0);
     state.total_point = state.total_point.safe_sub(pool.point)?;
     Ok(())
 }
@@ -77,17 +70,23 @@ pub struct CreateFarmPool<'info> {
     )]
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut,
-        seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
+        seeds = [b"state".as_ref()], bump = state.bump, 
+        has_one = authority @ StakingError::InvalidAuthority
+    )]
     pub state: Account<'info, StateAccount>,
+    #[account(
+        address = Pubkey::from_str(UNLOC_MINT).unwrap() @ StakingError::InvalidMint
+    )]
     pub mint: Box<Account<'info, Mint>>,
-    #[account(constraint = vault.owner == pool.key())]
+    #[account(
+        constraint = vault.owner == pool.key() @ StakingError::InvalidOwner
+    )]
     pub vault: Account<'info, TokenAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(mut)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
-    #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
 }
@@ -96,10 +95,18 @@ pub struct CreateFarmPool<'info> {
 #[derive(Accounts)]
 pub struct CloseFarmPool<'info> {
     #[account(mut,
-        seeds = [b"state".as_ref()], bump = state.bump, has_one = authority)]
+        seeds = [b"state".as_ref()],
+        bump = state.bump,
+        has_one = authority @ StakingError::InvalidAuthority
+    )]
     pub state: Account<'info, StateAccount>,
     #[account(mut,
-        seeds = [pool.mint.key().as_ref()], bump = pool.bump, has_one = authority, close = authority)]
+        seeds = [pool.mint.key().as_ref()],
+        bump = pool.bump,
+        has_one = authority @ StakingError::InvalidAuthority,
+        close = authority,
+        constraint = pool.amount == 0 @ StakingError::InvalidAmount
+    )]
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -113,7 +120,10 @@ pub struct ChangePoolSetting<'info> {
         seeds = [b"state".as_ref()], bump = state.bump)]
     pub state: Account<'info, StateAccount>,
     #[account(mut,
-        seeds = [pool.mint.key().as_ref()], bump = pool.bump, has_one = authority)]
+        seeds = [pool.mint.key().as_ref()],
+        bump = pool.bump,
+        has_one = authority @ StakingError::InvalidAuthority
+    )]
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,

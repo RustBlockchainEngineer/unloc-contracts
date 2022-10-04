@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{states::*, utils::*};
+use crate::{states::*, utils::*, error::*};
 
 pub fn handle(
     ctx: Context<CreateExtraRewardsConfigs>,
@@ -20,7 +20,7 @@ pub struct CreateExtraRewardsConfigs<'info> {
     #[account(mut,
         seeds = [b"state".as_ref()],
         bump = state.bump,
-        has_one = authority
+        has_one = authority @ StakingError::InvalidAuthority
     )]
     pub state: Account<'info, StateAccount>,
     #[account(init,
