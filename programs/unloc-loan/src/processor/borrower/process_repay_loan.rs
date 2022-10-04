@@ -197,32 +197,32 @@ pub struct RepayLoan<'info> {
     pub global_state: Box<Account<'info, GlobalState>>,
     /// CHECK: key only is used
     #[account(mut,
-        constraint = global_state.treasury_wallet == treasury_wallet.key()
+        constraint = global_state.treasury_wallet == treasury_wallet.key() @ LoanError::InvalidProgramAddress
     )]
     pub treasury_wallet: AccountInfo<'info>,
 
     #[account(mut,
     seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
     bump = offer.bump,
-    constraint = offer.state == OfferState::get_state(OfferState::Accepted)
+    constraint = offer.state == OfferState::get_state(OfferState::Accepted) @ LoanError::InvalidState
     )]
     pub offer: Box<Account<'info, Offer>>,
 
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
     bump = sub_offer.bump,
-    constraint = sub_offer.state == SubOfferState::get_state(SubOfferState::Accepted),
-    has_one = lender
+    constraint = sub_offer.state == SubOfferState::get_state(SubOfferState::Accepted) @ LoanError::InvalidState,
+    has_one = lender @ LoanError::InvalidOwner
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
 
     #[account(
-        constraint = nft_mint.key() == offer.nft_mint
+        constraint = nft_mint.key() == offer.nft_mint @ LoanError::InvalidMint
     )]
     pub nft_mint: Box<Account<'info, Mint>>,
     #[account(mut,
-        constraint = borrower_nft_vault.mint == offer.nft_mint,
-        constraint = borrower_nft_vault.owner == borrower.key()
+        constraint = borrower_nft_vault.mint == offer.nft_mint @ LoanError::InvalidMint,
+        constraint = borrower_nft_vault.owner == borrower.key() @ LoanError::InvalidOwner
     )]
     pub borrower_nft_vault: Box<Account<'info, TokenAccount>>,
 
@@ -231,7 +231,7 @@ pub struct RepayLoan<'info> {
     #[account(mut)]
     pub borrower_offer_vault: Box<Account<'info, TokenAccount>>,
     #[account(
-        address = sub_offer.offer_mint
+        address = sub_offer.offer_mint @ LoanError::InvalidMint
     )]
     pub offer_mint: Box<Account<'info, Mint>>,
 

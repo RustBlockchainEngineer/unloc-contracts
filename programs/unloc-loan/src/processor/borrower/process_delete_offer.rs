@@ -1,4 +1,4 @@
-use crate::{constant::*, states::*, utils::*};
+use crate::{constant::*, states::*, utils::*, error::*};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::invoke_signed;
 use anchor_spl::token::{self, Mint, Revoke, Token, TokenAccount};
@@ -65,13 +65,13 @@ pub struct DeleteOffer<'info> {
     pub offer: Box<Account<'info, Offer>>,
 
     #[account(
-        constraint = nft_mint.key() == offer.nft_mint
+        constraint = nft_mint.key() == offer.nft_mint @ LoanError::InvalidMint
     )]
     pub nft_mint: Box<Account<'info, Mint>>,
 
     #[account(mut,
-        constraint = borrower.key() == user_vault.owner,
-        constraint = user_vault.mint == offer.nft_mint
+        constraint = borrower.key() == user_vault.owner @ LoanError::InvalidOwner,
+        constraint = user_vault.mint == offer.nft_mint @ LoanError::InvalidMint
     )]
     pub user_vault: Box<Account<'info, TokenAccount>>,
 

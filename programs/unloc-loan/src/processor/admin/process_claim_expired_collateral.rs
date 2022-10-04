@@ -1,5 +1,5 @@
 use crate::{
-    // error::*,
+    error::*,
     constant::*,
     states::*,
     utils::*,
@@ -82,7 +82,7 @@ pub struct ClaimExpiredCollateral<'info> {
     pub global_state: Box<Account<'info, GlobalState>>,
     /// CHECK: key only
     #[account(mut,
-        address = global_state.treasury_wallet
+        address = global_state.treasury_wallet @ LoanError::InvalidProgramAddress
     )]
     pub treasury_wallet: AccountInfo<'info>,
 
@@ -99,20 +99,20 @@ pub struct ClaimExpiredCollateral<'info> {
     pub sub_offer: Box<Account<'info, SubOffer>>,
 
     #[account(mut,
-        constraint = user_nft_vault.mint == offer.nft_mint,
-        constraint = user_nft_vault.owner == super_owner.key()
+        constraint = user_nft_vault.mint == offer.nft_mint @ LoanError::InvalidMint,
+        constraint = user_nft_vault.owner == super_owner.key() @ LoanError::InvalidOwner
     )]
     pub user_nft_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(mut,
-        constraint = borrower_nft_vault.mint == offer.nft_mint,
-        constraint = borrower_nft_vault.owner == offer.borrower.key(),
-        constraint = borrower_nft_vault.amount > 0
+        constraint = borrower_nft_vault.mint == offer.nft_mint @ LoanError::InvalidMint,
+        constraint = borrower_nft_vault.owner == offer.borrower.key() @ LoanError::InvalidOwner,
+        constraint = borrower_nft_vault.amount > 0 @ LoanError::InvalidAmount
     )]
     pub borrower_nft_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        address = offer.nft_mint
+        address = offer.nft_mint @ LoanError::InvalidMint
     )]
     pub nft_mint: Box<Account<'info, Mint>>,
 

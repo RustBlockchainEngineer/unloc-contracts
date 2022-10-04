@@ -1,4 +1,4 @@
-use crate::{constant::*, states::*, utils::*};
+use crate::{constant::*, states::*, utils::*, error::*};
 use anchor_lang::prelude::*;
 
 pub fn handle(ctx: Context<DeleteSubOffer>) -> Result<()> {
@@ -22,7 +22,7 @@ pub struct DeleteSubOffer<'info> {
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
     bump = sub_offer.bump,
     constraint = sub_offer.state == SubOfferState::get_state(SubOfferState::Proposed)
-        || sub_offer.state == SubOfferState::get_state(SubOfferState::NFTClaimed),
+        || sub_offer.state == SubOfferState::get_state(SubOfferState::NFTClaimed) @ LoanError::InvalidState,
     close = borrower
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,

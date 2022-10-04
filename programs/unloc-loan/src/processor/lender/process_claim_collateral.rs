@@ -147,7 +147,7 @@ pub fn handle(ctx: Context<ClaimCollateral>) -> Result<()> {
 #[instruction()]
 pub struct ClaimCollateral<'info> {
     #[account(mut,
-        address = sub_offer.lender
+        address = sub_offer.lender @ LoanError::InvalidOwner
     )]
     pub lender: Signer<'info>,
     #[account(mut)]
@@ -159,7 +159,7 @@ pub struct ClaimCollateral<'info> {
     pub global_state: Box<Account<'info, GlobalState>>,
     /// CHECK: key only
     #[account(mut,
-        constraint = global_state.treasury_wallet == treasury_wallet.key()
+        constraint = global_state.treasury_wallet == treasury_wallet.key() @ LoanError::InvalidProgramAddress
     )]
     pub treasury_wallet: AccountInfo<'info>,
 
@@ -175,20 +175,20 @@ pub struct ClaimCollateral<'info> {
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
     #[account(
-        constraint = nft_mint.key() == offer.nft_mint
+        constraint = nft_mint.key() == offer.nft_mint @ LoanError::InvalidMint
     )]
     pub nft_mint: Box<Account<'info, Mint>>,
 
     #[account(mut,
-        constraint = lender_nft_vault.mint == offer.nft_mint,
-        constraint = lender_nft_vault.owner == lender.key()
+        constraint = lender_nft_vault.mint == offer.nft_mint @ LoanError::InvalidMint,
+        constraint = lender_nft_vault.owner == lender.key() @ LoanError::InvalidOwner
     )]
     pub lender_nft_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(mut,
-        constraint = borrower_nft_vault.mint == offer.nft_mint,
-        constraint = borrower_nft_vault.owner == offer.borrower.key(),
-        constraint = borrower_nft_vault.amount > 0
+        constraint = borrower_nft_vault.mint == offer.nft_mint @ LoanError::InvalidMint,
+        constraint = borrower_nft_vault.owner == offer.borrower.key() @ LoanError::InvalidOwner,
+        constraint = borrower_nft_vault.amount > 0 @ LoanError::InvalidAmount
     )]
     pub borrower_nft_vault: Box<Account<'info, TokenAccount>>,
 
@@ -196,7 +196,7 @@ pub struct ClaimCollateral<'info> {
     pub lender_offer_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
-        address = sub_offer.offer_mint
+        address = sub_offer.offer_mint @ LoanError::InvalidMint
     )]
     pub offer_mint: Box<Account<'info, Mint>>,
 

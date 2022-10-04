@@ -73,7 +73,7 @@ pub fn handle(ctx: Context<ClaimLenderRewards>) -> Result<()> {
 #[instruction()]
 pub struct ClaimLenderRewards<'info> {
     #[account(mut,
-        address = sub_offer.lender
+        address = sub_offer.lender @ LoanError::InvalidOwner
     )]
     pub authority: Signer<'info>,
     #[account(
@@ -85,7 +85,7 @@ pub struct ClaimLenderRewards<'info> {
     #[account(mut,
         seeds = [SUB_OFFER_TAG, sub_offer.offer.as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
         bump = sub_offer.bump,
-        )]
+    )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
     #[account(
         mut,
@@ -100,22 +100,26 @@ pub struct ClaimLenderRewards<'info> {
     /// CHECK: Safe. this will be checked in the distribute function
     pub usdc_feed: AccountInfo<'info>,
     #[account(mut,
-        constraint = lender_reward_vault.mint == Pubkey::from_str(UNLOC_MINT).unwrap(),
-        constraint = lender_reward_vault.owner == sub_offer.lender
+        constraint = lender_reward_vault.mint == Pubkey::from_str(UNLOC_MINT).unwrap() @ LoanError::InvalidMint,
+        constraint = lender_reward_vault.owner == sub_offer.lender @ LoanError::InvalidOwner
     )]
     pub lender_reward_vault: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: Safe. this will be checked in the cpi call of create_user and stake
     #[account(mut)]
     pub stake_user: AccountInfo<'info>,
-    #[account(mut, owner = unloc_staking_program.key())]
+    #[account(mut, 
+        owner = unloc_staking_program.key() @ LoanError::InvalidOwner
+    )]
     pub stake_state: Account<'info, StateAccount>,
     /// CHECK: Safe. this will be checked in the cpi call of stake
     #[account(mut)]
     pub stake_pool: AccountInfo<'info>,
     
     /// CHECK: Safe. this will be checked in the cpi call of stake
-    #[account(owner = *unloc_staking_program.key)]
+    #[account(
+        owner = *unloc_staking_program.key @ LoanError::InvalidOwner
+    )]
     pub extra_reward_account: AccountInfo<'info>,
     /// CHECK: Safe. this will be checked in the cpi call of stake
     pub stake_mint: AccountInfo<'info>,

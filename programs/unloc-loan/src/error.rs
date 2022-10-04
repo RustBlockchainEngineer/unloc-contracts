@@ -20,6 +20,8 @@ pub enum LoanError {
     InvalidAccountInput,
     #[msg("InvalidPubkey")]
     InvalidPubkey,
+    #[msg("InvalidMint")]
+    InvalidMint,
     #[msg("InvalidAmount")]
     InvalidAmount,
     #[msg("InvalidDenominator")]

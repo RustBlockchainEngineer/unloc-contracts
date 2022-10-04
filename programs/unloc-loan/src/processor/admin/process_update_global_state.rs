@@ -1,4 +1,4 @@
-use crate::{constant::*, states::*};
+use crate::{constant::*, states::*, error::*};
 use anchor_lang::prelude::*;
 
 pub fn handle(
@@ -39,7 +39,7 @@ pub struct UpdateGlobalState<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump,
-        has_one = super_owner
+        has_one = super_owner @ LoanError::InvalidOwner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 }

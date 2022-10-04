@@ -91,8 +91,8 @@ pub struct CreateOffer<'info> {
     pub nft_metadata: AccountInfo<'info>,
 
     #[account(mut,
-        constraint = user_vault.mint == nft_mint.key(),
-        constraint = user_vault.owner == borrower.key()
+        constraint = user_vault.mint == nft_mint.key() @ LoanError::InvalidMint,
+        constraint = user_vault.owner == borrower.key() @ LoanError::InvalidOwner
     )]
     pub user_vault: Box<Account<'info, TokenAccount>>,
 

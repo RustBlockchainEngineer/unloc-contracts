@@ -74,7 +74,7 @@ pub fn handle(ctx: Context<ClaimBorrowerRewards>) -> Result<()> {
 #[instruction()]
 pub struct ClaimBorrowerRewards<'info> {
     #[account(mut,
-        address = sub_offer.borrower
+        address = sub_offer.borrower @ LoanError::InvalidOwner
     )]
     pub authority: Signer<'info>,
     #[account(
@@ -102,22 +102,28 @@ pub struct ClaimBorrowerRewards<'info> {
     /// CHECK: Safe. this will be checked in the distribute function
     pub usdc_feed: AccountInfo<'info>,
     #[account(mut,
-        constraint = borrower_reward_vault.mint == Pubkey::from_str(UNLOC_MINT).unwrap(),
-        constraint = borrower_reward_vault.owner == sub_offer.borrower
+        constraint = borrower_reward_vault.mint == Pubkey::from_str(UNLOC_MINT).unwrap() @ LoanError::InvalidMint,
+        constraint = borrower_reward_vault.owner == sub_offer.borrower @ LoanError::InvalidOwner
     )]
     pub borrower_reward_vault: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: Safe. it will be checked in the cpi call of create_user
     #[account(mut)]
     pub stake_user: AccountInfo<'info>,
-    #[account(mut, owner = unloc_staking_program.key())]
+    #[account(mut, 
+        owner = unloc_staking_program.key() @ LoanError::InvalidOwner
+    )]
     pub stake_state: Account<'info, StateAccount>,
     /// CHECK: Safe. it will be checked in the cpi call of create_user and stake
-    #[account(mut, owner = *unloc_staking_program.key)]
+    #[account(mut, 
+        owner = *unloc_staking_program.key @ LoanError::InvalidOwner
+    )]
     pub stake_pool: AccountInfo<'info>,
     
     /// CHECK: Safe. it will be checked in the cpi call of stake
-    #[account(owner = *unloc_staking_program.key)]
+    #[account(
+        owner = *unloc_staking_program.key @ LoanError::InvalidOwner
+    )]
     pub extra_reward_account: AccountInfo<'info>,
     /// CHECK: Safe. it will be checked in the cpi call of stake
     pub stake_mint: AccountInfo<'info>,

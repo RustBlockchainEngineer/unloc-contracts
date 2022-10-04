@@ -132,19 +132,19 @@ pub struct AcceptOffer<'info> {
     #[account(mut,
     seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
     bump = offer.bump,
-    constraint = offer.state == OfferState::get_state(OfferState::Proposed)
+    constraint = offer.state == OfferState::get_state(OfferState::Proposed) @ LoanError::InvalidState
     )]
     pub offer: Box<Account<'info, Offer>>,
 
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
     bump = sub_offer.bump,
-    constraint = sub_offer.state != SubOfferState::get_state(SubOfferState::Canceled)
+    constraint = sub_offer.state != SubOfferState::get_state(SubOfferState::Canceled) @ LoanError::InvalidState
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
 
     #[account(mut,
-        constraint = sub_offer.offer_mint == offer_mint.key()
+        constraint = sub_offer.offer_mint == offer_mint.key() @ LoanError::InvalidMint
     )]
     pub offer_mint: Box<Account<'info, Mint>>,
 

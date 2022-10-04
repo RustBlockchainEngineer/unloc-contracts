@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint};
 
-use crate::{constant::*, states::*};
+use crate::{constant::*, states::*, error::*};
 use std::str::FromStr;
 
 pub fn handle(
@@ -38,13 +38,14 @@ pub struct UpdateSubOffer<'info> {
     mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
     bump = sub_offer.bump,
-    constraint = sub_offer.state == SubOfferState::get_state(SubOfferState::Proposed)
+    constraint = sub_offer.state == SubOfferState::get_state(SubOfferState::Proposed) @ LoanError::InvalidState
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
 
     // offer_mint.key() == unloc_mint || // featured offer is not implemented yet
     #[account(
-        constraint = offer_mint.key() == Pubkey::from_str(USDC_MINT).unwrap() || offer_mint.key() == Pubkey::from_str(WSOL_MINT).unwrap()
+        constraint = offer_mint.key() == Pubkey::from_str(USDC_MINT).unwrap() 
+        || offer_mint.key() == Pubkey::from_str(WSOL_MINT).unwrap() @ LoanError::InvalidMint
     )]
     pub offer_mint: Box<Account<'info, Mint>>,
 }

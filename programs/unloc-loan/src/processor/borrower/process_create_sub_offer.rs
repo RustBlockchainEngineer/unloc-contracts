@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token};
 
-use crate::{constant::*, states::*, utils::*};
+use crate::{constant::*, states::*, utils::*, error::*};
 use std::str::FromStr;
 use unloc_staking::states::FarmPoolUserAccount;
 
@@ -106,7 +106,8 @@ pub struct CreateSubOffer<'info> {
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
     #[account(
-        constraint = offer_mint.key() == Pubkey::from_str(USDC_MINT).unwrap() || offer_mint.key() == Pubkey::from_str(WSOL_MINT).unwrap()
+        constraint = offer_mint.key() == Pubkey::from_str(USDC_MINT).unwrap() 
+        || offer_mint.key() == Pubkey::from_str(WSOL_MINT).unwrap() @ LoanError::InvalidMint
     )]
     pub offer_mint: Box<Account<'info, Mint>>,
 

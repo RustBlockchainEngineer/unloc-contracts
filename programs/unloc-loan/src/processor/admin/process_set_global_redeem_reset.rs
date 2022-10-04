@@ -1,4 +1,4 @@
-use crate::{constant::*, states::*};
+use crate::{constant::*, states::*, error::*};
 use anchor_lang::prelude::*;
 
 pub fn handle(ctx: Context<SetRedeemReset>, new_redeem_reset: i64) -> Result<()> {
@@ -19,7 +19,7 @@ pub struct SetRedeemReset<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
-        has_one = super_owner
+        has_one = super_owner @ LoanError::InvalidOwner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 }

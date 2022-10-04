@@ -1,4 +1,4 @@
-use crate::{constant::*, states::*};
+use crate::{constant::*, states::*, error::*};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 pub fn handle(ctx: Context<SetVoting>, voting: Pubkey) -> Result<()> {
@@ -26,7 +26,7 @@ pub struct SetVoting<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
-        has_one = super_owner
+        has_one = super_owner @ LoanError::InvalidOwner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 
