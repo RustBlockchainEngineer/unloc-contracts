@@ -34,17 +34,6 @@ pub mod unloc_burn {
         ctx: Context<CreateGlobalState>,
         new_burner: Pubkey,
     ) -> Result<()> {
-        let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
-        let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
-        let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
-
-        require(
-            ctx.accounts.unloc_mint.key() == unloc_mint,
-            "wrong unloc_mint",
-        )?;
-        require(ctx.accounts.usdc_mint.key() == usdc_mint, "wrong usdc_mint")?;
-        require(ctx.accounts.wsol_mint.key() == wsol_mint, "wrong wsol_mint")?;
-
         ctx.accounts.global_state.authority = ctx.accounts.authority.key();
         ctx.accounts.global_state.bump = *ctx.bumps.get("global_state").unwrap();
         ctx.accounts.global_state.unloc_vault_bump = *ctx.bumps.get("unloc_vault").unwrap();
@@ -84,12 +73,6 @@ pub mod unloc_burn {
         amm_anchor::swap_base_in(ctx_swap.with_signer(signer), amount_in, minimum_amount_out)
     }
     pub fn burn(ctx: Context<BurnUnloc>) -> Result<()> {
-        let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
-        require(
-            ctx.accounts.unloc_mint.key() == unloc_mint,
-            "wrong unloc_mint",
-        )?;
-
         let cpi_accounts = Burn {
             mint: ctx.accounts.unloc_mint.to_account_info(),
             from: ctx.accounts.unloc_vault.to_account_info(),
@@ -126,7 +109,9 @@ pub struct CreateGlobalState<'info> {
         space = std::mem::size_of::<GlobalState>() + 8
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
-
+    #[account(
+        address = Pubkey::from_str(UNLOC_MINT).unwrap() @ ErrorCode::InvalidMint
+    )]
     pub unloc_mint: Box<Account<'info, Mint>>,
     #[account(
         init,
@@ -137,6 +122,9 @@ pub struct CreateGlobalState<'info> {
         payer = payer,
     )]
     pub unloc_vault: Box<Account<'info, TokenAccount>>,
+    #[account(
+        address = Pubkey::from_str(USDC_MINT).unwrap() @ ErrorCode::InvalidMint
+    )]
     pub usdc_mint: Box<Account<'info, Mint>>,
     #[account(
         init,
@@ -147,7 +135,9 @@ pub struct CreateGlobalState<'info> {
         payer = payer,
     )]
     pub usdc_vault: Box<Account<'info, TokenAccount>>,
-
+    #[account(
+        address = Pubkey::from_str(WSOL_MINT).unwrap() @ ErrorCode::InvalidMint
+    )]
     pub wsol_mint: Box<Account<'info, Mint>>,
     #[account(
         init,
@@ -160,12 +150,12 @@ pub struct CreateGlobalState<'info> {
     pub wsol_vault: Box<Account<'info, TokenAccount>>,
 
     pub amm_program: Program<'info, RaydiumSwap>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub amm: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     pub serum_program: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub serum_market: AccountInfo<'info>,
     
@@ -179,7 +169,6 @@ pub struct CreateGlobalState<'info> {
     /// Provided to check the upgrade authority.
     #[account(constraint = program_data.upgrade_authority_address == Some(authority.key()) @ ErrorCode::InvalidProgramUpgradeAuthority)]
     pub program_data: Account<'info, ProgramData>,
-    /// CHECK: Safe
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
@@ -197,20 +186,19 @@ pub struct UpdateGlobalState<'info> {
         mut,
         seeds = [GLOBAL_STATE_SEED],
         bump = global_state.bump,
-        has_one = authority
+        has_one = authority @ ErrorCode::InvalidOwner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 
     pub amm_program: Program<'info, RaydiumSwap>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub amm: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     pub serum_program: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub serum_market: AccountInfo<'info>,
-    /// CHECK: Safe
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
@@ -222,61 +210,62 @@ pub struct Buyback<'info> {
         mut,
         seeds = [GLOBAL_STATE_SEED],
         bump = global_state.bump,
-        has_one = burner,
-        has_one = amm,
-        has_one = serum_program,
-        has_one = serum_market,
-        constraint = global_state.usdc_vault == user_source_token_account.key() || global_state.wsol_vault == user_source_token_account.key(),
-        constraint = global_state.unloc_vault == user_destination_token_account.key()
+        has_one = burner @ ErrorCode::InvalidBurner,
+        has_one = amm @ ErrorCode::InvalidAmm,
+        has_one = serum_program @ ErrorCode::InvalidSerumProgram,
+        has_one = serum_market @ ErrorCode::InvalidSerumMarket,
+        constraint = global_state.usdc_vault == user_source_token_account.key() 
+            || global_state.wsol_vault == user_source_token_account.key() @ ErrorCode::InvalidVault,
+        constraint = global_state.unloc_vault == user_destination_token_account.key() @ ErrorCode::InvalidVault
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
     #[account(mut)]
     pub burner: Signer<'info>,
 
     pub amm_program: Program<'info, RaydiumSwap>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub amm: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     pub amm_authority: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub amm_open_orders: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub amm_target_orders: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub pool_coin_token_account: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub pool_pc_token_account: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     pub serum_program: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub serum_market: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub serum_bids: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub serum_asks: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub serum_event_queue: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub serum_coin_vault_account: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub serum_pc_vault_account: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     pub serum_vault_signer: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub user_source_token_account: AccountInfo<'info>,
-    /// CHECK: Safe
+    /// CHECK: Safe. This will be checked in the serum program
     #[account(mut)]
     pub user_destination_token_account: AccountInfo<'info>,
     /// CHECK: Safe
@@ -316,12 +305,14 @@ pub struct BurnUnloc<'info> {
         mut,
         seeds = [GLOBAL_STATE_SEED],
         bump = global_state.bump,
-        has_one = burner
+        has_one = burner @ ErrorCode::InvalidBurner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
     #[account(mut)]
     pub burner: Signer<'info>,
-    #[account(mut)]
+    #[account(mut,
+        address = Pubkey::from_str(UNLOC_MINT).unwrap() @ ErrorCode::InvalidMint
+    )]
     pub unloc_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
@@ -369,6 +360,8 @@ pub enum ErrorCode {
     InvalidAccountInput,
     #[msg("InvalidPubkey")]
     InvalidPubkey,
+    #[msg("InvalidMint")]
+    InvalidMint,
     #[msg("InvalidAmount")]
     InvalidAmount,
     #[msg("InvalidDenominator")]
@@ -377,6 +370,16 @@ pub enum ErrorCode {
     InvalidProgramData,
     #[msg("The provided program upgrade authority is incorrect.")]
     InvalidProgramUpgradeAuthority,
+    #[msg("InvalidBurner")]
+    InvalidBurner,
+    #[msg("InvalidAmm")]
+    InvalidAmm,
+    #[msg("InvalidSerumProgram")]
+    InvalidSerumProgram,
+    #[msg("InvalidSerumMarket")]
+    InvalidSerumMarket,
+    #[msg("InvalidVault")]
+    InvalidVault
 }
 pub fn require(flag: bool, msg: &str) -> Result<()> {
     if !flag {
