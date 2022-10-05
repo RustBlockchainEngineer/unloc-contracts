@@ -4,12 +4,18 @@ use anchor_lang::prelude::*;
 pub enum StakingError {
     #[msg("Invalid Owner")]
     InvalidOwner,
+    #[msg("Invalid Authority")]
+    InvalidAuthority,
     #[msg("Over staked amount")]
     UnstakeOverAmount,
     #[msg("Under locked")]
     UnderLocked,
     #[msg("Pool is working")]
     WorkingPool,
+    #[msg("InvalidPool")]
+    InvalidPool,
+    #[msg("InvalidAmount")]
+    InvalidAmount,
     #[msg("Invalid Lock Duration")]
     InvalidLockDuration,
     #[msg("Invalid SEQ")]
@@ -20,6 +26,8 @@ pub enum StakingError {
     OverflowMaxProfileLevel,
     #[msg("Wrong Mint")]
     InvalidMint,
+    #[msg("Wrong Vault")]
+    InvalidVault,
     #[msg("Math operation overflow")]
     MathOverflow,
     #[msg("The provided program data is incorrect.")]

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import os from "os";
 import process from "process";
 import { spawnSync } from "child_process";
 
@@ -56,7 +57,7 @@ export const walletPath = path
   ? (
       anchorToml?.provider?.wallet ??
       __throw(new Error("missing provider wallet"))
-    ).replace("~", "/home/ubuntu")
+    ).replace("~", os.homedir())
   : path.join(
       PROJECT_DIR,
       anchorToml?.provider?.wallet ??
@@ -192,7 +193,8 @@ export function atexit(fn: () => void) {
 export function build(program: Program, verbose: boolean = false) {
   const args: string[] = ["build"];
   args.push("--program-name", program.lib); // Build lib.
-
+  
+  console.log();
   console.log(`Building ${program}`);
 
   const result = spawnSync("anchor", args, {
@@ -204,6 +206,9 @@ export function build(program: Program, verbose: boolean = false) {
     process.exit(1);
   }
 
+  console.log();
+  console.log(`To deploy this program:`);
+  console.log(`  $ solana program deploy ` + path.join(PROJECT_DIR, `target/deploy/${program}.so`));
   console.log();
 
   fs.mkdirSync(ACCOUNTS_DIR, { recursive: true });

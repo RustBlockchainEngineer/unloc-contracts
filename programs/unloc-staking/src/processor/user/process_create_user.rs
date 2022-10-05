@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token};
+use anchor_spl::token::{Token};
 use std::mem::size_of;
 
 use crate::{utils::*, states::*};
@@ -48,6 +48,5 @@ pub struct CreatePoolUser<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
-    #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
 }

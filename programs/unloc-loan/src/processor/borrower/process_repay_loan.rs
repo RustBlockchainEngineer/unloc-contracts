@@ -6,15 +6,6 @@ use mpl_token_metadata::{id as metadata_id, instruction::thaw_delegated_account}
 use std::str::FromStr;
 
 pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
-    require_eq!(
-        ctx.accounts.offer.state,
-        OfferState::get_state(OfferState::Accepted)
-    );
-    require_eq!(
-        ctx.accounts.sub_offer.state,
-        SubOfferState::get_state(SubOfferState::Accepted)
-    );
-
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     let reward_vault_amount = ctx.accounts.reward_vault.amount;
     ctx.accounts.global_state.distribute(
@@ -110,10 +101,10 @@ pub fn handle(ctx: Context<RepayLoan>) -> Result<()> {
             ],
         )?;
     } else {
-        require(ctx.accounts.borrower_offer_vault.owner == ctx.accounts.sub_offer.borrower, "borrower_offer_vault.owner")?;
-        require(ctx.accounts.borrower_offer_vault.mint == ctx.accounts.sub_offer.offer_mint, "borrower_offer_vault.mint")?;
-        require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.sub_offer.lender, "lender_offer_vault.owner")?;
-        require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.sub_offer.offer_mint, "lender_offer_vault.mint")?;
+        require(ctx.accounts.borrower_offer_vault.owner == ctx.accounts.sub_offer.borrower, "wrong borrower_offer_vault.owner")?;
+        require(ctx.accounts.borrower_offer_vault.mint == ctx.accounts.sub_offer.offer_mint, "wrong borrower_offer_vault.mint")?;
+        require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.sub_offer.lender, "wrong lender_offer_vault.owner")?;
+        require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.sub_offer.offer_mint, "wrong lender_offer_vault.mint")?;
 
         let _borrower_offer_vault = needed_amount.safe_add(unloc_fee_amount)?;
         if _borrower_offer_vault > ctx.accounts.borrower_offer_vault.amount {
@@ -206,30 +197,32 @@ pub struct RepayLoan<'info> {
     pub global_state: Box<Account<'info, GlobalState>>,
     /// CHECK: key only is used
     #[account(mut,
-        constraint = global_state.treasury_wallet == treasury_wallet.key()
+        constraint = global_state.treasury_wallet == treasury_wallet.key() @ LoanError::InvalidProgramAddress
     )]
     pub treasury_wallet: AccountInfo<'info>,
 
     #[account(mut,
     seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
     bump = offer.bump,
+    constraint = offer.state == OfferState::get_state(OfferState::Accepted) @ LoanError::InvalidState
     )]
     pub offer: Box<Account<'info, Offer>>,
 
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
     bump = sub_offer.bump,
-    has_one = lender
+    constraint = sub_offer.state == SubOfferState::get_state(SubOfferState::Accepted) @ LoanError::InvalidState,
+    has_one = lender @ LoanError::InvalidOwner
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
 
     #[account(
-        constraint = nft_mint.key() == offer.nft_mint
+        constraint = nft_mint.key() == offer.nft_mint @ LoanError::InvalidMint
     )]
     pub nft_mint: Box<Account<'info, Mint>>,
     #[account(mut,
-        constraint = borrower_nft_vault.mint == offer.nft_mint,
-        constraint = borrower_nft_vault.owner == borrower.key()
+        constraint = borrower_nft_vault.mint == offer.nft_mint @ LoanError::InvalidMint,
+        constraint = borrower_nft_vault.owner == borrower.key() @ LoanError::InvalidOwner
     )]
     pub borrower_nft_vault: Box<Account<'info, TokenAccount>>,
 
@@ -238,9 +231,11 @@ pub struct RepayLoan<'info> {
     #[account(mut)]
     pub borrower_offer_vault: Box<Account<'info, TokenAccount>>,
     #[account(
-        address = sub_offer.offer_mint
+        address = sub_offer.offer_mint @ LoanError::InvalidMint
     )]
     pub offer_mint: Box<Account<'info, Mint>>,
+
+    // init_if_needed is safe above solana-program v1.10.29
     #[account(init_if_needed,
         token::mint = offer_mint,
         token::authority = treasury_wallet,
@@ -249,13 +244,13 @@ pub struct RepayLoan<'info> {
         payer = payer)]
     pub treasury_vault: Box<Account<'info, TokenAccount>>,
 
-    /// CHECK: Safe
+    /// CHECK: Safe. this will be checked in the distribute function
     pub chainlink_program: AccountInfo<'info>,
 
-    /// CHECK: Safe
+    /// CHECK: Safe. this will be checked in the distribute function
     pub sol_feed: AccountInfo<'info>,
 
-    /// CHECK: Safe
+    /// CHECK: Safe. this will be checked in the distribute function
     pub usdc_feed: AccountInfo<'info>,
 
     #[account(
@@ -264,9 +259,9 @@ pub struct RepayLoan<'info> {
     )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
 
-    /// CHECK: metaplex edition account
+    /// CHECK: metaplex edition account. this will be checked in the cpi call of thaw_delegated_account
     pub edition: UncheckedAccount<'info>,
-    /// CHECK: metaplex program
+    /// CHECK: metaplex program. this will be checked in the cpi call of thaw_delegated_account
     pub metadata_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

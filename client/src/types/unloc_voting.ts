@@ -484,6 +484,11 @@ export type UnlocVoting = {
       "code": 6012,
       "name": "InvalidProgramUpgradeAuthority",
       "msg": "The provided program upgrade authority is incorrect."
+    },
+    {
+      "code": 6013,
+      "name": "InvalidVotingNumber",
+      "msg": "InvalidVotingNumber"
     }
   ]
 };
@@ -974,6 +979,11 @@ export const IDL: UnlocVoting = {
       "code": 6012,
       "name": "InvalidProgramUpgradeAuthority",
       "msg": "The provided program upgrade authority is incorrect."
+    },
+    {
+      "code": 6013,
+      "name": "InvalidVotingNumber",
+      "msg": "InvalidVotingNumber"
     }
   ]
 };

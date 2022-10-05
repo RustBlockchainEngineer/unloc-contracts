@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount};
+use anchor_spl::token::{Mint, Token, TokenAccount};
 use std::mem::size_of;
 use std::str::FromStr;
 
@@ -11,14 +11,7 @@ pub fn handle(
     early_unlock_fee: u64,
     profile_levels: Vec<u128>,
 ) -> Result<()> {
-    let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
     let user_stake_acct_seeds: [u8; 20] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-    require_keys_eq!(ctx.accounts.reward_mint.key(), unloc_mint);
-    require_keys_eq!(ctx.accounts.reward_vault.mint, unloc_mint);
-    require!(
-        profile_levels.len() <= MAX_PROFILE_LEVEL,
-        StakingError::OverflowMaxProfileLevel
-    );
     let state = &mut ctx.accounts.state;
     state.authority = ctx.accounts.authority.key();
     state.bump = *ctx.bumps.get("state").unwrap();
@@ -35,18 +28,29 @@ pub fn handle(
 }
 
 #[derive(Accounts)]
-#[instruction()]
+#[instruction(
+    token_per_second: u64,
+    early_unlock_fee: u64,
+    profile_levels: Vec<u128>,
+)]
 pub struct CreateState<'info> {
     #[account(
         init,
         seeds = [b"state".as_ref()],
         bump,
         payer = payer,
-        space = 8 + size_of::<StateAccount>() + 16 * MAX_PROFILE_LEVEL
+        space = 8 + size_of::<StateAccount>() + 16 * MAX_PROFILE_LEVEL,
+        constraint = profile_levels.len() <= MAX_PROFILE_LEVEL @ StakingError::OverflowMaxProfileLevel
     )]
     pub state: Account<'info, StateAccount>,
-    #[account(constraint = reward_vault.owner == state.key())]
+    #[account(
+        constraint = reward_vault.owner == state.key() @ StakingError::InvalidOwner,
+        constraint = reward_vault.mint == Pubkey::from_str(UNLOC_MINT).unwrap() @ StakingError::InvalidMint
+    )]
     pub reward_vault: Account<'info, TokenAccount>,
+    #[account(
+        address = Pubkey::from_str(UNLOC_MINT).unwrap() @ StakingError::InvalidMint
+    )]
     pub reward_mint: Box<Account<'info, Mint>>,
     pub fee_vault: Account<'info, TokenAccount>,
     /// The program's upgrade authority.
@@ -66,7 +70,6 @@ pub struct CreateState<'info> {
     pub program_data: Account<'info, ProgramData>,
 
     pub system_program: Program<'info, System>,
-    #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
 }

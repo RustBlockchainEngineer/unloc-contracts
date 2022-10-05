@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token};
 
-use crate::{constant::*, states::*, utils::*};
+use crate::{constant::*, states::*, utils::*, error::*};
 use std::str::FromStr;
 use unloc_staking::states::FarmPoolUserAccount;
 
@@ -63,15 +63,6 @@ pub fn create_sub_offer(
     ctx.accounts.sub_offer.creation_date = ctx.accounts.clock.unix_timestamp as u64;
     ctx.accounts.sub_offer.bump = *ctx.bumps.get("sub_offer").unwrap();
 
-    let wsol_mint = Pubkey::from_str(WSOL_MINT).unwrap();
-    let usdc_mint = Pubkey::from_str(USDC_MINT).unwrap();
-    // let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
-    require(
-        // ctx.accounts.offer_mint.key() == unloc_mint || // featured offer is not implemented yet
-        ctx.accounts.offer_mint.key() == usdc_mint || ctx.accounts.offer_mint.key() == wsol_mint,
-        "offer_mint"
-    )?;
-
     ctx.accounts.sub_offer.offer_mint = ctx.accounts.offer_mint.key();
     ctx.accounts.sub_offer.offer_mint_decimals = ctx.accounts.offer_mint.decimals;
     ctx.accounts.sub_offer.offer_amount = offer_amount;
@@ -114,7 +105,10 @@ pub struct CreateSubOffer<'info> {
     space = std::mem::size_of::<SubOffer>() + 8
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
-
+    #[account(
+        constraint = offer_mint.key() == Pubkey::from_str(USDC_MINT).unwrap() 
+        || offer_mint.key() == Pubkey::from_str(WSOL_MINT).unwrap() @ LoanError::InvalidMint
+    )]
     pub offer_mint: Box<Account<'info, Mint>>,
 
     pub system_program: Program<'info, System>,

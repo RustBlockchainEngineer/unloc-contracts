@@ -1,11 +1,7 @@
-use crate::{constant::*, states::*, utils::*};
+use crate::{constant::*, states::*, error::*};
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 pub fn handle(ctx: Context<SetVoting>, voting: Pubkey) -> Result<()> {
-    assert_owner(
-        ctx.accounts.global_state.super_owner,
-        ctx.accounts.super_owner.key(),
-    )?;
 
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     ctx.accounts.global_state.distribute(
@@ -30,6 +26,7 @@ pub struct SetVoting<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
+        has_one = super_owner @ LoanError::InvalidOwner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 
@@ -39,11 +36,11 @@ pub struct SetVoting<'info> {
         bump = global_state.reward_vault_bump,
     )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
-    /// CHECK: safe
+    /// CHECK: safe. this will be checked in the distribute function
     pub chainlink_program: AccountInfo<'info>,
-    /// CHECK: safe
+    /// CHECK: safe. this will be checked in the distribute function
     pub sol_feed: AccountInfo<'info>,
-    /// CHECK: safe
+    /// CHECK: safe. this will be checked in the distribute function
     pub usdc_feed: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,

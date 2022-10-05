@@ -65,9 +65,6 @@ pub fn accept_offer(
         .sub_offer
         .update_rps(&ctx.accounts.global_state, &offer_mint)?;
 
-    require(ctx.accounts.offer.state == OfferState::get_state(OfferState::Proposed), "offer.state")?;
-    require(ctx.accounts.sub_offer.state != SubOfferState::get_state(SubOfferState::Canceled), "sub_offer.state")?;
-
     if ctx.accounts.offer_mint.key() == wsol_mint {
         require(ctx.accounts.lender.lamports() >= ctx.accounts.sub_offer.offer_amount, "lender.lamports()")?;
         invoke(
@@ -83,11 +80,11 @@ pub fn accept_offer(
             ],
         )?;
     } else if ctx.accounts.offer_mint.key() == usdc_mint {
-        require(ctx.accounts.lender_offer_vault.amount >= ctx.accounts.sub_offer.offer_amount, "lender_offer_vault.amount")?;
-        require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.lender.key(), "lender_offer_vault.owner")?;
-        require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.offer_mint.key(), "lender_offer_vault.mint")?;
-        require(ctx.accounts.borrower_offer_vault.owner == ctx.accounts.offer.borrower, "borrower_offer_vault.owner")?;
-        require(ctx.accounts.borrower_offer_vault.mint == ctx.accounts.offer_mint.key(), "borrower_offer_vault.mint")?;
+        require(ctx.accounts.lender_offer_vault.amount >= ctx.accounts.sub_offer.offer_amount, "wrong lender_offer_vault.amount")?;
+        require(ctx.accounts.lender_offer_vault.owner == ctx.accounts.lender.key(), "wrong lender_offer_vault.owner")?;
+        require(ctx.accounts.lender_offer_vault.mint == ctx.accounts.offer_mint.key(), "wrong lender_offer_vault.mint")?;
+        require(ctx.accounts.borrower_offer_vault.owner == ctx.accounts.offer.borrower, "wrong borrower_offer_vault.owner")?;
+        require(ctx.accounts.borrower_offer_vault.mint == ctx.accounts.offer_mint.key(), "wrong borrower_offer_vault.mint")?;
         let cpi_accounts = Transfer {
             from: ctx.accounts.lender_offer_vault.to_account_info(),
             to: ctx.accounts.borrower_offer_vault.to_account_info(),
@@ -135,17 +132,19 @@ pub struct AcceptOffer<'info> {
     #[account(mut,
     seeds = [OFFER_TAG, borrower.key().as_ref(), offer.nft_mint.as_ref()],
     bump = offer.bump,
+    constraint = offer.state == OfferState::get_state(OfferState::Proposed) @ LoanError::InvalidState
     )]
     pub offer: Box<Account<'info, Offer>>,
 
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
     bump = sub_offer.bump,
+    constraint = sub_offer.state != SubOfferState::get_state(SubOfferState::Canceled) @ LoanError::InvalidState
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,
 
     #[account(mut,
-        constraint = sub_offer.offer_mint == offer_mint.key()
+        constraint = sub_offer.offer_mint == offer_mint.key() @ LoanError::InvalidMint
     )]
     pub offer_mint: Box<Account<'info, Mint>>,
 
@@ -155,13 +154,13 @@ pub struct AcceptOffer<'info> {
     #[account(mut)]
     pub lender_offer_vault: Box<Account<'info, TokenAccount>>,
 
-    /// CHECK: Safe
+    /// CHECK: Safe. this will be checked in the distribute function
     pub chainlink_program: AccountInfo<'info>,
 
-    /// CHECK: Safe
+    /// CHECK: Safe. this will be checked in the distribute function
     pub sol_feed: AccountInfo<'info>,
 
-    /// CHECK: Safe
+    /// CHECK: Safe. this will be checked in the distribute function
     pub usdc_feed: AccountInfo<'info>,
 
     #[account(

@@ -1,12 +1,7 @@
-use crate::{constant::*, states::*, utils::*};
+use crate::{constant::*, states::*, error::*};
 use anchor_lang::prelude::*;
 
 pub fn handle(ctx: Context<SetStakingPool>, unloc_staking_pool_id: Pubkey) -> Result<()> {
-    assert_owner(
-        ctx.accounts.global_state.super_owner,
-        ctx.accounts.super_owner.key(),
-    )?;
-
     ctx.accounts.global_state.unloc_staking_pool_id = unloc_staking_pool_id;
 
     Ok(())
@@ -22,6 +17,7 @@ pub struct SetStakingPool<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
+        has_one = super_owner @ LoanError::InvalidOwner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 }

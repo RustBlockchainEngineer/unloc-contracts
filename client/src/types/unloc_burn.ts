@@ -442,23 +442,53 @@ export type UnlocBurn = {
     },
     {
       "code": 6009,
+      "name": "InvalidMint",
+      "msg": "InvalidMint"
+    },
+    {
+      "code": 6010,
       "name": "InvalidAmount",
       "msg": "InvalidAmount"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "InvalidDenominator",
       "msg": "InvalidDenominator"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "InvalidProgramData",
       "msg": "The provided program data is incorrect."
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "InvalidProgramUpgradeAuthority",
       "msg": "The provided program upgrade authority is incorrect."
+    },
+    {
+      "code": 6014,
+      "name": "InvalidBurner",
+      "msg": "InvalidBurner"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidAmm",
+      "msg": "InvalidAmm"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidSerumProgram",
+      "msg": "InvalidSerumProgram"
+    },
+    {
+      "code": 6017,
+      "name": "InvalidSerumMarket",
+      "msg": "InvalidSerumMarket"
+    },
+    {
+      "code": 6018,
+      "name": "InvalidVault",
+      "msg": "InvalidVault"
     }
   ]
 };
@@ -907,23 +937,53 @@ export const IDL: UnlocBurn = {
     },
     {
       "code": 6009,
+      "name": "InvalidMint",
+      "msg": "InvalidMint"
+    },
+    {
+      "code": 6010,
       "name": "InvalidAmount",
       "msg": "InvalidAmount"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "InvalidDenominator",
       "msg": "InvalidDenominator"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "InvalidProgramData",
       "msg": "The provided program data is incorrect."
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "InvalidProgramUpgradeAuthority",
       "msg": "The provided program upgrade authority is incorrect."
+    },
+    {
+      "code": 6014,
+      "name": "InvalidBurner",
+      "msg": "InvalidBurner"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidAmm",
+      "msg": "InvalidAmm"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidSerumProgram",
+      "msg": "InvalidSerumProgram"
+    },
+    {
+      "code": 6017,
+      "name": "InvalidSerumMarket",
+      "msg": "InvalidSerumMarket"
+    },
+    {
+      "code": 6018,
+      "name": "InvalidVault",
+      "msg": "InvalidVault"
     }
   ]
 };

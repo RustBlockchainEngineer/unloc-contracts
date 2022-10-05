@@ -1660,26 +1660,31 @@ export type UnlocLoan = {
     },
     {
       "code": 6009,
+      "name": "InvalidMint",
+      "msg": "InvalidMint"
+    },
+    {
+      "code": 6010,
       "name": "InvalidAmount",
       "msg": "InvalidAmount"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "InvalidDenominator",
       "msg": "InvalidDenominator"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "CooldownPeriod",
       "msg": "Must wait until current cooldown period resets before redeeming liquidity mining rewards again."
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "InvalidProgramData",
       "msg": "The provided program data is incorrect."
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "InvalidProgramUpgradeAuthority",
       "msg": "The provided program upgrade authority is incorrect."
     }
@@ -3348,26 +3353,31 @@ export const IDL: UnlocLoan = {
     },
     {
       "code": 6009,
+      "name": "InvalidMint",
+      "msg": "InvalidMint"
+    },
+    {
+      "code": 6010,
       "name": "InvalidAmount",
       "msg": "InvalidAmount"
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "InvalidDenominator",
       "msg": "InvalidDenominator"
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "CooldownPeriod",
       "msg": "Must wait until current cooldown period resets before redeeming liquidity mining rewards again."
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "InvalidProgramData",
       "msg": "The provided program data is incorrect."
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "InvalidProgramUpgradeAuthority",
       "msg": "The provided program upgrade authority is incorrect."
     }

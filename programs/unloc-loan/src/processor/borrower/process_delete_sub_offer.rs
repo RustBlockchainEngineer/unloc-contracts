@@ -1,13 +1,7 @@
-use crate::{constant::*, states::*, utils::*};
+use crate::{constant::*, states::*, utils::*, error::*};
 use anchor_lang::prelude::*;
 
 pub fn handle(ctx: Context<DeleteSubOffer>) -> Result<()> {
-    require(
-        ctx.accounts.sub_offer.state == SubOfferState::get_state(SubOfferState::Proposed)
-            || ctx.accounts.sub_offer.state == SubOfferState::get_state(SubOfferState::NFTClaimed),
-        "ctx.accounts.sub_offer.state"
-    )?;
-
     ctx.accounts.offer.deleted_sub_offer_count.safe_add(1)?;
     Ok(())
 }
@@ -27,6 +21,8 @@ pub struct DeleteSubOffer<'info> {
     #[account(mut,
     seeds = [SUB_OFFER_TAG, offer.key().as_ref(), &sub_offer.sub_offer_number.to_be_bytes()],
     bump = sub_offer.bump,
+    constraint = sub_offer.state == SubOfferState::get_state(SubOfferState::Proposed)
+        || sub_offer.state == SubOfferState::get_state(SubOfferState::NFTClaimed) @ LoanError::InvalidState,
     close = borrower
     )]
     pub sub_offer: Box<Account<'info, SubOffer>>,

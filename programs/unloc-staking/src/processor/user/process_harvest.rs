@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use std::convert::TryInto;
 
-use crate::{utils::*, states::*};
+use crate::{utils::*, states::*, error::*};
 
 pub fn handle(ctx: Context<Harvest>) -> Result<()> {
     let extra_account = &mut ctx.accounts.extra_reward_account;
@@ -50,7 +50,11 @@ pub fn handle(ctx: Context<Harvest>) -> Result<()> {
 #[derive(Accounts)]
 pub struct Harvest<'info> {
     #[account(mut,
-        seeds = [pool.key().as_ref(), authority.key().as_ref(), user.stake_seed.to_le_bytes().as_ref()], bump = user.bump, has_one = pool, has_one = authority)]
+        seeds = [pool.key().as_ref(), authority.key().as_ref(), user.stake_seed.to_le_bytes().as_ref()],
+        bump = user.bump,
+        has_one = pool @ StakingError::InvalidPool,
+        has_one = authority @ StakingError::InvalidAuthority
+    )]
     pub user: Account<'info, FarmPoolUserAccount>,
     #[account(mut,
         seeds = [b"state".as_ref()], bump = state.bump)]
@@ -63,16 +67,19 @@ pub struct Harvest<'info> {
     pub pool: Account<'info, FarmPoolAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
-    #[account(constraint = mint.key() == pool.mint)]
+    #[account(
+        address = pool.mint @ StakingError::InvalidMint
+    )]
     pub mint: Box<Account<'info, Mint>>,
     #[account(mut,
-        constraint = reward_vault.owner == state.key())]
+        constraint = reward_vault.owner == state.key() @ StakingError::InvalidOwner
+    )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
     #[account(mut,
-        constraint = user_vault.owner == authority.key())]
+        constraint = user_vault.owner == authority.key() @ StakingError::InvalidOwner
+    )]
     pub user_vault: Box<Account<'info, TokenAccount>>,
     pub system_program: Program<'info, System>,
-    #[account(constraint = token_program.key == &token::ID)]
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,
 }

@@ -2,20 +2,18 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::Token;
 
 use crate::{
-    // error::*,
+    error::*,
     constant::*,
     states::*,
     utils::*,
 };
 
 pub fn process_set_voting_item(ctx: Context<SetVotingItem>, key: Pubkey) -> Result<()> {
-    if is_zero_account(&ctx.accounts.voting_item.to_account_info()) {
-        ctx.accounts.voting.total_items = ctx.accounts.voting.total_items.safe_add(1)?;
-        ctx.accounts.voting_item.key = key;
-        ctx.accounts.voting_item.voting = ctx.accounts.voting.key();
-        ctx.accounts.voting_item.voting_score = 0;
-        ctx.accounts.voting_item.bump = *ctx.bumps.get("voting_item").unwrap();
-    }
+    ctx.accounts.voting.total_items = ctx.accounts.voting.total_items.safe_add(1)?;
+    ctx.accounts.voting_item.key = key;
+    ctx.accounts.voting_item.voting = ctx.accounts.voting.key();
+    ctx.accounts.voting_item.voting_score = 0;
+    ctx.accounts.voting_item.bump = *ctx.bumps.get("voting_item").unwrap();
     Ok(())
 }
 
@@ -31,7 +29,7 @@ pub struct SetVotingItem<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
-        has_one = super_owner
+        has_one = super_owner @ VotingError::InvalidOwner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 

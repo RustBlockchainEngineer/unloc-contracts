@@ -1,4 +1,4 @@
-use crate::{constant::*, states::*};
+use crate::{constant::*, states::*, error::*};
 use anchor_lang::prelude::*;
 pub fn process_update_global_state(
     ctx: Context<UpdateGlobalState>,
@@ -21,7 +21,7 @@ pub struct UpdateGlobalState<'info> {
         mut,
         seeds = [GLOBAL_STATE_TAG],
         bump = global_state.bump,
-        has_one = super_owner
+        has_one = super_owner @ VotingError::InvalidOwner
     )]
     pub global_state: Box<Account<'info, GlobalState>>,
 }

@@ -1,8 +1,9 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-use crate::{constant::*, states::*, utils::*};
+use crate::{constant::*, states::*, error::*, utils::*};
 use std::str::FromStr;
+
 pub fn handle(ctx: Context<WithdrawRewards>, amount: u64) -> Result<()> {
     let current_time = ctx.accounts.clock.unix_timestamp as u64;
     ctx.accounts.global_state.distribute(
@@ -13,10 +14,6 @@ pub fn handle(ctx: Context<WithdrawRewards>, amount: u64) -> Result<()> {
         &ctx.accounts.usdc_feed.to_account_info(),
     )?;
 
-    let unloc_mint = Pubkey::from_str(UNLOC_MINT).unwrap();
-    require(ctx.accounts.user_reward_vault.mint == unloc_mint, "ctx.accounts.user_reward_vault.mint")?;
-    require(ctx.accounts.user_reward_vault.owner == ctx.accounts.authority.key(), "ctx.accounts.user_reward_vault.owner")?;
-    require(amount > 0, "amount")?;
     let global_bump = *ctx.bumps.get("global_state").unwrap();
     let signer_seeds = &[GLOBAL_STATE_TAG, &[global_bump]];
     let signer = &[&signer_seeds[..]];
@@ -42,12 +39,12 @@ pub fn handle(ctx: Context<WithdrawRewards>, amount: u64) -> Result<()> {
 
     token::transfer(cpi_ctx, withraw_amount)?;
 
-    ctx.accounts.global_state.funded_amount -= withraw_amount;
+    ctx.accounts.global_state.funded_amount = ctx.accounts.global_state.funded_amount.safe_sub(withraw_amount)?;
     Ok(())
 }
 
 #[derive(Accounts)]
-#[instruction()]
+#[instruction(amount: u64)]
 pub struct WithdrawRewards<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -63,14 +60,18 @@ pub struct WithdrawRewards<'info> {
         bump = global_state.reward_vault_bump,
     )]
     pub reward_vault: Box<Account<'info, TokenAccount>>,
-    /// CHECK: safe
+    /// CHECK: safe. this will be checked in the distribute function
     pub chainlink_program: AccountInfo<'info>,
-    /// CHECK: safe
+    /// CHECK: safe. this will be checked in the distribute function
     pub sol_feed: AccountInfo<'info>,
-    /// CHECK: safe
+    /// CHECK: safe. this will be checked in the distribute function
     pub usdc_feed: AccountInfo<'info>,
 
-    #[account(mut)]
+    #[account(mut,
+        constraint = user_reward_vault.mint == Pubkey::from_str(UNLOC_MINT).unwrap() @ LoanError::InvalidMint,
+        constraint = user_reward_vault.owner == authority.key() @ LoanError::InvalidOwner,
+        constraint = amount > 0 @ LoanError::InvalidAmount
+    )]
     pub user_reward_vault: Box<Account<'info, TokenAccount>>,
     pub token_program: Program<'info, Token>,
     pub clock: Sysvar<'info, Clock>,

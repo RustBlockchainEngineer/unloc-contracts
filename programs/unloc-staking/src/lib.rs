@@ -110,7 +110,7 @@ pub mod unloc_staking {
     }
 
     pub fn unstake(
-        ctx: Context<Stake>,
+        ctx: Context<UnStake>,
         amount: u64
     ) -> Result<()> {
         process_unstake::handle(ctx, amount)
