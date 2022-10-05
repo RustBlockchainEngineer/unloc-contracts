@@ -1,8 +1,12 @@
 {
   "scripts": {
-    "build": "ts-node ./scripts/build.ts",
-    "test": "ts-node ./scripts/test.ts"
+    "build": "yarn run build-only && yarn run idl",
+    "test": "yarn run build-only && yarn run idl && yarn run test-skip-build",
+    "build-only": "ts-node ./scripts/build.ts",
+    "test-skip-build": "ts-node ./scripts/test.ts --skip-build",
+    "idl": "cp -R target/types client/src"
   },
+  "license": "Apache-2.0",
   "dependencies": {
     "@solana/web3.js": "^1.43.3"
   },
